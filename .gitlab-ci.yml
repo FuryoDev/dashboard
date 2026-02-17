@@ -1,0 +1,18 @@
+include:
+  project: gitlab/ci-templates
+  ref: master
+  file: /node-k8s_dev-test-prod.yml
+
+variables:
+  NODE_CLI_INSTALL: npm install
+  NODE_CLI_BUILD: npm run ci:build
+  K8S_INGRESS_HTTP_PATH: /
+
+build:node:
+  before_script:
+  - apk add --no-cache git; git config --global url."https://".insteadOf ssh://; if [ "$(grep "https://$CI_SERVER_HOST" "$NODE_PACKAGE_FILE")"
+    ]; then sed -i "s|https://$CI_SERVER_HOST|https://${CI_REGISTRY_USER}:${CI_JOB_TOKEN}@${CI_SERVER_HOST}|g"
+    "$NODE_PACKAGE_FILE"; echo "Dépendances GitLab (en HTTPS) configurées afin de
+    pouvoir être téléchargées."; fi; if [ "$(grep "git@$CI_SERVER_HOST" "$NODE_PACKAGE_FILE")"
+    ]; then echo "WARNING - Les dépendances GitLab devant être accédées en SSH ne
+    sont pas gérés pour l'instant !"; fi;

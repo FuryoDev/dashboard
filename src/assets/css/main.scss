@@ -1,0 +1,13 @@
+// Bootstrap Overwrite
+@import "_variables.scss";                 
+
+// Bootstrap Sass Import
+
+@import "~bootstrap/scss/bootstrap";
+@import '~bootstrap-vue/src/index.scss';
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+// Layout
+// @import "./layout/_layout.scss";
+
+// Components
+// @import "./components/_buttons.scss";

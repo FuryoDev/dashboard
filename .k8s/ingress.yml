@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "$K8S_SERVICE_NAME-ingress"
+  namespace: "$K8S_NAMESPACE"
+spec:
+  rules:
+    - host: "$K8S_INGRESS_HOST"
+      http:
+        paths:
+          - path: "$K8S_INGRESS_HTTP_PATH"
+            pathType: Prefix
+            backend:
+              service:
+                name: "$K8S_SERVICE_NAME-service"
+                port:
+                  number: $CONTAINER_PORT_1         
