@@ -41,6 +41,15 @@
           ></b-form-select>
         </b-form-group>
       </b-col>
+      <b-col v-if="showVodTypeFilter" cols="3" sm="2">
+        <b-form-group id="vod-type" label="Type VOD:" label-for="vod-type-select">
+          <b-form-select
+            id="vod-type-select"
+            v-model="searchemission.vodType"
+            :options="optionVodTypeList"
+          ></b-form-select>
+        </b-form-group>
+      </b-col>
       <b-col cols="5" sm="2">
         <b-form-group
           id="channel-diff"
