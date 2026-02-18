@@ -181,9 +181,9 @@ export default {
     isAdmin() {
       const userGroups = this.getCurrentUserGroups();
       // Version PROD:
-      return userGroups.includes("GR_vodoo_admin");
+      //return userGroups.includes("GR_vodoo_admin");
       // Version LOCAL (décommenter pour tester en local):
-      // return userGroups.includes("vodoo_api");
+      return userGroups.includes("vodoo_api");
     },
   },
   watch: {
@@ -264,10 +264,10 @@ export default {
     },
     getCurrentUserGroups() {
       // Version PROD:
-      return this.$store.getters.user.groups || [];
+      //return this.$store.getters.user.groups || [];
 
       // Version LOCAL (décommenter pour tester en local):
-      // return (this.$store.getters.user.groups || []).includes("vodoo_api")
+      return (this.$store.getters.user.groups || []).includes("vodoo_api")
       //   ? ["GR_vodoo_fasttv", "GR_vodoo_catch", "GR_vodoo_admin"]
       //   : this.$store.getters.user.groups || [];
     },
