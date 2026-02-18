@@ -262,14 +262,27 @@ export default {
       }
       return vodType;
     },
+    normalizeGroups(groups) {
+      if (Array.isArray(groups)) {
+        return groups;
+      }
+      if (typeof groups === "string") {
+        return [groups];
+      }
+      if (groups && typeof groups === "object") {
+        return Object.values(groups);
+      }
+      return [];
+    },
     getCurrentUserGroups() {
+      const groups = this.normalizeGroups(this.$store.getters.user.groups);
       // Version PROD:
-      //return this.$store.getters.user.groups || [];
+      return groups;
 
       // Version LOCAL (décommenter pour tester en local):
-      return (this.$store.getters.user.groups || []).includes("vodoo_api")
+      // return groups.includes("vodoo_api")
       //   ? ["GR_vodoo_fasttv", "GR_vodoo_catch", "GR_vodoo_admin"]
-      //   : this.$store.getters.user.groups || [];
+      //   : groups;
     },
     syncVodTypeFilter() {
       const userGroups = this.getCurrentUserGroups();
