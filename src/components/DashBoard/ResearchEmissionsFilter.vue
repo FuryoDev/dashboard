@@ -179,6 +179,7 @@ export default {
       return this.isAdmin || this.optionVodTypeList.length > 1;
     },
     isAdmin() {
+      console.log(this.$store.getters.user)
       return (this.$store.getters.user.groups || []).includes("GR_vodoo_admin");
     },
   },
