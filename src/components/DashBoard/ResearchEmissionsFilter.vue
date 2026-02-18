@@ -179,8 +179,11 @@ export default {
       return this.isAdmin || this.optionVodTypeList.length > 1;
     },
     isAdmin() {
-      console.log(this.$store.getters.user)
-      return (this.$store.getters.user.groups || []).includes("GR_vodoo_admin");
+      const userGroups = this.getCurrentUserGroups();
+      // Version PROD:
+      return userGroups.includes("GR_vodoo_admin");
+      // Version LOCAL (décommenter pour tester en local):
+      // return userGroups.includes("vodoo_api");
     },
   },
   watch: {
@@ -259,8 +262,17 @@ export default {
       }
       return vodType;
     },
+    getCurrentUserGroups() {
+      // Version PROD:
+      return this.$store.getters.user.groups || [];
+
+      // Version LOCAL (décommenter pour tester en local):
+      // return (this.$store.getters.user.groups || []).includes("vodoo_api")
+      //   ? ["GR_vodoo_fasttv", "GR_vodoo_catch", "GR_vodoo_admin"]
+      //   : this.$store.getters.user.groups || [];
+    },
     syncVodTypeFilter() {
-      const userGroups = this.$store.getters.user.groups || [];
+      const userGroups = this.getCurrentUserGroups();
       const allVodTypes = Object.keys(this.vodTypeGroups);
       const availableVodTypes = this.isAdmin
         ? allVodTypes
