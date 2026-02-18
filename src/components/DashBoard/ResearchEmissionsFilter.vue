@@ -90,6 +90,17 @@
       </b-col>
     </b-row>
     <b-row>
+      <b-col v-if="showVodTypeFilter" cols="5" sm="3">
+        <b-form-group id="vod-type" label="Type VOD:" label-for="vod-type-select">
+          <b-form-select
+            id="vod-type-select"
+            v-model="searchemission.vodType"
+            :options="optionVodTypeList"
+          ></b-form-select>
+        </b-form-group>
+      </b-col>
+    </b-row>
+    <b-row>
       <b-col cols="5" sm="3" class="mb-2">
         <b-form-checkbox v-model="rechauto" @change="rechercheAuto()"
           >Recherch auto</b-form-checkbox
@@ -130,12 +141,15 @@ export default {
         // { value: "IGNORE", text: "IGNORE" },
       ],
       loading: false,
+      vodTypeGroups: {},
+      optionVodTypeList: [],
       //  change: "Interdire traitement automatique",
       searchemission: {
         voddate: new Date(),
         chainedif: [],
         plateforme: [],
         status: [],
+        vodType: "",
       },
       rechauto: false,
       reasonmissed: false,
@@ -149,6 +163,24 @@ export default {
     this.onSelectDateDay();
     this.getChannelList();
     this.getPlateformList();
+    this.getVodTypeList();
+  },
+  computed: {
+    showVodTypeFilter() {
+      return this.isAdmin || this.optionVodTypeList.length > 1;
+    },
+    isAdmin() {
+      const userGroups = this.getCurrentUserGroups();
+      // Version PROD:
+      return userGroups.includes("GR_vodoo_admin");
+      // Version LOCAL (décommenter pour tester en local):
+      // return userGroups.includes("vodoo_api");
+    },
+  },
+  watch: {
+    "$store.state.user"() {
+      this.syncVodTypeFilter();
+    },
   },
   methods: {
     getChannelList() {
@@ -193,6 +225,73 @@ export default {
           }
         )
         .finally(() => (this.loading = false));
+    },
+    getVodTypeList() {
+      axios
+        .get(this.$store.getters.getUrlBaseService + "notification/service/vodTypes")
+        .then(
+          (result) => {
+            result.data.forEach((elt) => {
+              const vodType = Object.keys(elt)[0];
+              const groupName = Object.values(elt)[0];
+              this.$set(this.vodTypeGroups, vodType, groupName);
+            });
+            this.syncVodTypeFilter();
+          },
+          (error) => {
+            console.error(error);
+          }
+        )
+        .finally(() => (this.loading = false));
+    },
+    getVodTypeText(vodType) {
+      if (vodType === "FAST_TV") {
+        return "FAST";
+      }
+      if (vodType === "FVOD_CATCHUP") {
+        return "CATCH";
+      }
+      return vodType;
+    },
+    normalizeGroups(groups) {
+      if (Array.isArray(groups)) {
+        return groups;
+      }
+      if (typeof groups === "string") {
+        return [groups];
+      }
+      if (groups && typeof groups === "object") {
+        return Object.values(groups);
+      }
+      return [];
+    },
+    getCurrentUserGroups() {
+      const groups = this.normalizeGroups(this.$store.getters.user.groups);
+      // Version PROD:
+      return groups;
+
+      // Version LOCAL (décommenter pour tester en local):
+      // return groups.includes("vodoo_api")
+      //   ? ["GR_vodoo_fasttv", "GR_vodoo_catch", "GR_vodoo_admin"]
+      //   : groups;
+    },
+    syncVodTypeFilter() {
+      const userGroups = this.getCurrentUserGroups();
+      const allVodTypes = Object.keys(this.vodTypeGroups);
+      const availableVodTypes = this.isAdmin
+        ? allVodTypes
+        : allVodTypes.filter((vodType) => userGroups.includes(this.vodTypeGroups[vodType]));
+
+      this.optionVodTypeList = availableVodTypes.map((vodType) => ({
+        value: vodType,
+        text: this.getVodTypeText(vodType),
+      }));
+
+      if (availableVodTypes.length === 1) {
+        this.searchemission.vodType = availableVodTypes[0];
+      } else if (!availableVodTypes.includes(this.searchemission.vodType)) {
+        this.searchemission.vodType = "";
+      }
     },
     onSelectDateDay(e) {
       const d = e
@@ -282,6 +381,9 @@ export default {
             let data = result.data;
             if (data) {
               data = data.filter((p) => p.action == null || p.action.match(/Deleted/i) == null);
+              if (this.searchemission.vodType) {
+                data = data.filter((p) => p.vodType === this.searchemission.vodType);
+              }
             } else {
               data = [];
             }
