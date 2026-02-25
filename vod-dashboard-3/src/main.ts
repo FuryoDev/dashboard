@@ -1,9 +1,9 @@
-import {createApp} from "vue";
+import { createApp } from "vue";
 import App from "@/App.vue";
 import router from "@/router";
-import {pinia} from "@/stores";
-import {assertEnvVariables} from "@/config/env";
-import {createHttpClient} from "@/services/http";
+import { pinia } from "@/stores";
+import { assertEnvVariables, buildWsUrl } from "@/config/env";
+import { createHttpClient } from "@/services/http";
 
 import "@/assets/css/main.scss";
 
@@ -15,5 +15,6 @@ app.use(pinia);
 app.use(router);
 
 app.provide("http", createHttpClient());
+app.provide("wsUrl", buildWsUrl());
 
 app.mount("#app");
