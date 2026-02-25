@@ -2,21 +2,16 @@ import axios, { type AxiosInstance } from "axios";
 import { env } from "@/config/env";
 
 export function createHttpClient(): AxiosInstance {
-    const http = axios.create({
-        baseURL: env.apiBaseUrl,
-        timeout: 30_000,
-    });
+  const http = axios.create({
+    baseURL: env.apiBaseUrl,
+    timeout: 30_000,
+    headers: env.apiKey ? { apikey: env.apiKey } : undefined,
+  });
 
-    http.interceptors.request.use((config) => {
-        return config;
-    });
+  http.interceptors.response.use(
+    (response) => response,
+    (error) => Promise.reject(error),
+  );
 
-    http.interceptors.response.use(
-        (res) => res,
-        (err) => {
-            // plus tard: gestion globale (401, toast, retry...)
-            return Promise.reject(err);
-        }
-    );
-    return http;
+  return http;
 }
