@@ -1,8 +1,7 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-import EnvironmentVariables from '../env';
-Vue.use(Vuex)
-export default new Vuex.Store({
+import { createStore } from 'vuex'
+import EnvironmentVariables from '../env'
+
+export default createStore({
   state: {
     urlBaseService: EnvironmentVariables.get().urlBaseService,
     urlvodwonstatusservice: EnvironmentVariables.get().urlvodwonstatusservice,
@@ -180,8 +179,7 @@ export default new Vuex.Store({
        state.ProductToGenerate= newelementtogenerate
     },
     SOCKET_ONOPEN (state, event) {
-      //console.log("socket 2");
-      Vue.prototype.$socket = event.currentTarget;
+      state.socket.connection = event.currentTarget
       state.socket.isConnected = true
     },
     SOCKET_ONCLOSE (state, event) {
