@@ -1,74 +1,57 @@
 <template>
   <b-container fluid id="dashboard">
     <div class="sizedivsearch">
-       <ResearchEmissionsFilter ref="rechercheauto"/>
+      <ResearchEmissionsFilter ref="rechercheauto" />
     </div>
     <div class="sizediv">
-     <Emissions @rechautoevent="rechercheAutoEvent" @statusChangeEvent="updateDb"/>
+      <Emissions @rechautoevent="rechercheAutoEvent" @statusChangeEvent="updateDb" />
     </div>
     <div class="sizedivsdetail">
-    <DetailOfferTranscodeEmission />
+      <DetailOfferTranscodeEmission />
     </div>
   </b-container>
-  <!-- <div class="fill">
-    <div class="sizedivsearch ">
-       <ResearchEmissionsFilter />
-    </div>
-    <div class="sizediv">
-     <Emissions/>
-    </div>
-    <div class="sizedivsdetail">
-    <DetailOfferTranscodeEmission />
-    </div>
-  </div> -->
 </template>
 
 <script>
+import { defineComponent, ref } from 'vue'
 import Emissions from '../components/DashBoard/Emissions.vue'
 import ResearchEmissionsFilter from '../components/DashBoard/ResearchEmissionsFilter.vue'
 import DetailOfferTranscodeEmission from '../components/DashBoard/DetailOfferTranscodeEmission.vue'
-//import VodSwing from '../components/DashBoard/VodSwing.vue'
-export default {
+
+export default defineComponent({
   name: 'dashboard',
-  data() {
-    return {
-      selectedLigne:""
-    }
-  },
   components: {
-    Emissions, 
+    Emissions,
     ResearchEmissionsFilter,
     DetailOfferTranscodeEmission,
-
   },
-  methods: {
+  setup() {
+    const rechercheauto = ref(null)
 
-    rechercheAutoEvent (payload){
-      this.$refs.rechercheauto.rechercheAutoEvent(payload);
-    },
-    updateDb(){
-    //   console.log("je suis dans le parent")
-       this.$refs.rechercheauto.searchEmission() 
+    const rechercheAutoEvent = (payload) => {
+      rechercheauto.value?.rechercheAutoEvent(payload)
     }
-   /*     updateTable() {
-             this.$refs.emissionsRef.updateSelectLigne(this.selectedLigne);
-        },
-        updateSelectedLigne(item){
-          this.selectedLigne = item
 
-        }*/
+    const updateDb = () => {
+      rechercheauto.value?.searchEmission()
     }
-}
+
+    return {
+      rechercheauto,
+      rechercheAutoEvent,
+      updateDb,
+    }
+  },
+})
 </script>
 
 <style lang="scss">
 #dashboard {
   height: 100%;
-  min-height: 100%; 
+  min-height: 100%;
   margin-top: 40px;
-  
 }
-.sizediv { 
+.sizediv {
   height: calc(55vh - 10px);
   border-radius: 10px;
   padding: 10px;

@@ -1,20 +1,24 @@
 <template>
   <div class="hello">
-    accueil de l'application 
+    accueil de l'application
   </div>
 </template>
 
 <script>
-export default {
+import { defineComponent } from 'vue'
+
+export default defineComponent({
   name: 'accueil',
   props: {
-    msg: String
-  }
-}
+    msg: String,
+  },
+  setup() {
+    return {}
+  },
+})
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style >
+<style>
 h3 {
   margin: 40px 0 0;
 }
