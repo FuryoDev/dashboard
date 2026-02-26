@@ -1,7 +1,5 @@
 <template>
   <section class="manual-page">
-    <h1>Traitement manuel</h1>
-
     <form class="manual-page__filters" @submit.prevent="search">
       <label>
         Date
@@ -9,7 +7,7 @@
       </label>
 
       <label>
-        Chaîne
+        Chaine de diffusion
         <select v-model="selectedChannel">
           <option v-for="channel in channels" :key="channel.value" :value="channel.value">
             {{ channel.text }}
@@ -58,40 +56,38 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .manual-page {
-  background: #f5f5f5;
-}
-
-h1 {
-  margin: 0 0 0.75rem;
-  font-size: 1.25rem;
+  background: #2f9f8f;
+  min-height: calc(100vh - 80px);
+  padding: 0.5rem;
 }
 
 .manual-page__filters {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
   gap: 0.75rem;
   padding: 0.75rem;
+  border-radius: 8px;
   border: 1px solid #d9d9d9;
-  background: #fff;
+  background: #efeded;
 }
 
 label {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.875rem;
 }
 
 input,
 select {
+  flex: 1;
   border: 1px solid #c2c2c2;
   padding: 0.3rem 0.4rem;
 }
 
 button {
-  align-self: end;
-  border: 1px solid #1f2a44;
-  background: #1f2a44;
+  border: 1px solid #2f9f8f;
+  background: #2f9f8f;
   color: #fff;
   padding: 0.4rem 0.7rem;
   cursor: pointer;

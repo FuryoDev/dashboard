@@ -12,10 +12,15 @@ export interface RecordStatusItem {
   useCase?: RecordStatusUseCase;
   caseComment?: string;
   creationTimestamp?: string;
+  scheduleDelay?: string | number;
+  createdBy?: string;
+  transcodeProgress?: string | number;
+  [key: string]: unknown;
 }
 
 export interface PlatformOffer {
   offerName?: string;
+  name?: string;
   recordvodxmlid?: string | number;
   offers?: Array<{ oid?: string | number; name?: string }>;
   [key: string]: unknown;
@@ -25,6 +30,11 @@ export interface Emission {
   idRecord?: string | number;
   title?: string;
   vodType?: string;
+  chaine?: string;
+  duree?: string;
+  idEpisode?: string | number;
+  idStk?: string;
+  action?: string;
   statusEmission?: string;
   globalPubStatusName?: string;
   plannedDateTime?: string;
