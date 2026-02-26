@@ -265,8 +265,23 @@ async function fetchDetails(emission: Emission) {
       idEpisode ? http.get(`subtitle/service/medias/episode/${idEpisode}`) : Promise.resolve({ data: [] }),
     ]);
 
+    const asArray = <T>(value: unknown): T[] => {
+      if (Array.isArray(value)) return value as T[];
+      if (value && typeof value === "object") {
+        const record = value as Record<string, unknown>;
+        if (Array.isArray(record.data)) return record.data as T[];
+        if (Array.isArray(record.items)) return record.items as T[];
+        if (Array.isArray(record.content)) return record.content as T[];
+      }
+      return [];
+    };
+
+    const jobsData = asArray<Record<string, unknown>>(jobsResponse.data);
+    const segmentsData = asArray<SegmentItem>(segmentsResponse.data);
+    const subtitlesData = asArray<SubtitleItem>(subtitlesResponse.data);
+
     const firstOffer = offers.value[0] ?? {};
-    jobs.value = (jobsResponse.data ?? []).map((item: Record<string, unknown>) => ({
+    jobs.value = jobsData.map((item: Record<string, unknown>) => ({
       profileName: String(firstOffer.name ?? ""),
       offer: String(firstOffer.offerName ?? ""),
       lastStatus: String(item.status ?? ""),
@@ -278,8 +293,8 @@ async function fetchDetails(emission: Emission) {
       comment: String(item.message ?? ""),
     }));
 
-    segments.value = Array.isArray(segmentsResponse.data) ? (segmentsResponse.data as SegmentItem[]) : [];
-    subtitles.value = Array.isArray(subtitlesResponse.data) ? (subtitlesResponse.data as SubtitleItem[]) : [];
+    segments.value = segmentsData;
+    subtitles.value = subtitlesData;
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
     error.value =
