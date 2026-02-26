@@ -11,6 +11,9 @@ const API_PATHS = [
   "/vodwonstatus",
   "/media",
   "/diva-monitoring",
+  "/transcode",
+  "/subtitle",
+  "/distribution",
 ];
 
 export default defineConfig(({ mode }) => {
