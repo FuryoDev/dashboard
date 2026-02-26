@@ -8,7 +8,7 @@
       @bulk-clean="onBulkClean"
     />
 
-    <p v-if="emissionsStore.error" class="error">{{ emissionsStore.error }}</p>
+    <p v-if="emissionsStore.error" class="error">[Dashboard] {{ emissionsStore.error }}</p>
 
     <EmissionsTable
       :emissions="emissionsStore.items"

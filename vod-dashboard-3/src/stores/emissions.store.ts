@@ -13,6 +13,11 @@ type FetchParams = {
   vodType?: string;
 };
 
+function toDetailedError(error: unknown, context: string): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return `Erreur dans ${context}: ${message}`;
+}
+
 export const useEmissionsStore = defineStore("emissions", {
   state: () => ({
     items: [] as Emission[],
@@ -55,7 +60,7 @@ export const useEmissionsStore = defineStore("emissions", {
       this.loading = true;
       this.error = null;
       try {
-        const api = createNotificationApi(useHttp());
+        const api = createNotificationApi(useHttp("emissions.fetchFilterOptions"));
         const [channels, platforms, vodTypes] = await Promise.all([
           api.listChannels(),
           api.listPlatforms(),
@@ -65,7 +70,10 @@ export const useEmissionsStore = defineStore("emissions", {
         this.platforms = platforms;
         this.vodTypes = vodTypes;
       } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : "Erreur inconnue";
+        this.error = toDetailedError(
+          e,
+          "Dashboard > Chargement des filtres (notification/service/chaines|plateformes|vodTypes)",
+        );
       } finally {
         this.loading = false;
       }
@@ -74,7 +82,7 @@ export const useEmissionsStore = defineStore("emissions", {
       this.loading = true;
       this.error = null;
       try {
-        const api = createEmissionsApi(useHttp());
+        const api = createEmissionsApi(useHttp("emissions.fetchAll"));
         const selectedDate = params?.date ?? new Date();
         const channels = params?.channels?.join(",") ?? "";
         let data = await api.listPlannedProducts(toLavaDate(selectedDate), channels);
@@ -104,7 +112,7 @@ export const useEmissionsStore = defineStore("emissions", {
 
         this.items = data;
       } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : "Erreur inconnue";
+        this.error = toDetailedError(e, "Dashboard > Recherche émissions (lava/plannedproductsbydate)");
       } finally {
         this.loading = false;
       }
@@ -113,14 +121,14 @@ export const useEmissionsStore = defineStore("emissions", {
       this.loading = true;
       this.error = null;
       try {
-        const api = createEmissionsApi(useHttp());
+        const api = createEmissionsApi(useHttp("emissions.bulkUpdateStatus"));
         await Promise.all(
           this.toChangeStatus.map((emission) =>
             api.updateStatus(String(emission.vodType ?? ""), String(emission.idRecord ?? ""), clean),
           ),
         );
       } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : "Erreur inconnue";
+        this.error = toDetailedError(e, "Dashboard > Nettoyage statuts (lava/recordstatus/update)");
       } finally {
         this.loading = false;
       }

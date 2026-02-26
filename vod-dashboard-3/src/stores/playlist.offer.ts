@@ -6,6 +6,11 @@ import type { PlaylistItem, SearchCriteria } from "@/types/domain";
 import { createPlaylistItem } from "@/utils/playlist";
 import { formatIsoDateForPlaylist, toLavaDate } from "@/utils/date";
 
+function toDetailedError(error: unknown, context: string): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return `Erreur dans ${context}: ${message}`;
+}
+
 export const usePlaylistOffersStore = defineStore("playlistOffers", {
   state: () => ({
     listPige: [] as PlaylistItem[],
@@ -39,9 +44,9 @@ export const usePlaylistOffersStore = defineStore("playlistOffers", {
       this.loading = true;
       this.error = null;
       try {
-        this.channels = await createNotificationApi(useHttp()).listChannels();
+        this.channels = await createNotificationApi(useHttp("playlist.fetchChannels")).listChannels();
       } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : "Erreur inconnue";
+        this.error = toDetailedError(e, "Vod Manuel > Chargement chaines (notification/service/chaines)");
       } finally {
         this.loading = false;
       }
@@ -50,12 +55,18 @@ export const usePlaylistOffersStore = defineStore("playlistOffers", {
       this.loading = true;
       this.error = null;
       try {
-        const raw = await createPlaylistApi(useHttp()).listByDiffusion(channel, formatIsoDateForPlaylist(date));
+        const raw = await createPlaylistApi(useHttp("playlist.fetchPlaylistByDate")).listByDiffusion(
+          channel,
+          formatIsoDateForPlaylist(date),
+        );
         const mapped = raw.map((item) => createPlaylistItem(item));
         this.setSearchCriteria({ date, chaine: channel, data: mapped });
         this.listPige = mapped;
       } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : "Erreur inconnue";
+        this.error = toDetailedError(
+          e,
+          "Vod Manuel > Chargement playlist (sgt-listener/service/playlist/diffusion)",
+        );
       } finally {
         this.loading = false;
       }
@@ -65,9 +76,12 @@ export const usePlaylistOffersStore = defineStore("playlistOffers", {
       this.error = null;
       try {
         const lavaDate = toLavaDate(date);
-        this.productsToGenerate = await createPlaylistApi(useHttp()).listPlannedProducts(lavaDate, channels);
+        this.productsToGenerate = await createPlaylistApi(useHttp("playlist.fetchPlannedProducts")).listPlannedProducts(
+          lavaDate,
+          channels,
+        );
       } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : "Erreur inconnue";
+        this.error = toDetailedError(e, "Vod Manuel > Chargement planned products (lava/plannedproductsbydate)");
       } finally {
         this.loading = false;
       }

@@ -18,7 +18,7 @@
       <button type="submit">Rechercher</button>
     </form>
 
-    <p v-if="playlistStore.error" class="error">{{ playlistStore.error }}</p>
+    <p v-if="playlistStore.error" class="error">[Vod Manuel] {{ playlistStore.error }}</p>
 
     <PlayListPige />
   </section>
