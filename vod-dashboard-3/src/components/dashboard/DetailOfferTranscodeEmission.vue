@@ -259,10 +259,23 @@ async function fetchDetails(emission: Emission) {
     const idRecord = String(emission.idRecord ?? "");
     const idEpisode = String(emission.idEpisode ?? "");
 
+    const noCacheConfig = (seed: number) => ({
+      params: { _t: `${Date.now()}-${seed}` },
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+        "If-Modified-Since": "0",
+        "If-None-Match": "",
+      },
+    });
+
     const [jobsResponse, segmentsResponse, subtitlesResponse] = await Promise.all([
-      idRecord ? http.get(`transcode/service/status/${idRecord}`) : Promise.resolve({ data: [] }),
-      idRecord ? http.get(`restore/service/segment/${idRecord}`) : Promise.resolve({ data: [] }),
-      idEpisode ? http.get(`subtitle/service/medias/episode/${idEpisode}`) : Promise.resolve({ data: [] }),
+      idRecord ? http.get(`transcode/service/status/${idRecord}`, noCacheConfig(1)) : Promise.resolve({ data: [] }),
+      idRecord ? http.get(`restore/service/segment/${idRecord}`, noCacheConfig(2)) : Promise.resolve({ data: [] }),
+      idEpisode
+        ? http.get(`subtitle/service/medias/episode/${idEpisode}`, noCacheConfig(3))
+        : Promise.resolve({ data: [] }),
     ]);
 
     const asArray = <T>(value: unknown): T[] => {
@@ -278,7 +291,15 @@ async function fetchDetails(emission: Emission) {
 
     const jobsData = asArray<Record<string, unknown>>(jobsResponse.data);
     const segmentsData = asArray<SegmentItem>(segmentsResponse.data);
-    const subtitlesData = asArray<SubtitleItem>(subtitlesResponse.data);
+    let subtitlesData = asArray<SubtitleItem>(subtitlesResponse.data);
+
+    if (subtitlesData.length === 0 && idRecord) {
+      const subtitlesByRecordResponse = await http.get(
+        `subtitle/service/medias/episode/${idRecord}`,
+        noCacheConfig(4),
+      );
+      subtitlesData = asArray<SubtitleItem>(subtitlesByRecordResponse.data);
+    }
 
     const firstOffer = offers.value[0] ?? {};
     jobs.value = jobsData.map((item: Record<string, unknown>) => ({
