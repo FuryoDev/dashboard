@@ -11,6 +11,9 @@ const API_PATHS = [
   "/vodwonstatus",
   "/media",
   "/diva-monitoring",
+  "/transcode",
+  "/subtitle",
+  "/distribution",
 ];
 
 export default defineConfig(({ mode }) => {
@@ -19,6 +22,7 @@ export default defineConfig(({ mode }) => {
   const appPort = Number(loaded.VITE_APP_PORT || 8080);
   const apiProxyTarget = loaded.VITE_API_PROXY_TARGET || "https://vod-dev.rtbf.be";
   const apiKey = loaded.VITE_APIKEY || "";
+  const ingressPath = loaded.VITE_INGRESS_HTTP_PATH || "/";
 
   const proxy = Object.fromEntries(
     API_PATHS.map((prefix) => [
@@ -33,6 +37,7 @@ export default defineConfig(({ mode }) => {
   );
 
   return {
+    base: ingressPath,
     plugins: [vue()],
     resolve: {
       alias: {
