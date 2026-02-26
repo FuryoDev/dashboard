@@ -3,8 +3,8 @@ import type { Emission } from "@/types/domain";
 
 export function createEmissionsApi(http: AxiosInstance) {
   return {
-    async list(params?: { date?: string; channel?: string }) {
-      const response = await http.get<Emission[]>("lava/records", { params });
+    async listPlannedProducts(date: string, channels: string) {
+      const response = await http.get<Emission[]>(`lava/plannedproductsbydate/${date}?channels=${channels}`);
       return response.data;
     },
     async updateStatus(vodType: string, idRecord: string | number, clean = false) {

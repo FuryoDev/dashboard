@@ -1,8 +1,14 @@
 <template>
   <section>
-    <SearchEmission @search="onSearch" @bulk-clean="onBulkClean" />
+    <SearchEmission
+      :channels="emissionsStore.channels"
+      :platforms="emissionsStore.platforms"
+      :vod-types="emissionsStore.vodTypes"
+      @search="onSearch"
+      @bulk-clean="onBulkClean"
+    />
 
-    <p v-if="emissionsStore.error" class="error">{{ emissionsStore.error }}</p>
+    <p v-if="emissionsStore.error" class="error">[Dashboard] {{ emissionsStore.error }}</p>
 
     <EmissionsTable
       :emissions="emissionsStore.items"
@@ -27,7 +33,13 @@ import type { Emission as EmissionType } from "@/types/domain";
 const emissionsStore = useEmissionsStore();
 const focusedEmission = ref<EmissionType | null>(null);
 
-async function onSearch(payload: { date?: string; channel?: string }) {
+async function onSearch(payload: {
+  date: Date;
+  channels: string[];
+  platforms: string[];
+  statuses: string[];
+  vodType?: string;
+}) {
   await emissionsStore.fetchAll(payload);
 }
 
@@ -38,7 +50,8 @@ async function onBulkClean() {
 }
 
 onMounted(async () => {
-  await emissionsStore.fetchAll();
+  await emissionsStore.fetchFilterOptions();
+  await emissionsStore.fetchAll({ date: new Date(), channels: [], platforms: [], statuses: [] });
 });
 </script>
 
