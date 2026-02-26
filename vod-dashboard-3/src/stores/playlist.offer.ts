@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { useHttp } from "@/composables/useHttp";
 import { createPlaylistApi } from "@/services/playlist.api";
-import { createNotificationApi, type ChannelOption } from "@/services/notification.api";
+import { createNotificationApi, type OptionItem } from "@/services/notification.api";
 import type { PlaylistItem, SearchCriteria } from "@/types/domain";
 import { createPlaylistItem } from "@/utils/playlist";
 import { formatIsoDateForPlaylist, toLavaDate } from "@/utils/date";
@@ -14,7 +14,7 @@ export const usePlaylistOffersStore = defineStore("playlistOffers", {
       chaine: "LAUNE",
       data: [],
     } as SearchCriteria,
-    channels: [] as ChannelOption[],
+    channels: [] as OptionItem[],
     productsToGenerate: [] as unknown[],
     elementsToAssign: [] as unknown[],
     loading: false,
