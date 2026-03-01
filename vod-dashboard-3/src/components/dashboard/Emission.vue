@@ -56,7 +56,7 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .manual-page {
-  background: #2f9f8f;
+  background: transparent;
   min-height: calc(100vh - 80px);
   padding: 0.5rem;
 }
@@ -67,8 +67,8 @@ onMounted(async () => {
   gap: 0.75rem;
   padding: 0.75rem;
   border-radius: 8px;
-  border: 1px solid #d9d9d9;
-  background: #efeded;
+  border: 1px solid #d5dae1;
+  background: #eff0f3;
 }
 
 label {
@@ -81,13 +81,15 @@ label {
 input,
 select {
   flex: 1;
-  border: 1px solid #c2c2c2;
+  border: 1px solid #c7cfd9;
+  border-radius: 6px;
+  background: #fff;
   padding: 0.3rem 0.4rem;
 }
 
 button {
   border: 1px solid #2f9f8f;
-  background: #2f9f8f;
+  background: transparent;
   color: #fff;
   padding: 0.4rem 0.7rem;
   cursor: pointer;

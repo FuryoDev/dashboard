@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="dashboard-page">
     <SearchEmission
       :channels="emissionsStore.channels"
       :platforms="emissionsStore.platforms"
@@ -60,4 +60,9 @@ onMounted(async () => {
   margin: 0.75rem 0 0;
   color: #9d1b1b;
 }
+
+.dashboard-page {
+  background: transparent;
+}
+
 </style>
