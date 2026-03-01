@@ -39,7 +39,7 @@
             <tr v-for="(job, idx) in jobs" :key="`${String(job.guid ?? idx)}-${idx}`">
               <td>{{ String(job.profileName ?? '') }}</td>
               <td>{{ String(job.offer ?? '') }}</td>
-              <td>{{ String(job.lastStatus ?? '') }}</td>
+              <td><span :class="getStatusClass(String(job.lastStatus ?? ''))">{{ String(job.lastStatus ?? '') }}</span></td>
               <td>{{ String(job.lastProgressValue ?? '') }}</td>
               <td>{{ formatReadableDate(job.startDate as string | undefined) }}</td>
               <td>{{ formatReadableDate(job.endDate as string | undefined) }}</td>
@@ -95,7 +95,7 @@
               <td>{{ String(segment.name ?? '') }}</td>
               <td>{{ String(segment.tcin ?? '') }}</td>
               <td>{{ String(segment.tcout ?? '') }}</td>
-              <td>{{ String(segment.status ?? '') }}</td>
+              <td><span :class="getStatusClass(String(segment.status ?? ''))">{{ String(segment.status ?? '') }}</span></td>
             </tr>
           </tbody>
         </table>
@@ -118,7 +118,7 @@
               <td>{{ String(segment.name ?? '') }}</td>
               <td>{{ String(segment.tcin ?? '') }}</td>
               <td>{{ String(segment.tcout ?? '') }}</td>
-              <td>{{ String(segment.status ?? '') }}</td>
+              <td><span :class="getStatusClass(String(segment.status ?? ''))">{{ String(segment.status ?? '') }}</span></td>
             </tr>
           </tbody>
         </table>
@@ -141,7 +141,7 @@
             <tr v-for="(subtitle, idx) in subtitles" :key="`${String(subtitle.media ?? idx)}-${idx}`">
               <td>{{ String(subtitle.media ?? '') }}</td>
               <td>{{ String(subtitle.som ?? '') }}</td>
-              <td>{{ String(subtitle.status ?? '') }}</td>
+              <td><span :class="getStatusClass(String(subtitle.status ?? ''))">{{ String(subtitle.status ?? '') }}</span></td>
               <td>{{ formatReadableDate(subtitle.creation as string | undefined) }}</td>
               <td>{{ truncate(subtitle.message) }}</td>
               <td>{{ formatReadableDate(subtitle.lookupLimit as string | undefined) }}</td>
@@ -158,6 +158,7 @@
 import { computed, ref, watch } from "vue";
 import { useHttp } from "@/composables/useHttp";
 import { formatReadableDate } from "@/utils/date";
+import { getStatusClass } from "@/utils/status";
 import type { Emission } from "@/types/domain";
 
 type DetailTabKey = "transcodages" | "offres" | "segments" | "segmentsPrevus" | "soustitrages";
@@ -342,8 +343,8 @@ watch(
 <style scoped lang="scss">
 .details-tabs {
   margin-top: 1rem;
-  background: #fff;
-  border: 1px solid #d9d9d9;
+  background: #f2f3f6;
+  border: 1px solid #cfd6df;
   padding: 0.5rem;
   border-radius: 8px;
 }
@@ -364,6 +365,7 @@ watch(
   border: 1px solid #c2c2c2;
   background: #fff;
   padding: 0.35rem 0.6rem;
+  border-radius: 6px;
   cursor: pointer;
 }
 
@@ -387,6 +389,31 @@ td {
   text-align: left;
   padding: 0.3rem;
   white-space: nowrap;
+}
+
+
+:deep(.status-pill) {
+  display: inline-block;
+  padding: 0.1rem 0.35rem;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+:deep(.status-pill--success) {
+  background: #00ff00;
+}
+
+:deep(.status-pill--warning) {
+  background: #f0a80d;
+}
+
+:deep(.status-pill--danger) {
+  background: #ff0000;
+  color: #fff;
+}
+
+:deep(.status-pill--neutral) {
+  background: #ffffff;
 }
 
 .error {

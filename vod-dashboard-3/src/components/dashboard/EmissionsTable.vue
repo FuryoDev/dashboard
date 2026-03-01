@@ -43,13 +43,13 @@
           <td>{{ String(item.idEpisode ?? "") }}</td>
           <td>{{ formatReadableDate(item.dateHeureDebutVisibilite as string | undefined) }}</td>
           <td>{{ firstPlatform(item) }}</td>
-          <td>{{ String(item.recordStatusTraitementItem?.useCase ?? "") }}</td>
+          <td><span :class="getStatusClass(String(item.recordStatusTraitementItem?.useCase ?? ''))">{{ String(item.recordStatusTraitementItem?.useCase ?? "") }}</span></td>
           <td>{{ statusComment(item) }}</td>
           <td>{{ String(item.recordStatusTraitementItem?.scheduleDelay ?? "") }}</td>
           <td>{{ String(item.recordStatusTraitementItem?.createdBy ?? "") }}</td>
-          <td>{{ String(item.recordStatusTranscodageItem?.useCase ?? "") }}</td>
+          <td><span :class="getStatusClass(String(item.recordStatusTranscodageItem?.useCase ?? ''))">{{ String(item.recordStatusTranscodageItem?.useCase ?? "") }}</span></td>
           <td>{{ String(item.recordStatusTranscodageItem?.transcodeProgress ?? "") }}</td>
-          <td>{{ String(item.recordStatusPublicationItem?.useCase ?? "") }}</td>
+          <td><span :class="getStatusClass(String(item.recordStatusPublicationItem?.useCase ?? ''))">{{ String(item.recordStatusPublicationItem?.useCase ?? "") }}</span></td>
           <td>{{ formatReadableDate(item.recordStatusPublicationItem?.creationTimestamp as string | undefined) }}</td>
           <td>{{ String(item.idStk ?? "") }}</td>
         </tr>
@@ -68,6 +68,7 @@
 import { computed, ref, watch } from "vue";
 import type { Emission } from "@/types/domain";
 import { formatReadableDate } from "@/utils/date";
+import { getStatusClass } from "@/utils/status";
 
 const props = defineProps<{
   emissions: Emission[];
@@ -129,10 +130,10 @@ function statusComment(item: Emission) {
 <style scoped lang="scss">
 .emission-list {
   margin-top: 1rem;
-  background: #fff;
-  border: 1px solid #d9d9d9;
+  background: #f2f3f6;
+  border: 1px solid #cfd6df;
   padding: 0.75rem;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 header {
@@ -145,21 +146,50 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
+  background: #fff;
 }
 
 th,
 td {
-  border: 1px solid #ececec;
+  border: 1px solid #e5e8ee;
   padding: 0.3rem;
   text-align: left;
+}
+
+th {
+  background: #f0f2f6;
 }
 
 .link {
   border: 0;
   background: none;
-  color: #0047b3;
+  color: #0a6d98;
   padding: 0;
   cursor: pointer;
+}
+
+:deep(.status-pill) {
+  display: inline-block;
+  padding: 0.1rem 0.35rem;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+:deep(.status-pill--success) {
+  background: #00ff00;
+}
+
+:deep(.status-pill--warning) {
+  background: #f0a80d;
+}
+
+:deep(.status-pill--danger) {
+  background: #ff0000;
+  color: #fff;
+}
+
+:deep(.status-pill--neutral) {
+  background: #ffffff;
 }
 
 .pagination {

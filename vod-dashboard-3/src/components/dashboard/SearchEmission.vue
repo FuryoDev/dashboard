@@ -104,21 +104,22 @@ function reset() {
   display: grid;
   grid-template-columns: repeat(5, minmax(180px, 1fr));
   gap: 0.8rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid #d9d9d9;
-  background: #efeded;
+  padding: 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #d5dae1;
+  background: #eff0f3;
 }
 
 label,
 fieldset {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.875rem;
+  gap: 0.28rem;
+  font-size: 0.9rem;
   border: 0;
   margin: 0;
   padding: 0;
+  color: #1e2634;
 }
 
 .checkbox-inline {
@@ -130,12 +131,14 @@ fieldset {
 
 input,
 select {
-  border: 1px solid #c2c2c2;
-  padding: 0.3rem 0.4rem;
+  border: 1px solid #c7cfd9;
+  background: #fff;
+  border-radius: 6px;
+  padding: 0.38rem 0.5rem;
 }
 
 select[multiple] {
-  min-height: 64px;
+  min-height: 70px;
 }
 
 .search-form__actions {
@@ -146,15 +149,16 @@ select[multiple] {
 }
 
 button {
-  border: 1px solid #2f9f8f;
-  background: #2f9f8f;
+  border: 1px solid #0e98b6;
+  background: #0e98b6;
+  border-radius: 6px;
   color: #fff;
-  padding: 0.4rem 0.6rem;
+  padding: 0.42rem 0.7rem;
   cursor: pointer;
 }
 
 .secondary {
   background: #fff;
-  color: #2f9f8f;
+  color: #0e98b6;
 }
 </style>

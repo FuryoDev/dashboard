@@ -55,7 +55,7 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .app-shell {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #08253f 0%, #0c4f68 100%);
   color: #1d1d1d;
 }
 
@@ -64,15 +64,17 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #d9d9d9;
-  background: #fff;
+  padding: 0.8rem 1.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(90deg, #0b2038 0%, #0f5b77 100%);
 }
 
 .app-shell__user {
   margin: 0;
-  font-size: 0.875rem;
-  color: #4a4a4a;
+  font-size: 0.92rem;
+  color: #d4edf6;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .app-shell__content {
