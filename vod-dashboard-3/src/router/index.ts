@@ -10,7 +10,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/vodmanuel",
     name: "vod-manuel",
-    component: () => import("@/components/dashboard/Emission.vue"),
+    component: () => import("@/components/dashboard/VodManual.vue"),
     meta: { title: "Vodoo: traitement manuel" },
   },
   {
