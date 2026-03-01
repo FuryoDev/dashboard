@@ -110,14 +110,14 @@ function removeSelected() {
 }
 
 .panel {
-  border: 1px solid #d9d9d9;
-  background: #fff;
-  border-radius: 8px;
+  border: 1px solid #cfd6df;
+  background: #f2f3f6;
+  border-radius: 12px;
   overflow: hidden;
 }
 
 .panel__header {
-  background: #333b47;
+  background: linear-gradient(90deg, #1a2534 0%, #1e2f45 100%);
   color: #fff;
   padding: 0.45rem 0.6rem;
   font-weight: 600;
@@ -130,13 +130,13 @@ table {
 
 th,
 td {
-  border: 1px solid #ececec;
+  border: 1px solid #e5e8ee;
   padding: 0.35rem;
   font-size: 0.84rem;
 }
 
 .selected {
-  background: #d9edf7;
+  background: #d1e8f3;
 }
 
 input {
@@ -152,7 +152,7 @@ input {
 
 button {
   border: 1px solid #333b47;
-  background: #333b47;
+  background: linear-gradient(90deg, #1a2534 0%, #1e2f45 100%);
   color: #fff;
   padding: 0.35rem 0.6rem;
 }
