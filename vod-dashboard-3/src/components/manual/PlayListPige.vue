@@ -304,6 +304,7 @@ button {
   background: linear-gradient(90deg, #1a2534 0%, #1e2f45 100%);
   color: #fff;
   padding: 0.35rem 0.6rem;
+  width: 100%;
 }
 
 .panel__actions {
