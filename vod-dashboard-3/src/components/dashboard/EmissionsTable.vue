@@ -55,7 +55,7 @@
           </td>
           <td>{{ String(item.duree ?? "") }}</td>
           <td>{{ String(item.idEpisode ?? "") }}</td>
-          <td>{{ formatReadableDate((item.plateformOffers?.[0]?.startDateTime ?? item.dateHeureDebutVisibilite) as string | undefined) }}</td>
+          <td>{{ formatReadableDateWithMs((item.plateformOffers?.[0]?.startDateTime ?? item.dateHeureDebutVisibilite) as string | undefined) }}</td>
           <td>{{ firstPlatform(item) }}</td>
           <td><span :class="getStatusClass(String(item.recordStatusTraitementItem?.useCase ?? ''))">{{
               String(item.recordStatusTraitementItem?.useCase ?? "")
@@ -172,7 +172,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 import type {Emission} from "@/types/domain";
-import {formatReadableDate} from "@/utils/date";
+import {formatReadableDate, formatReadableDateWithMs} from "@/utils/date";
 import {getStatusClass} from "@/utils/status";
 
 const props = defineProps<{
@@ -753,6 +753,8 @@ tbody tr.selected {
   min-height: 1.35rem;
   padding: 0.15rem 0.35rem;
   border-radius: 2px;
+  font-weight: 600;
+  color: #fff;
   text-align: center;
 }
 
@@ -768,9 +770,9 @@ tbody tr.selected {
   background: #ff0000;
 }
 
-//:deep(.status-pill--neutral) {
-//  background: #6b7280;
-//}
+:deep(.status-pill--neutral) {
+  background: #6b7280;
+}
 
 .action-modal__table-scroll {
   max-height: 260px;
