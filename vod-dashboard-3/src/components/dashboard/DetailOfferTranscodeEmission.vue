@@ -36,7 +36,11 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(job, idx) in jobs" :key="`${String(job.guid ?? idx)}-${idx}`">
+          <tr
+            v-for="(job, idx) in jobs"
+            :key="`${String(job.guid ?? idx)}-${idx}`"
+            @contextmenu.prevent="openContextMenu('job', job, $event)"
+          >
             <td>{{ String(job.profileName ?? '') }}</td>
             <td>{{ String(job.offer ?? '') }}</td>
             <td><span :class="getStatusClass(String(job.lastStatus ?? ''))">{{ String(job.lastStatus ?? '') }}</span>
@@ -66,7 +70,11 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(offer, idx) in offers" :key="`${String(offer.id_record ?? idx)}-${idx}`">
+          <tr
+            v-for="(offer, idx) in offers"
+            :key="`${String(offer.id_record ?? idx)}-${idx}`"
+            @contextmenu.prevent="openContextMenu('offer', offer, $event)"
+          >
             <td>{{ String(offer.name ?? '') }}</td>
             <td>{{ String(offer.offerName ?? '') }}</td>
             <td>{{ String(offer.priceCode ?? '') }}</td>
@@ -91,7 +99,11 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(segment, idx) in segments" :key="`${String(segment.name ?? idx)}-${idx}`">
+          <tr
+            v-for="(segment, idx) in segments"
+            :key="`${String(segment.name ?? idx)}-${idx}`"
+            @contextmenu.prevent="openContextMenu('segment', segment, $event)"
+          >
             <td>{{ String(segment.number ?? '') }}</td>
             <td>{{ String(segment.name ?? '') }}</td>
             <td>{{ String(segment.tcin ?? '') }}</td>
@@ -115,7 +127,11 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(segment, idx) in plannedSegments" :key="`${String(segment.name ?? idx)}-planned-${idx}`">
+          <tr
+            v-for="(segment, idx) in plannedSegments"
+            :key="`${String(segment.name ?? idx)}-planned-${idx}`"
+            @contextmenu.prevent="openContextMenu('segment', segment, $event)"
+          >
             <td>{{ String(segment.number ?? '') }}</td>
             <td>{{ String(segment.name ?? '') }}</td>
             <td>{{ String(segment.tcin ?? '') }}</td>
@@ -154,12 +170,19 @@
           </tbody>
         </table>
       </div>
+
+
+      <div v-if="contextMenu.open" class="detail-context-menu" :style="contextMenuStyle">
+        <button v-for="action in contextActions" :key="action.label" type="button" @click="copyContextValue(action.value)">
+          {{ action.label }}
+        </button>
+      </div>
     </template>
   </section>
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 import {useHttp} from "@/composables/useHttp";
 import {formatReadableDate} from "@/utils/date";
 import {getStatusClass} from "@/utils/status";
@@ -216,6 +239,8 @@ const jobs = ref<JobItem[]>([]);
 const segments = ref<SegmentItem[]>([]);
 const subtitles = ref<SubtitleItem[]>([]);
 const error = ref("");
+const contextMenu = reactive({open: false, x: 0, y: 0});
+const contextActions = ref<Array<{ label: string; value: string }>>([]);
 
 const tabItems: Array<{ key: DetailTabKey; label: string }> = [
   {key: "transcodages", label: "Transcodages"},
@@ -329,6 +354,55 @@ async function fetchDetails(emission: Emission) {
   }
 }
 
+
+
+const contextMenuStyle = computed(() => ({
+  top: `${contextMenu.y}px`,
+  left: `${contextMenu.x}px`,
+}));
+
+function openContextMenu(type: "job" | "offer" | "segment", row: Record<string, unknown>, event: MouseEvent) {
+  if (type === "job") {
+    contextActions.value = [{label: "Copier le n° de job", value: String(row.guid ?? "")}];
+  } else if (type === "offer") {
+    contextActions.value = [{label: "Copier oid", value: String(row.id_record ?? "")}];
+  } else {
+    contextActions.value = [{label: "Copier le n° de stock", value: String(row.name ?? "")}];
+  }
+
+  contextMenu.open = true;
+  contextMenu.x = event.clientX;
+  contextMenu.y = event.clientY;
+}
+
+async function copyContextValue(value: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+  } else {
+    const helper = document.createElement("textarea");
+    helper.value = value;
+    document.body.appendChild(helper);
+    helper.select();
+    document.execCommand("copy");
+    document.body.removeChild(helper);
+  }
+  contextMenu.open = false;
+}
+
+function closeContextMenu() {
+  contextMenu.open = false;
+}
+
+onMounted(() => {
+  window.addEventListener("click", closeContextMenu);
+  window.addEventListener("scroll", closeContextMenu);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("click", closeContextMenu);
+  window.removeEventListener("scroll", closeContextMenu);
+});
+
 function truncate(value: unknown, max = 180): string {
   const text = String(value ?? "");
   return text.length > max ? `${text.slice(0, max)}...` : text;
@@ -375,6 +449,9 @@ watch(
 
 .tab.active {
   font-weight: 600;
+  background: #1b3b72;
+  color: #fff;
+  border-color: #1b3b72;
 }
 
 .tab-panel {
@@ -395,6 +472,10 @@ td {
   white-space: nowrap;
 }
 
+th {
+  background: #1b2433;
+  color: #fff;
+}
 
 :deep(.status-pill) {
   display: inline-block;
@@ -418,6 +499,35 @@ td {
 
 :deep(.status-pill--neutral) {
   background: #ffffff;
+}
+
+.detail-context-menu {
+  position: fixed;
+  z-index: 25;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #ced5df;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-context-menu button {
+  border: 0;
+  border-bottom: 1px solid #e5e8ef;
+  background: #fff;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.detail-context-menu button:last-child {
+  border-bottom: 0;
+}
+
+.detail-context-menu button:hover {
+  background: #f4f7fb;
 }
 
 .error {
