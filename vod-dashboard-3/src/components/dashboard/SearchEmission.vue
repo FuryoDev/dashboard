@@ -41,7 +41,7 @@
       </label>
     </fieldset>
 
-    <div class="search-form__actions">
+    <div class="search-form__actions search-form__actions--compact">
       <button type="submit">Rechercher</button>
       <button type="button" class="secondary" @click="reset">Réinitialiser</button>
       <!--      <button type="button" class="secondary" @click="$emit('bulk-clean')">Nettoyer statuts sélectionnés</button>-->
@@ -103,7 +103,7 @@ function reset() {
 <style scoped lang="scss">
 .search-form {
   display: grid;
-  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, minmax(180px, 1fr)) minmax(130px, 0.7fr);
   gap: 0.8rem;
   padding: 0.9rem;
   border-radius: 12px;
@@ -145,8 +145,8 @@ select[multiple] {
 .search-form__actions {
   display: flex;
   flex-direction: column;
-  width: 50%;
-  align-items: center;
+  width: 100%;
+  align-items: stretch;
   gap: 0.5rem;
 }
 
@@ -155,8 +155,14 @@ button {
   background: #0e98b6;
   border-radius: 6px;
   color: #fff;
-  padding: 0.42rem 0.7rem;
+  padding: 0.65rem 0.95rem;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.search-form__actions--compact {
+  justify-content: center;
 }
 
 .secondary {
