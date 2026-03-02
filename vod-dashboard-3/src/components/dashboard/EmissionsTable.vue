@@ -2,7 +2,6 @@
   <section class="emission-list">
     <header>
       <h2>Émissions </h2>
-<!--      <p v-if="loading">Chargement...</p>-->
       <div class="">
 
       </div>
@@ -10,39 +9,39 @@
 
     <div class="table-scroll">
       <table>
-      <thead>
+        <thead>
         <tr>
           <th
-            v-for="column in columns"
-            :key="column.key"
-            :style="{ width: `${columnWidths[column.key]}px` }"
+              v-for="column in columns"
+              :key="column.key"
+              :style="{ width: `${columnWidths[column.key]}px` }"
           >
             <div class="th-content">
               <button
-                type="button"
-                class="sort-button"
-                @click="toggleSort(column.key)"
+                  type="button"
+                  class="sort-button"
+                  @click="toggleSort(column.key)"
               >
                 {{ column.label }}
                 <span class="sort-indicator" :class="sortClass(column.key)"></span>
               </button>
               <span
-                class="resize-handle"
-                role="separator"
-                aria-orientation="vertical"
-                @mousedown="startResize(column.key, $event)"
+                  class="resize-handle"
+                  role="separator"
+                  aria-orientation="vertical"
+                  @mousedown="startResize(column.key, $event)"
               ></span>
             </div>
           </th>
         </tr>
-      </thead>
-      <tbody>
+        </thead>
+        <tbody>
         <tr
-          v-for="item in paginated"
-          :key="String(item.idRecord)"
-          :class="{ selected: isSelected(item) }"
-          @click="onRowClick(item, $event)"
-          @contextmenu.prevent="onRowContextMenu(item, $event)"
+            v-for="item in paginated"
+            :key="String(item.idRecord)"
+            :class="{ selected: isSelected(item) }"
+            @click="onRowClick(item, $event)"
+            @contextmenu.prevent="onRowContextMenu(item, $event)"
         >
           <td>{{ String(item.channel ?? "") }}</td>
           <td>
@@ -52,17 +51,23 @@
           <td>{{ String(item.idEpisode ?? "") }}</td>
           <td>{{ formatReadableDate(item.dateHeureDebutVisibilite as string | undefined) }}</td>
           <td>{{ firstPlatform(item) }}</td>
-          <td><span :class="getStatusClass(String(item.recordStatusTraitementItem?.useCase ?? ''))">{{ String(item.recordStatusTraitementItem?.useCase ?? "") }}</span></td>
+          <td><span :class="getStatusClass(String(item.recordStatusTraitementItem?.useCase ?? ''))">{{
+              String(item.recordStatusTraitementItem?.useCase ?? "")
+            }}</span></td>
           <td>{{ statusComment(item) }}</td>
           <td>{{ String(item.recordStatusTraitementItem?.scheduleDelay ?? "") }}</td>
           <td>{{ String(item.recordStatusTraitementItem?.createdBy ?? "") }}</td>
-          <td><span :class="getStatusClass(String(item.recordStatusTranscodageItem?.useCase ?? ''))">{{ String(item.recordStatusTranscodageItem?.useCase ?? "") }}</span></td>
+          <td><span :class="getStatusClass(String(item.recordStatusTranscodageItem?.useCase ?? ''))">{{
+              String(item.recordStatusTranscodageItem?.useCase ?? "")
+            }}</span></td>
           <td>{{ String(item.recordStatusTranscodageItem?.transcodeProgress ?? "") }}</td>
-          <td><span :class="getStatusClass(String(item.recordStatusPublicationItem?.useCase ?? ''))">{{ String(item.recordStatusPublicationItem?.useCase ?? "") }}</span></td>
+          <td><span :class="getStatusClass(String(item.recordStatusPublicationItem?.useCase ?? ''))">{{
+              String(item.recordStatusPublicationItem?.useCase ?? "")
+            }}</span></td>
           <td>{{ formatReadableDate(item.recordStatusPublicationItem?.creationTimestamp as string | undefined) }}</td>
           <td>{{ String(item.idStk ?? "") }}</td>
         </tr>
-      </tbody>
+        </tbody>
       </table>
     </div>
 
@@ -88,11 +93,21 @@
       <button type="button" @click="copyText('episode')">Copier le n° d'épisode</button>
       <button type="button" @click="copyText('idRecord')">Copier id record</button>
       <button type="button" @click="copyText('stock')">Copier le n° de stock</button>
-      <button type="button" @click="openActionModal('Demande d\'export des archives', 'export')">Demande d'export des archives</button>
-      <button type="button" @click="openActionModal('Vérification avant traitement', 'check')">Vérification avant traitement</button>
-      <button type="button" @click="openActionModal('Régénération des sous-titres', 'regenerate')">Régénération des sous-titres</button>
-      <button type="button" @click="openActionModal('Changement des statuts du traitement', 'status')">Changement des statuts du traitement</button>
-      <button type="button" @click="openActionModal('Changement du délai de traitement', 'delay')">Changement du délai de traitement</button>
+      <button type="button" @click="openActionModal('Demande d\'export des archives', 'export')">Demande d'export des
+        archives
+      </button>
+      <button type="button" @click="openActionModal('Vérification avant traitement', 'check')">Vérification avant
+        traitement
+      </button>
+      <button type="button" @click="openActionModal('Régénération des sous-titres', 'regenerate')">Régénération des
+        sous-titres
+      </button>
+      <button type="button" @click="openActionModal('Changement des statuts du traitement', 'status')">Changement des
+        statuts du traitement
+      </button>
+      <button type="button" @click="openActionModal('Changement du délai de traitement', 'delay')">Changement du délai
+        de traitement
+      </button>
     </div>
 
     <div v-if="actionModal.open" class="action-modal-backdrop" @click.self="closeActionModal">
@@ -102,12 +117,12 @@
 
         <div v-if="actionModal.actionType === 'status'" class="action-modal__form-row">
           <label for="status-value">Nouveau statut</label>
-          <input id="status-value" v-model="statusInput" type="text" placeholder="Ex: EXPORT_TERMINE" />
+          <input id="status-value" v-model="statusInput" type="text" placeholder="Ex: EXPORT_TERMINE"/>
         </div>
 
         <div v-if="actionModal.actionType === 'delay'" class="action-modal__form-row">
           <label for="delay-value">Nouveau délai</label>
-          <input id="delay-value" v-model="delayInput" type="number" min="0" />
+          <input id="delay-value" v-model="delayInput" type="number" min="0"/>
         </div>
 
         <div class="action-modal__buttons">
@@ -120,10 +135,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import type { Emission } from "@/types/domain";
-import { formatReadableDate } from "@/utils/date";
-import { getStatusClass } from "@/utils/status";
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
+import type {Emission} from "@/types/domain";
+import {formatReadableDate} from "@/utils/date";
+import {getStatusClass} from "@/utils/status";
 
 const props = defineProps<{
   emissions: Emission[];
@@ -138,38 +153,38 @@ const emit = defineEmits<{
 
 type SortDirection = "asc" | "desc";
 type ColumnKey =
-  | "channel"
-  | "title"
-  | "duree"
-  | "idEpisode"
-  | "dateHeureDebutVisibilite"
-  | "plateforme"
-  | "traitement"
-  | "commentaire"
-  | "delai"
-  | "par"
-  | "transcodage"
-  | "progress"
-  | "publication"
-  | "datePublication"
-  | "pad";
+    | "channel"
+    | "title"
+    | "duree"
+    | "idEpisode"
+    | "dateHeureDebutVisibilite"
+    | "plateforme"
+    | "traitement"
+    | "commentaire"
+    | "delai"
+    | "par"
+    | "transcodage"
+    | "progress"
+    | "publication"
+    | "datePublication"
+    | "pad";
 
 const columns: Array<{ key: ColumnKey; label: string }> = [
-  { key: "channel", label: "Chaîne" },
-  { key: "title", label: "Titre" },
-  { key: "duree", label: "Durée" },
-  { key: "idEpisode", label: "Episode" },
-  { key: "dateHeureDebutVisibilite", label: "Début visib." },
-  { key: "plateforme", label: "Plateforme" },
-  { key: "traitement", label: "Traitement" },
-  { key: "commentaire", label: "Commentaire" },
-  { key: "delai", label: "Délai" },
-  { key: "par", label: "Par" },
-  { key: "transcodage", label: "Statut transcodage" },
-  { key: "progress", label: "% transcod." },
-  { key: "publication", label: "Publication" },
-  { key: "datePublication", label: "Date publication" },
-  { key: "pad", label: "PAD" },
+  {key: "channel", label: "Chaîne"},
+  {key: "title", label: "Titre"},
+  {key: "duree", label: "Durée"},
+  {key: "idEpisode", label: "Episode"},
+  {key: "dateHeureDebutVisibilite", label: "Début visib."},
+  {key: "plateforme", label: "Plateforme"},
+  {key: "traitement", label: "Traitement"},
+  {key: "commentaire", label: "Commentaire"},
+  {key: "delai", label: "Délai"},
+  {key: "par", label: "Par"},
+  {key: "transcodage", label: "Statut transcodage"},
+  {key: "progress", label: "% transcod."},
+  {key: "publication", label: "Publication"},
+  {key: "datePublication", label: "Date publication"},
+  {key: "pad", label: "PAD"},
 ];
 
 const columnWidths = reactive<Record<ColumnKey, number>>({
@@ -194,8 +209,12 @@ const page = ref(1);
 const pageSizeChoice = ref(0);
 const selectionAnchor = ref<number | null>(null);
 const contextMenuTarget = ref<Emission | null>(null);
-const contextMenu = reactive({ open: false, x: 0, y: 0 });
-const actionModal = reactive<{ open: boolean; title: string; actionType: "export" | "check" | "regenerate" | "status" | "delay" | "" }>({
+const contextMenu = reactive({open: false, x: 0, y: 0});
+const actionModal = reactive<{
+  open: boolean;
+  title: string;
+  actionType: "export" | "check" | "regenerate" | "status" | "delay" | ""
+}>({
   open: false,
   title: "",
   actionType: "",
@@ -213,7 +232,7 @@ const totalPages = computed(() => {
 const sortedEmissions = computed(() => {
   if (!sortState.value) return props.emissions;
 
-  const { key, direction } = sortState.value;
+  const {key, direction} = sortState.value;
   const factor = direction === "asc" ? 1 : -1;
 
   return [...props.emissions].sort((a, b) => {
@@ -241,14 +260,14 @@ const contextMenuStyle = computed(() => ({
 const modalDescription = computed(() => {
   const count = props.selected.length;
   if (count === 0) return "Aucune émission sélectionnée.";
-  return `${count} émission(s) sélectionnée(s).`; 
+  return `${count} émission(s) sélectionnée(s).`;
 });
 
 watch(
-  () => props.emissions.length,
-  () => {
-    if (page.value > totalPages.value) page.value = totalPages.value;
-  },
+    () => props.emissions.length,
+    () => {
+      if (page.value > totalPages.value) page.value = totalPages.value;
+    },
 );
 
 watch(pageSizeChoice, () => {
@@ -265,7 +284,7 @@ function isSelected(item: Emission) {
 
 function replaceSelection(items: Emission[]) {
   const deduped = items.filter(
-    (item, index, list) => list.findIndex((candidate) => idKey(candidate) === idKey(item)) === index,
+      (item, index, list) => list.findIndex((candidate) => idKey(candidate) === idKey(item)) === index,
   );
   emit("update:selected", deduped);
 }
@@ -276,8 +295,8 @@ function toggleSelection(item: Emission, checked: boolean) {
     return;
   }
   emit(
-    "update:selected",
-    props.selected.filter((selectedItem) => selectedItem.idRecord !== item.idRecord),
+      "update:selected",
+      props.selected.filter((selectedItem) => selectedItem.idRecord !== item.idRecord),
   );
 }
 
@@ -357,10 +376,10 @@ function closeActionModal() {
 function runAction() {
   if (actionModal.actionType === "status") {
     // placeholder for back-end integration
-    console.info("Status change requested", { status: statusInput.value, selected: props.selected });
+    console.info("Status change requested", {status: statusInput.value, selected: props.selected});
   }
   if (actionModal.actionType === "delay") {
-    console.info("Delay change requested", { delay: delayInput.value, selected: props.selected });
+    console.info("Delay change requested", {delay: delayInput.value, selected: props.selected});
   }
   closeActionModal();
 }
@@ -375,12 +394,12 @@ function handleGlobalPointer() {
 
 function toggleSort(key: ColumnKey) {
   if (!sortState.value || sortState.value.key !== key) {
-    sortState.value = { key, direction: "asc" };
+    sortState.value = {key, direction: "asc"};
     return;
   }
 
   if (sortState.value.direction === "asc") {
-    sortState.value = { key, direction: "desc" };
+    sortState.value = {key, direction: "desc"};
     return;
   }
 
@@ -467,8 +486,8 @@ function statusComment(item: Emission) {
     item.recordStatusTranscodageItem?.caseComment,
     item.recordStatusPublicationItem?.caseComment,
   ]
-    .filter(Boolean)
-    .join(" | ");
+      .filter(Boolean)
+      .join(" | ");
 }
 </script>
 
