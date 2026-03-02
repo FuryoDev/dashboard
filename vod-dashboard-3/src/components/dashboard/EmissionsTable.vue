@@ -753,8 +753,6 @@ tbody tr.selected {
   min-height: 1.35rem;
   padding: 0.15rem 0.35rem;
   border-radius: 2px;
-  font-weight: 600;
-  color: #fff;
   text-align: center;
 }
 
@@ -770,9 +768,9 @@ tbody tr.selected {
   background: #ff0000;
 }
 
-:deep(.status-pill--neutral) {
-  background: #6b7280;
-}
+//:deep(.status-pill--neutral) {
+//  background: #6b7280;
+//}
 
 .action-modal__table-scroll {
   max-height: 260px;
@@ -871,7 +869,7 @@ tbody tr.selected {
 
 .action-modal {
   background: #fff;
-  width: min(560px, 92vw);
+  width: min(60%, 92vw);
   border-radius: 10px;
   border: 1px solid #cfd6df;
   padding: 1rem;
@@ -970,7 +968,7 @@ tbody tr.selected {
 
 .action-modal {
   background: #fff;
-  width: min(560px, 92vw);
+  width: min(60%, 92vw);
   border-radius: 10px;
   border: 1px solid #cfd6df;
   padding: 1rem;
