@@ -3,7 +3,11 @@
     <p v-if="!emission">Sélectionnez une émission pour voir ses détails.</p>
 
     <template v-else>
-      <div class="selected-episode">Episode sélectionné: {{ selectedEpisodeLabel }}</div>
+      <div class="selected-episode">Episode sélectionné:
+        <span class="episode-title">
+          {{ selectedEpisodeLabel }}
+        </span>
+      </div>
 
       <div class="tabs" role="tablist" aria-label="Détails émission">
         <button
@@ -37,9 +41,9 @@
           </thead>
           <tbody>
           <tr
-            v-for="(job, idx) in jobs"
-            :key="`${String(job.guid ?? idx)}-${idx}`"
-            @contextmenu.prevent="openContextMenu('job', job, $event)"
+              v-for="(job, idx) in jobs"
+              :key="`${String(job.guid ?? idx)}-${idx}`"
+              @contextmenu.prevent="openContextMenu('job', job, $event)"
           >
             <td>{{ String(job.profileName ?? '') }}</td>
             <td>{{ String(job.offer ?? '') }}</td>
@@ -71,9 +75,9 @@
           </thead>
           <tbody>
           <tr
-            v-for="(offer, idx) in offers"
-            :key="`${String(offer.id_record ?? idx)}-${idx}`"
-            @contextmenu.prevent="openContextMenu('offer', offer, $event)"
+              v-for="(offer, idx) in offers"
+              :key="`${String(offer.id_record ?? idx)}-${idx}`"
+              @contextmenu.prevent="openContextMenu('offer', offer, $event)"
           >
             <td>{{ String(offer.name ?? '') }}</td>
             <td>{{ String(offer.offerName ?? '') }}</td>
@@ -100,9 +104,9 @@
           </thead>
           <tbody>
           <tr
-            v-for="(segment, idx) in segments"
-            :key="`${String(segment.name ?? idx)}-${idx}`"
-            @contextmenu.prevent="openContextMenu('segment', segment, $event)"
+              v-for="(segment, idx) in segments"
+              :key="`${String(segment.name ?? idx)}-${idx}`"
+              @contextmenu.prevent="openContextMenu('segment', segment, $event)"
           >
             <td>{{ String(segment.number ?? '') }}</td>
             <td>{{ String(segment.name ?? '') }}</td>
@@ -128,9 +132,9 @@
           </thead>
           <tbody>
           <tr
-            v-for="(segment, idx) in plannedSegments"
-            :key="`${String(segment.name ?? idx)}-planned-${idx}`"
-            @contextmenu.prevent="openContextMenu('segment', segment, $event)"
+              v-for="(segment, idx) in plannedSegments"
+              :key="`${String(segment.name ?? idx)}-planned-${idx}`"
+              @contextmenu.prevent="openContextMenu('segment', segment, $event)"
           >
             <td>{{ String(segment.number ?? '') }}</td>
             <td>{{ String(segment.name ?? '') }}</td>
@@ -173,7 +177,8 @@
 
 
       <div v-if="contextMenu.open" class="detail-context-menu" :style="contextMenuStyle">
-        <button v-for="action in contextActions" :key="action.label" type="button" @click="copyContextValue(action.value)">
+        <button v-for="action in contextActions" :key="action.label" type="button"
+                @click="copyContextValue(action.value)">
           {{ action.label }}
         </button>
       </div>
@@ -355,7 +360,6 @@ async function fetchDetails(emission: Emission) {
 }
 
 
-
 const contextMenuStyle = computed(() => ({
   top: `${contextMenu.y}px`,
   left: `${contextMenu.x}px`,
@@ -534,5 +538,9 @@ th {
 .error {
   color: #9d1b1b;
   margin-bottom: 0.5rem;
+}
+
+.episode-title {
+  text-decoration: underline;
 }
 </style>
