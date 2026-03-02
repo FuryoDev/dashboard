@@ -601,7 +601,7 @@ th {
 }
 
 :deep(.status-pill--success) {
-  background: #00b14f;
+  background: #00ff00;
 }
 
 :deep(.status-pill--warning) {
