@@ -55,7 +55,7 @@
           </td>
           <td>{{ String(item.duree ?? "") }}</td>
           <td>{{ String(item.idEpisode ?? "") }}</td>
-          <td>{{ formatReadableDate(item.dateHeureDebutVisibilite as string | undefined) }}</td>
+          <td>{{ formatReadableDateWithMs((item.plateformOffers?.[0]?.startDateTime ?? item.dateHeureDebutVisibilite) as string | undefined) }}</td>
           <td>{{ firstPlatform(item) }}</td>
           <td><span :class="getStatusClass(String(item.recordStatusTraitementItem?.useCase ?? ''))">{{
               String(item.recordStatusTraitementItem?.useCase ?? "")
@@ -112,9 +112,49 @@
         <h3>{{ actionModal.title }}</h3>
         <p>{{ modalDescription }}</p>
 
+        <div v-if="actionModalColumns.length" class="action-modal__table-scroll">
+          <table class="action-modal__table">
+            <thead>
+            <tr>
+              <th
+                  v-for="column in actionModalColumns"
+                  :key="column.key"
+                  :style="{ width: `${actionModalColumnWidths[column.key]}px` }"
+              >
+                <div class="th-content">
+                  <button
+                      type="button"
+                      class="sort-button"
+                      @click="toggleActionModalSort(column.key)"
+                  >
+                    {{ column.label }}
+                    <span class="sort-indicator" :class="actionModalSortClass(column.key)"></span>
+                  </button>
+                  <span
+                      class="resize-handle"
+                      role="separator"
+                      aria-orientation="vertical"
+                      @mousedown="startActionModalResize(column.key, $event)"
+                  ></span>
+                </div>
+              </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(item, index) in sortedActionModalItems" :key="`${String(item.idRecord ?? index)}-${index}`">
+              <td v-for="column in actionModalColumns" :key="column.key">
+                {{ actionModalValue(item, column.key) }}
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
         <div v-if="actionModal.actionType === 'status'" class="action-modal__form-row">
           <label for="status-value">Nouveau statut</label>
-          <input id="status-value" v-model="statusInput" type="text" placeholder="Ex: EXPORT_TERMINE"/>
+          <select id="status-value" v-model="statusInput">
+            <option v-for="option in statusOptions" :key="option" :value="option">{{ option }}</option>
+          </select>
         </div>
 
         <div v-if="actionModal.actionType === 'delay'" class="action-modal__form-row">
@@ -134,7 +174,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 import type {Emission} from "@/types/domain";
-import {formatReadableDate} from "@/utils/date";
+import {formatReadableDate, formatReadableDateWithMs} from "@/utils/date";
 import {getStatusClass} from "@/utils/status";
 
 const props = defineProps<{
@@ -165,6 +205,8 @@ type ColumnKey =
     | "publication"
     | "datePublication"
     | "pad";
+
+type ActionModalColumnKey = "title" | "idEpisode" | "traitement" | "statut";
 
 const columns: Array<{ key: ColumnKey; label: string }> = [
   {key: "channel", label: "Chaîne"},
@@ -216,9 +258,54 @@ const actionModal = reactive<{
   title: "",
   actionType: "",
 });
-const statusInput = ref("");
+const statusOptions = ["USER_FORCE_LINEAIRE", "TRAITEMENT_MANUEL", "FORCE_LINEAIRE", "EXPORT_PREVU", "ETAT_INITIAL"] as const;
+const statusInput = ref<(typeof statusOptions)[number]>(statusOptions[0]);
 const delayInput = ref("24");
 const sortState = ref<{ key: ColumnKey; direction: SortDirection } | null>(null);
+const actionModalSortState = ref<{ key: ActionModalColumnKey; direction: SortDirection } | null>(null);
+
+const actionModalColumns = computed<Array<{ key: ActionModalColumnKey; label: string }>>(() => {
+  if (["status", "delay"].includes(actionModal.actionType)) {
+    return [
+      {key: "title", label: "Titre"},
+      {key: "idEpisode", label: "Episode"},
+      {key: "traitement", label: "Traitement"},
+      {key: "statut", label: ""},
+    ];
+  }
+
+  if (["export", "check", "regenerate"].includes(actionModal.actionType)) {
+    return [
+      {key: "title", label: "Titre"},
+      {key: "idEpisode", label: "Episode"},
+      {key: "traitement", label: "Traitement"},
+      {key: "statut", label: ""},
+    ];
+  }
+
+  return [];
+});
+
+const actionModalColumnWidths = reactive<Record<ActionModalColumnKey, number>>({
+  title: 250,
+  idEpisode: 180,
+  traitement: 170,
+  statut: 80,
+});
+
+const sortedActionModalItems = computed(() => {
+  if (!actionModalSortState.value) return props.selected;
+  const {key, direction} = actionModalSortState.value;
+  const factor = direction === "asc" ? 1 : -1;
+
+  return [...props.selected].sort((a, b) => {
+    const aValue = actionModalSortValue(a, key);
+    const bValue = actionModalSortValue(b, key);
+    if (aValue < bValue) return -1 * factor;
+    if (aValue > bValue) return 1 * factor;
+    return 0;
+  });
+});
 
 const isPaginationEnabled = computed(() => pageSizeChoice.value > 0);
 const totalPages = computed(() => {
@@ -362,12 +449,16 @@ function openActionModal(title: string, actionType: "export" | "check" | "regene
   actionModal.open = true;
   actionModal.title = title;
   actionModal.actionType = actionType;
+  if (actionType === "status") {
+    statusInput.value = statusOptions[0];
+  }
 }
 
 function closeActionModal() {
   actionModal.open = false;
   actionModal.title = "";
   actionModal.actionType = "";
+  actionModalSortState.value = null;
 }
 
 function runAction() {
@@ -419,7 +510,7 @@ function sortValue(item: Emission, key: ColumnKey): string | number {
     case "idEpisode":
       return String(item.idEpisode ?? "");
     case "dateHeureDebutVisibilite":
-      return String(item.dateHeureDebutVisibilite ?? "");
+      return String(item.plateformOffers?.[0]?.startDateTime ?? item.dateHeureDebutVisibilite ?? "");
     case "plateforme":
       return firstPlatform(item);
     case "traitement":
@@ -443,6 +534,65 @@ function sortValue(item: Emission, key: ColumnKey): string | number {
     default:
       return "";
   }
+}
+
+function actionModalValue(item: Emission, key: ActionModalColumnKey) {
+  if (key === "statut") {
+    return String(item.recordStatusTraitementItem?.useCase ?? "");
+  }
+  return String(actionModalSortValue(item, key) ?? "");
+}
+
+function actionModalSortValue(item: Emission, key: ActionModalColumnKey): string {
+  switch (key) {
+    case "title":
+      return String(item.title ?? "");
+    case "idEpisode":
+      return String(item.idEpisode ?? "");
+    case "traitement":
+      return String(item.recordStatusTraitementItem?.useCase ?? "");
+    case "statut":
+      return String(item.recordStatusTraitementItem?.useCase ?? "");
+    default:
+      return "";
+  }
+}
+
+function toggleActionModalSort(key: ActionModalColumnKey) {
+  if (!actionModalSortState.value || actionModalSortState.value.key !== key) {
+    actionModalSortState.value = {key, direction: "asc"};
+    return;
+  }
+
+  if (actionModalSortState.value.direction === "asc") {
+    actionModalSortState.value = {key, direction: "desc"};
+    return;
+  }
+
+  actionModalSortState.value = null;
+}
+
+function actionModalSortClass(key: ActionModalColumnKey) {
+  if (!actionModalSortState.value || actionModalSortState.value.key !== key) return "none";
+  return actionModalSortState.value.direction;
+}
+
+function startActionModalResize(key: ActionModalColumnKey, event: MouseEvent) {
+  const startX = event.clientX;
+  const startWidth = actionModalColumnWidths[key];
+
+  const onMouseMove = (moveEvent: MouseEvent) => {
+    const delta = moveEvent.clientX - startX;
+    actionModalColumnWidths[key] = Math.max(70, startWidth + delta);
+  };
+
+  const onMouseUp = () => {
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  };
+
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
 }
 
 function startResize(key: ColumnKey, event: MouseEvent) {
@@ -602,10 +752,16 @@ tbody tr.selected {
 }
 
 :deep(.status-pill) {
-  display: inline-block;
-  padding: 0.1rem 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 1.35rem;
+  padding: 0.15rem 0.35rem;
   border-radius: 2px;
   font-weight: 600;
+  color: #fff;
+  text-align: center;
 }
 
 :deep(.status-pill--success) {
@@ -618,11 +774,23 @@ tbody tr.selected {
 
 :deep(.status-pill--danger) {
   background: #ff0000;
-  color: #fff;
 }
 
 :deep(.status-pill--neutral) {
-  background: #ffffff;
+  background: #6b7280;
+}
+
+.action-modal__table-scroll {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid #d6dde6;
+  margin-bottom: 0.75rem;
+}
+
+.action-modal__table {
+  width: max-content;
+  min-width: 100%;
+  table-layout: fixed;
 }
 
 .pagination {
@@ -726,7 +894,8 @@ tbody tr.selected {
   gap: 0.3rem;
 }
 
-.action-modal__form-row input {
+.action-modal__form-row input,
+.action-modal__form-row select {
   border: 1px solid #c7cfd9;
   border-radius: 6px;
   padding: 0.5rem;
@@ -825,7 +994,8 @@ tbody tr.selected {
   gap: 0.3rem;
 }
 
-.action-modal__form-row input {
+.action-modal__form-row input,
+.action-modal__form-row select {
   border: 1px solid #c7cfd9;
   border-radius: 6px;
   padding: 0.5rem;

@@ -103,7 +103,7 @@ function reset() {
 <style scoped lang="scss">
 .search-form {
   display: grid;
-  grid-template-columns: repeat(4, minmax(180px, 1fr)) minmax(130px, 0.7fr);
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 0.8fr) minmax(150px, 0.5fr);
   gap: 0.8rem;
   padding: 0.9rem;
   border-radius: 12px;
