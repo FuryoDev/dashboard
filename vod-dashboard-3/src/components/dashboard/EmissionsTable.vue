@@ -152,7 +152,9 @@
 
         <div v-if="actionModal.actionType === 'status'" class="action-modal__form-row">
           <label for="status-value">Nouveau statut</label>
-          <input id="status-value" v-model="statusInput" type="text" placeholder="Ex: EXPORT_TERMINE"/>
+          <select id="status-value" v-model="statusInput">
+            <option v-for="option in statusOptions" :key="option" :value="option">{{ option }}</option>
+          </select>
         </div>
 
         <div v-if="actionModal.actionType === 'delay'" class="action-modal__form-row">
@@ -256,7 +258,8 @@ const actionModal = reactive<{
   title: "",
   actionType: "",
 });
-const statusInput = ref("");
+const statusOptions = ["USER_FORCE_LINEAIRE", "TRAITEMENT_MANUEL", "FORCE_LINEAIRE", "EXPORT_PREVU", "ETAT_INITIAL"] as const;
+const statusInput = ref<(typeof statusOptions)[number]>(statusOptions[0]);
 const delayInput = ref("24");
 const sortState = ref<{ key: ColumnKey; direction: SortDirection } | null>(null);
 const actionModalSortState = ref<{ key: ActionModalColumnKey; direction: SortDirection } | null>(null);
@@ -446,6 +449,9 @@ function openActionModal(title: string, actionType: "export" | "check" | "regene
   actionModal.open = true;
   actionModal.title = title;
   actionModal.actionType = actionType;
+  if (actionType === "status") {
+    statusInput.value = statusOptions[0];
+  }
 }
 
 function closeActionModal() {
@@ -753,6 +759,8 @@ tbody tr.selected {
   min-height: 1.35rem;
   padding: 0.15rem 0.35rem;
   border-radius: 2px;
+  font-weight: 600;
+  color: #fff;
   text-align: center;
 }
 
@@ -768,6 +776,9 @@ tbody tr.selected {
   background: #ff0000;
 }
 
+:deep(.status-pill--neutral) {
+  background: #6b7280;
+}
 
 .action-modal__table-scroll {
   max-height: 260px;
@@ -883,7 +894,8 @@ tbody tr.selected {
   gap: 0.3rem;
 }
 
-.action-modal__form-row input {
+.action-modal__form-row input,
+.action-modal__form-row select {
   border: 1px solid #c7cfd9;
   border-radius: 6px;
   padding: 0.5rem;
@@ -982,7 +994,8 @@ tbody tr.selected {
   gap: 0.3rem;
 }
 
-.action-modal__form-row input {
+.action-modal__form-row input,
+.action-modal__form-row select {
   border: 1px solid #c7cfd9;
   border-radius: 6px;
   padding: 0.5rem;
