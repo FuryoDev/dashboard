@@ -585,7 +585,7 @@ th {
   cursor: col-resize;
   align-self: stretch;
   position: absolute;
-  right: -3px;
+  right: -1px;
   top: 0;
   bottom: 0;
 }
