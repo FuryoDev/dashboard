@@ -753,8 +753,6 @@ tbody tr.selected {
   min-height: 1.35rem;
   padding: 0.15rem 0.35rem;
   border-radius: 2px;
-  font-weight: 600;
-  color: #fff;
   text-align: center;
 }
 
@@ -770,9 +768,6 @@ tbody tr.selected {
   background: #ff0000;
 }
 
-:deep(.status-pill--neutral) {
-  background: #6b7280;
-}
 
 .action-modal__table-scroll {
   max-height: 260px;
