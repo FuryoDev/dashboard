@@ -1,6 +1,6 @@
 <template>
   <nav class="header-menu" aria-label="Navigation principale">
-    <div class="header-menu__brand" aria-label="Logo RTBF placeholder">RTBF</div>
+    <div class="header-menu__brand" aria-label="Logo VOD  placeholder">VOD</div>
 
     <div class="header-menu__links">
       <RouterLink to="/" class="header-menu__link">Dashboard</RouterLink>
