@@ -395,6 +395,43 @@ function startResize(key: DetailColumnKey, event: MouseEvent) {
   window.addEventListener("mouseup", onMouseUp);
 }
 
+function truncate(value: unknown, max = 180): string {
+  const text = String(value ?? "");
+  return text.length > max ? `${text.slice(0, max)}...` : text;
+}
+
+function toggleSort(key: DetailColumnKey) {
+  if (!sortState.value || sortState.value.key !== key) {
+    sortState.value = {key, direction: "asc"};
+    return;
+  }
+  if (sortState.value.direction === "asc") {
+    sortState.value = {key, direction: "desc"};
+    return;
+  }
+  sortState.value = null;
+}
+
+function sortClass(key: DetailColumnKey) {
+  if (!sortState.value || sortState.value.key !== key) return "none";
+  return sortState.value.direction;
+}
+
+function startResize(key: DetailColumnKey, event: MouseEvent) {
+  const startX = event.clientX;
+  const startWidth = columnWidths[key];
+  const onMouseMove = (moveEvent: MouseEvent) => {
+    const delta = moveEvent.clientX - startX;
+    columnWidths[key] = Math.max(70, startWidth + delta);
+  };
+  const onMouseUp = () => {
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  };
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
+}
+
 onMounted(() => {
   window.addEventListener("click", closeContextMenu);
   window.addEventListener("scroll", closeContextMenu);

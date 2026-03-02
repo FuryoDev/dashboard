@@ -81,10 +81,10 @@
         </div>
 
         <div class="panel__actions">
-          <button type="button" @click="markReconcile">Réconciliation des produits</button>
-          <button type="button" @click="markDecoupeAll">Découper tous</button>
-          <button type="button" @click="markDecoupeTranscode">Découpe + transcodage auto</button>
-          <button type="button" @click="clearAssigned">Effacer tout</button>
+          <button class= manual-btn type="button" @click="markReconcile">Réconciliation des produits</button>
+          <button class= manual-btn  type="button" @click="markDecoupeAll">Découper tous</button>
+          <button class= manual-btn type="button" @click="markDecoupeTranscode">Découpe + transcodage auto</button>
+          <button class= manual-btn type="button" @click="clearAssigned">Effacer tout</button>
         </div>
       </div>
 
@@ -294,12 +294,13 @@ input {
 .actions {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   padding-top: 0.8rem;
   gap: 0.5rem;
 }
 
 button {
+  border-radius: 16px;
   border: 1px solid #333b47;
   background: linear-gradient(90deg, #1a2534 0%, #1e2f45 100%);
   color: #fff;
@@ -329,5 +330,11 @@ button {
 
 .media-toolbar select {
   min-width: 220px;
+}
+
+.manual-btn {
+  border-radius: 6px;
+  margin: auto;
+  width: 20%;
 }
 </style>
