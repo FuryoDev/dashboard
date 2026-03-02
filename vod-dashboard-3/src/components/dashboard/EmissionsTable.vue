@@ -871,7 +871,7 @@ tbody tr.selected {
 
 .action-modal {
   background: #fff;
-  width: min(560px, 92vw);
+  width: min(60%, 92vw);
   border-radius: 10px;
   border: 1px solid #cfd6df;
   padding: 1rem;
@@ -970,7 +970,7 @@ tbody tr.selected {
 
 .action-modal {
   background: #fff;
-  width: min(560px, 92vw);
+  width: min(60%, 92vw);
   border-radius: 10px;
   border: 1px solid #cfd6df;
   padding: 1rem;
