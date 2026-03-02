@@ -1,12 +1,23 @@
 <template>
   <form class="search-form" @submit.prevent="submit">
-    <label>
-      Jour VOD
-      <input v-model="date" type="date" />
-    </label>
+    <div class="">
+      <label class="filter-label">
+        <span class="filter-label">VOD</span>
+        <select v-model="vodType">
+          <option value="">Tous</option>
+          <option v-for="item in vodTypes" :key="item.value" :value="item.value">
+            {{ item.value }}
+          </option>
+        </select>
+      </label>
+      <label>
+        <span class="filter-label">Jour VOD</span>
+        <input v-model="date" type="date"/>
+      </label>
+    </div>
 
     <label>
-      Chaine de diffusion
+      <span class="filter-label">Chaine de diffusion</span>
       <select v-model="selectedChannels" multiple>
         <option v-for="channel in channels" :key="channel.value" :value="channel.text">
           {{ channel.text }}
@@ -15,7 +26,7 @@
     </label>
 
     <label>
-      Plateforme
+      <span class="filter-label">Plateforme</span>
       <select v-model="selectedPlatforms" multiple>
         <option v-for="platform in platforms" :key="platform.value" :value="platform.text">
           {{ platform.text }}
@@ -23,34 +34,24 @@
       </select>
     </label>
 
-    <label>
-      Type VOD
-      <select v-model="vodType">
-        <option value="">Tous</option>
-        <option v-for="item in vodTypes" :key="item.value" :value="item.value">
-          {{ item.value }}
-        </option>
-      </select>
-    </label>
-
     <fieldset>
-      <legend>Statut diffusion</legend>
+      <legend class="filter-label">Statut diffusion</legend>
       <label v-for="status in statusOptions" :key="status" class="checkbox-inline">
-        <input v-model="selectedStatuses" type="checkbox" :value="status" /> {{ status }}
+        <input v-model="selectedStatuses" type="checkbox" :value="status"/> {{ status }}
       </label>
     </fieldset>
 
     <div class="search-form__actions">
       <button type="submit">Rechercher</button>
       <button type="button" class="secondary" @click="reset">Réinitialiser</button>
-      <button type="button" class="secondary" @click="$emit('bulk-clean')">Nettoyer statuts sélectionnés</button>
+      <!--      <button type="button" class="secondary" @click="$emit('bulk-clean')">Nettoyer statuts sélectionnés</button>-->
     </div>
   </form>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import type { OptionItem } from "@/services/notification.api";
+import {ref} from "vue";
+import type {OptionItem} from "@/services/notification.api";
 
 const props = defineProps<{
   channels: OptionItem[];
@@ -138,12 +139,13 @@ select {
 }
 
 select[multiple] {
-  min-height: 70px;
+  min-height: 60%;
 }
 
 .search-form__actions {
-  grid-column: span 5;
   display: flex;
+  flex-direction: column;
+  width: 50%;
   align-items: center;
   gap: 0.5rem;
 }
@@ -160,5 +162,10 @@ button {
 .secondary {
   background: #fff;
   color: #0e98b6;
+}
+
+.filter-label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
 }
 </style>

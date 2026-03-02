@@ -7,12 +7,12 @@
 
       <div class="tabs" role="tablist" aria-label="Détails émission">
         <button
-          v-for="tab in tabItems"
-          :key="tab.key"
-          type="button"
-          class="tab"
-          :class="{ active: activeTab === tab.key }"
-          @click="activeTab = tab.key"
+            v-for="tab in tabItems"
+            :key="tab.key"
+            type="button"
+            class="tab"
+            :class="{ active: activeTab === tab.key }"
+            @click="activeTab = tab.key"
         >
           {{ tab.label }}
         </button>
@@ -23,30 +23,31 @@
       <div v-if="activeTab === 'transcodages'" class="tab-panel">
         <table>
           <thead>
-            <tr>
-              <th>Plateform</th>
-              <th>Offre</th>
-              <th>Statut</th>
-              <th>% Progression</th>
-              <th>Démarré à</th>
-              <th>Terminé à</th>
-              <th>Demandeur</th>
-              <th>job-id</th>
-              <th>Commentaire</th>
-            </tr>
+          <tr>
+            <th>Plateform</th>
+            <th>Offre</th>
+            <th>Statut</th>
+            <th>% Progression</th>
+            <th>Démarré à</th>
+            <th>Terminé à</th>
+            <th>Demandeur</th>
+            <th>job-id</th>
+            <th>Commentaire</th>
+          </tr>
           </thead>
           <tbody>
-            <tr v-for="(job, idx) in jobs" :key="`${String(job.guid ?? idx)}-${idx}`">
-              <td>{{ String(job.profileName ?? '') }}</td>
-              <td>{{ String(job.offer ?? '') }}</td>
-              <td><span :class="getStatusClass(String(job.lastStatus ?? ''))">{{ String(job.lastStatus ?? '') }}</span></td>
-              <td>{{ String(job.lastProgressValue ?? '') }}</td>
-              <td>{{ formatReadableDate(job.startDate as string | undefined) }}</td>
-              <td>{{ formatReadableDate(job.endDate as string | undefined) }}</td>
-              <td>{{ String(job.requester ?? '') }}</td>
-              <td>{{ String(job.guid ?? '') }}</td>
-              <td>{{ String(job.comment ?? '') }}</td>
-            </tr>
+          <tr v-for="(job, idx) in jobs" :key="`${String(job.guid ?? idx)}-${idx}`">
+            <td>{{ String(job.profileName ?? '') }}</td>
+            <td>{{ String(job.offer ?? '') }}</td>
+            <td><span :class="getStatusClass(String(job.lastStatus ?? ''))">{{ String(job.lastStatus ?? '') }}</span>
+            </td>
+            <td>{{ String(job.lastProgressValue ?? '') }}</td>
+            <td>{{ formatReadableDate(job.startDate as string | undefined) }}</td>
+            <td>{{ formatReadableDate(job.endDate as string | undefined) }}</td>
+            <td>{{ String(job.requester ?? '') }}</td>
+            <td>{{ String(job.guid ?? '') }}</td>
+            <td>{{ String(job.comment ?? '') }}</td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -54,26 +55,26 @@
       <div v-else-if="activeTab === 'offres'" class="tab-panel">
         <table>
           <thead>
-            <tr>
-              <th>Plateform</th>
-              <th>Offre</th>
-              <th>Prix</th>
-              <th>Début</th>
-              <th>Fin</th>
-              <th>Territoire</th>
-              <th>oid</th>
-            </tr>
+          <tr>
+            <th>Plateform</th>
+            <th>Offre</th>
+            <th>Prix</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>Territoire</th>
+            <th>oid</th>
+          </tr>
           </thead>
           <tbody>
-            <tr v-for="(offer, idx) in offers" :key="`${String(offer.id_record ?? idx)}-${idx}`">
-              <td>{{ String(offer.name ?? '') }}</td>
-              <td>{{ String(offer.offerName ?? '') }}</td>
-              <td>{{ String(offer.priceCode ?? '') }}</td>
-              <td>{{ formatReadableDate(offer.startDateTime as string | undefined) }}</td>
-              <td>{{ formatReadableDate(offer.endDateTime as string | undefined) }}</td>
-              <td>{{ String(offer.territoire ?? '') }}</td>
-              <td>{{ String(offer.id_record ?? '') }}</td>
-            </tr>
+          <tr v-for="(offer, idx) in offers" :key="`${String(offer.id_record ?? idx)}-${idx}`">
+            <td>{{ String(offer.name ?? '') }}</td>
+            <td>{{ String(offer.offerName ?? '') }}</td>
+            <td>{{ String(offer.priceCode ?? '') }}</td>
+            <td>{{ formatReadableDate(offer.startDateTime as string | undefined) }}</td>
+            <td>{{ formatReadableDate(offer.endDateTime as string | undefined) }}</td>
+            <td>{{ String(offer.territoire ?? '') }}</td>
+            <td>{{ String(offer.id_record ?? '') }}</td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -81,22 +82,23 @@
       <div v-else-if="activeTab === 'segments'" class="tab-panel">
         <table>
           <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Nom</th>
-              <th>Début</th>
-              <th>Fin</th>
-              <th>Statut</th>
-            </tr>
+          <tr>
+            <th>Nombre</th>
+            <th>Nom</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>Statut</th>
+          </tr>
           </thead>
           <tbody>
-            <tr v-for="(segment, idx) in segments" :key="`${String(segment.name ?? idx)}-${idx}`">
-              <td>{{ String(segment.number ?? '') }}</td>
-              <td>{{ String(segment.name ?? '') }}</td>
-              <td>{{ String(segment.tcin ?? '') }}</td>
-              <td>{{ String(segment.tcout ?? '') }}</td>
-              <td><span :class="getStatusClass(String(segment.status ?? ''))">{{ String(segment.status ?? '') }}</span></td>
-            </tr>
+          <tr v-for="(segment, idx) in segments" :key="`${String(segment.name ?? idx)}-${idx}`">
+            <td>{{ String(segment.number ?? '') }}</td>
+            <td>{{ String(segment.name ?? '') }}</td>
+            <td>{{ String(segment.tcin ?? '') }}</td>
+            <td>{{ String(segment.tcout ?? '') }}</td>
+            <td><span :class="getStatusClass(String(segment.status ?? ''))">{{ String(segment.status ?? '') }}</span>
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -104,22 +106,23 @@
       <div v-else-if="activeTab === 'segmentsPrevus'" class="tab-panel">
         <table>
           <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Nom</th>
-              <th>Début</th>
-              <th>Fin</th>
-              <th>Statut</th>
-            </tr>
+          <tr>
+            <th>Nombre</th>
+            <th>Nom</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>Statut</th>
+          </tr>
           </thead>
           <tbody>
-            <tr v-for="(segment, idx) in plannedSegments" :key="`${String(segment.name ?? idx)}-planned-${idx}`">
-              <td>{{ String(segment.number ?? '') }}</td>
-              <td>{{ String(segment.name ?? '') }}</td>
-              <td>{{ String(segment.tcin ?? '') }}</td>
-              <td>{{ String(segment.tcout ?? '') }}</td>
-              <td><span :class="getStatusClass(String(segment.status ?? ''))">{{ String(segment.status ?? '') }}</span></td>
-            </tr>
+          <tr v-for="(segment, idx) in plannedSegments" :key="`${String(segment.name ?? idx)}-planned-${idx}`">
+            <td>{{ String(segment.number ?? '') }}</td>
+            <td>{{ String(segment.name ?? '') }}</td>
+            <td>{{ String(segment.tcin ?? '') }}</td>
+            <td>{{ String(segment.tcout ?? '') }}</td>
+            <td><span :class="getStatusClass(String(segment.status ?? ''))">{{ String(segment.status ?? '') }}</span>
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -127,26 +130,27 @@
       <div v-else class="tab-panel">
         <table>
           <thead>
-            <tr>
-              <th>Ressource</th>
-              <th>Début de média</th>
-              <th>Statut</th>
-              <th>Date de création</th>
-              <th>Message</th>
-              <th>Date de clôture</th>
-              <th>Demandeur</th>
-            </tr>
+          <tr>
+            <th>Ressource</th>
+            <th>Début de média</th>
+            <th>Statut</th>
+            <th>Date de création</th>
+            <th>Message</th>
+            <th>Date de clôture</th>
+            <th>Demandeur</th>
+          </tr>
           </thead>
           <tbody>
-            <tr v-for="(subtitle, idx) in subtitles" :key="`${String(subtitle.media ?? idx)}-${idx}`">
-              <td>{{ String(subtitle.media ?? '') }}</td>
-              <td>{{ String(subtitle.som ?? '') }}</td>
-              <td><span :class="getStatusClass(String(subtitle.status ?? ''))">{{ String(subtitle.status ?? '') }}</span></td>
-              <td>{{ formatReadableDate(subtitle.creation as string | undefined) }}</td>
-              <td>{{ truncate(subtitle.message) }}</td>
-              <td>{{ formatReadableDate(subtitle.lookupLimit as string | undefined) }}</td>
-              <td>{{ String(subtitle.creator ?? '') }}</td>
-            </tr>
+          <tr v-for="(subtitle, idx) in subtitles" :key="`${String(subtitle.media ?? idx)}-${idx}`">
+            <td>{{ String(subtitle.media ?? '') }}</td>
+            <td>{{ String(subtitle.som ?? '') }}</td>
+            <td><span :class="getStatusClass(String(subtitle.status ?? ''))">{{ String(subtitle.status ?? '') }}</span>
+            </td>
+            <td>{{ formatReadableDate(subtitle.creation as string | undefined) }}</td>
+            <td>{{ truncate(subtitle.message) }}</td>
+            <td>{{ formatReadableDate(subtitle.lookupLimit as string | undefined) }}</td>
+            <td>{{ String(subtitle.creator ?? '') }}</td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -155,11 +159,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { useHttp } from "@/composables/useHttp";
-import { formatReadableDate } from "@/utils/date";
-import { getStatusClass } from "@/utils/status";
-import type { Emission } from "@/types/domain";
+import {computed, ref, watch} from "vue";
+import {useHttp} from "@/composables/useHttp";
+import {formatReadableDate} from "@/utils/date";
+import {getStatusClass} from "@/utils/status";
+import type {Emission} from "@/types/domain";
 
 type DetailTabKey = "transcodages" | "offres" | "segments" | "segmentsPrevus" | "soustitrages";
 
@@ -214,11 +218,11 @@ const subtitles = ref<SubtitleItem[]>([]);
 const error = ref("");
 
 const tabItems: Array<{ key: DetailTabKey; label: string }> = [
-  { key: "transcodages", label: "Transcodages" },
-  { key: "offres", label: "Offres" },
-  { key: "segments", label: "Segments" },
-  { key: "segmentsPrevus", label: "Segments prévus" },
-  { key: "soustitrages", label: "Sous-titrages" },
+  {key: "transcodages", label: "Transcodages"},
+  {key: "offres", label: "Offres"},
+  {key: "segments", label: "Segments"},
+  {key: "segmentsPrevus", label: "Segments prévus"},
+  {key: "soustitrages", label: "Sous-titrages"},
 ];
 
 const offers = computed<OfferItem[]>(() => {
@@ -235,10 +239,10 @@ const offers = computed<OfferItem[]>(() => {
 
 const plannedSegments = computed<SegmentItem[]>(() => {
   const candidate =
-    (props.emission?.segmentsPrevus as SegmentItem[] | undefined) ??
-    (props.emission?.plannedSegments as SegmentItem[] | undefined) ??
-    (props.emission?.segmentsPlanned as SegmentItem[] | undefined) ??
-    [];
+      (props.emission?.segmentsPrevus as SegmentItem[] | undefined) ??
+      (props.emission?.plannedSegments as SegmentItem[] | undefined) ??
+      (props.emission?.segmentsPlanned as SegmentItem[] | undefined) ??
+      [];
   return Array.isArray(candidate) ? candidate : [];
 });
 
@@ -261,7 +265,7 @@ async function fetchDetails(emission: Emission) {
     const idEpisode = String(emission.idEpisode ?? "");
 
     const noCacheConfig = (seed: number) => ({
-      params: { _t: `${Date.now()}-${seed}` },
+      params: {_t: `${Date.now()}-${seed}`},
       headers: {
         "Cache-Control": "no-cache, no-store, must-revalidate",
         Pragma: "no-cache",
@@ -272,11 +276,11 @@ async function fetchDetails(emission: Emission) {
     });
 
     const [jobsResponse, segmentsResponse, subtitlesResponse] = await Promise.all([
-      idRecord ? http.get(`transcode/service/status/${idRecord}`, noCacheConfig(1)) : Promise.resolve({ data: [] }),
-      idRecord ? http.get(`restore/service/segment/${idRecord}`, noCacheConfig(2)) : Promise.resolve({ data: [] }),
+      idRecord ? http.get(`transcode/service/status/${idRecord}`, noCacheConfig(1)) : Promise.resolve({data: []}),
+      idRecord ? http.get(`restore/service/segment/${idRecord}`, noCacheConfig(2)) : Promise.resolve({data: []}),
       idEpisode
-        ? http.get(`subtitle/service/medias/episode/${idEpisode}`, noCacheConfig(3))
-        : Promise.resolve({ data: [] }),
+          ? http.get(`subtitle/service/medias/episode/${idEpisode}`, noCacheConfig(3))
+          : Promise.resolve({data: []}),
     ]);
 
     const asArray = <T>(value: unknown): T[] => {
@@ -296,8 +300,8 @@ async function fetchDetails(emission: Emission) {
 
     if (subtitlesData.length === 0 && idRecord) {
       const subtitlesByRecordResponse = await http.get(
-        `subtitle/service/medias/episode/${idRecord}`,
-        noCacheConfig(4),
+          `subtitle/service/medias/episode/${idRecord}`,
+          noCacheConfig(4),
       );
       subtitlesData = asArray<SubtitleItem>(subtitlesByRecordResponse.data);
     }
@@ -320,8 +324,8 @@ async function fetchDetails(emission: Emission) {
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
     error.value =
-      "Erreur DetailOfferTranscodeEmission: chargement transcodages/offres/segments/segments prévus/sous-titrages impossible. " +
-      `Détail: ${message}`;
+        "Erreur DetailOfferTranscodeEmission: chargement transcodages/offres/segments/segments prévus/sous-titrages impossible. " +
+        `Détail: ${message}`;
   }
 }
 
@@ -331,12 +335,12 @@ function truncate(value: unknown, max = 180): string {
 }
 
 watch(
-  () => props.emission,
-  async (emission) => {
-    if (!emission) return;
-    await fetchDetails(emission);
-  },
-  { immediate: true },
+    () => props.emission,
+    async (emission) => {
+      if (!emission) return;
+      await fetchDetails(emission);
+    },
+    {immediate: true},
 );
 </script>
 

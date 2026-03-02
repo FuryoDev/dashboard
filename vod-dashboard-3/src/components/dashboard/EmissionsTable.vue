@@ -1,14 +1,13 @@
 <template>
   <section class="emission-list">
     <header>
-      <h2>Émissions ({{ emissions.length }})</h2>
+      <h2>Émissions </h2>
       <p v-if="loading">Chargement...</p>
     </header>
 
     <table>
       <thead>
         <tr>
-          <th></th>
           <th>Chaîne</th>
           <th>Titre</th>
           <th>Durée</th>
@@ -28,14 +27,7 @@
       </thead>
       <tbody>
         <tr v-for="item in paginated" :key="String(item.idRecord)">
-          <td>
-            <input
-              type="checkbox"
-              :checked="isSelected(item)"
-              @change="toggleSelection(item, ($event.target as HTMLInputElement).checked)"
-            />
-          </td>
-          <td>{{ String(item.chaine ?? "") }}</td>
+          <td>{{ String(item.channel ?? "") }}</td>
           <td>
             <button class="link" type="button" @click="$emit('focus', item)">{{ item.title }}</button>
           </td>
@@ -163,7 +155,6 @@ th {
 .link {
   border: 0;
   background: none;
-  color: #0a6d98;
   padding: 0;
   cursor: pointer;
 }
