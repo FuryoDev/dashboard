@@ -449,9 +449,9 @@ watch(
 
 .tab.active {
   font-weight: 600;
-  background: #1b3b72;
+  background: #0e98b6;
   color: #fff;
-  border-color: #1b3b72;
+  border-color: #0e98b6;
 }
 
 .tab-panel {
@@ -473,6 +473,7 @@ td {
 }
 
 th {
+  padding: 0.7rem;
   background: #1b2433;
   color: #fff;
 }

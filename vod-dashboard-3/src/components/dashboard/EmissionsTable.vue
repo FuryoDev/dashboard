@@ -2,7 +2,10 @@
   <section class="emission-list">
     <header>
       <h2>Émissions </h2>
-      <p v-if="loading">Chargement...</p>
+<!--      <p v-if="loading">Chargement...</p>-->
+      <div class="">
+
+      </div>
     </header>
 
     <div class="table-scroll">
@@ -513,6 +516,7 @@ td {
 }
 
 th {
+  padding: 0.7rem;
   background: #1b2433;
   color: #fff;
   position: relative;
