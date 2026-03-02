@@ -50,8 +50,12 @@
                 @contextmenu.prevent="openRowContextMenu(row, $event)"
             >
               <td v-for="column in activeColumns" :key="column.key">
-                <span v-if="column.status" :class="getStatusClass(String(row[column.key] ?? ''))">{{ String(row[column.key] ?? '') }}</span>
-                <template v-else-if="column.date">{{ formatReadableDate(row[column.key] as string | undefined) }}</template>
+                <span v-if="column.status"
+                      :class="getStatusClass(String(row[column.key] ?? ''))">{{ String(row[column.key] ?? '') }}</span>
+                <template v-else-if="column.date">{{
+                    formatReadableDate(row[column.key] as string | undefined)
+                  }}
+                </template>
                 <template v-else>{{ String(row[column.key] ?? '') }}</template>
               </td>
             </tr>
@@ -62,7 +66,8 @@
       </div>
 
       <div v-if="contextMenu.open" class="detail-context-menu" :style="contextMenuStyle">
-        <button v-for="action in contextActions" :key="action.label" type="button" @click="copyContextValue(action.value)">
+        <button v-for="action in contextActions" :key="action.label" type="button"
+                @click="copyContextValue(action.value)">
           {{ action.label }}
         </button>
       </div>
@@ -80,10 +85,32 @@ import type {Emission} from "@/types/domain";
 type DetailTabKey = "transcodages" | "offres" | "segments" | "segmentsPrevus" | "soustitrages";
 type SortDirection = "asc" | "desc";
 type DetailColumnKey =
-    | "profileName" | "offer" | "lastStatus" | "lastProgressValue" | "startDate" | "endDate" | "requester" | "guid" | "comment"
-    | "name" | "offerName" | "priceCode" | "startDateTime" | "endDateTime" | "territoire" | "id_record"
-    | "number" | "tcin" | "tcout" | "status"
-    | "media" | "som" | "creation" | "message" | "lookupLimit" | "creator";
+    | "profileName"
+    | "offer"
+    | "lastStatus"
+    | "lastProgressValue"
+    | "startDate"
+    | "endDate"
+    | "requester"
+    | "guid"
+    | "comment"
+    | "name"
+    | "offerName"
+    | "priceCode"
+    | "startDateTime"
+    | "endDateTime"
+    | "territoire"
+    | "id_record"
+    | "number"
+    | "tcin"
+    | "tcout"
+    | "status"
+    | "media"
+    | "som"
+    | "creation"
+    | "message"
+    | "lookupLimit"
+    | "creator";
 
 type TableColumn = { key: DetailColumnKey; label: string; date?: boolean; status?: boolean };
 
@@ -195,10 +222,32 @@ const tableConfig: Record<DetailTabKey, TableColumn[]> = {
 };
 
 const columnWidths = reactive<Record<DetailColumnKey, number>>({
-  profileName: 110, offer: 120, lastStatus: 110, lastProgressValue: 120, startDate: 150, endDate: 150, requester: 120, guid: 170, comment: 280,
-  name: 110, offerName: 140, priceCode: 110, startDateTime: 150, endDateTime: 150, territoire: 120, id_record: 150,
-  number: 90, tcin: 90, tcout: 90, status: 110,
-  media: 170, som: 120, creation: 160, message: 320, lookupLimit: 160, creator: 140,
+  profileName: 110,
+  offer: 120,
+  lastStatus: 110,
+  lastProgressValue: 120,
+  startDate: 150,
+  endDate: 150,
+  requester: 120,
+  guid: 170,
+  comment: 280,
+  name: 110,
+  offerName: 140,
+  priceCode: 110,
+  startDateTime: 150,
+  endDateTime: 150,
+  territoire: 120,
+  id_record: 150,
+  number: 90,
+  tcin: 90,
+  tcout: 90,
+  status: 110,
+  media: 170,
+  som: 120,
+  creation: 160,
+  message: 320,
+  lookupLimit: 160,
+  creator: 140,
 });
 
 const offers = computed<OfferItem[]>(() => {
@@ -232,11 +281,16 @@ const activeColumns = computed(() => tableConfig[activeTab.value] ?? []);
 
 const activeRows = computed<RowItem[]>(() => {
   switch (activeTab.value) {
-    case "transcodages": return jobs.value as RowItem[];
-    case "offres": return offers.value as RowItem[];
-    case "segments": return segments.value as RowItem[];
-    case "segmentsPrevus": return plannedSegments.value as RowItem[];
-    case "soustitrages": return subtitles.value as RowItem[];
+    case "transcodages":
+      return jobs.value as RowItem[];
+    case "offres":
+      return offers.value as RowItem[];
+    case "segments":
+      return segments.value as RowItem[];
+    case "segmentsPrevus":
+      return plannedSegments.value as RowItem[];
+    case "soustitrages":
+      return subtitles.value as RowItem[];
   }
 });
 
@@ -323,7 +377,7 @@ async function fetchDetails(emission: Emission) {
   }
 }
 
-const contextMenuStyle = computed(() => ({ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }));
+const contextMenuStyle = computed(() => ({top: `${contextMenu.y}px`, left: `${contextMenu.x}px`}));
 
 function openRowContextMenu(row: RowItem, event: MouseEvent) {
   if (activeTab.value === "transcodages") {
@@ -356,44 +410,10 @@ async function copyContextValue(value: string) {
   contextMenu.open = false;
 }
 
-function closeContextMenu() { contextMenu.open = false; }
-
-function truncate(value: unknown, max = 180): string {
-  const text = String(value ?? "");
-  return text.length > max ? `${text.slice(0, max)}...` : text;
+function closeContextMenu() {
+  contextMenu.open = false;
 }
 
-function toggleSort(key: DetailColumnKey) {
-  if (!sortState.value || sortState.value.key !== key) {
-    sortState.value = {key, direction: "asc"};
-    return;
-  }
-  if (sortState.value.direction === "asc") {
-    sortState.value = {key, direction: "desc"};
-    return;
-  }
-  sortState.value = null;
-}
-
-function sortClass(key: DetailColumnKey) {
-  if (!sortState.value || sortState.value.key !== key) return "none";
-  return sortState.value.direction;
-}
-
-function startResize(key: DetailColumnKey, event: MouseEvent) {
-  const startX = event.clientX;
-  const startWidth = columnWidths[key];
-  const onMouseMove = (moveEvent: MouseEvent) => {
-    const delta = moveEvent.clientX - startX;
-    columnWidths[key] = Math.max(70, startWidth + delta);
-  };
-  const onMouseUp = () => {
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
-  };
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
-}
 
 function truncate(value: unknown, max = 180): string {
   const text = String(value ?? "");
@@ -442,7 +462,9 @@ onBeforeUnmount(() => {
   window.removeEventListener("scroll", closeContextMenu);
 });
 
-watch(() => activeTab.value, () => { sortState.value = null; });
+watch(() => activeTab.value, () => {
+  sortState.value = null;
+});
 
 watch(
     () => props.emission,
@@ -455,31 +477,187 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.details-tabs { margin-top: 1rem; background: #f2f3f6; border: 1px solid #cfd6df; padding: 0.5rem; border-radius: 8px; }
-.selected-episode { padding: 0.5rem; margin-bottom: 0.5rem; border: 1px solid #d9d9d9; }
-.tabs { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; }
-.tab { border: 1px solid #c2c2c2; background: #fff; padding: 0.35rem 0.6rem; border-radius: 6px; cursor: pointer; }
-.tab.active { font-weight: 600; background: #0e98b6; color: #fff; border-color: #0e98b6; }
-.tab-panel { overflow: auto; }
-table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 0.82rem; table-layout: fixed; }
-th, td { border: 1px solid #ececec; text-align: left; padding: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-th { padding: 0.7rem; background: #1b2433; color: #fff; position: relative; }
-.th-content { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; }
-.sort-button { border: 0; background: transparent; color: inherit; padding: 0; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.35rem; text-align: left; }
-.sort-indicator { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid #b8c4d8; opacity: 0.85; }
-.sort-indicator.asc { border-top: 0; border-bottom: 6px solid #fff; }
-.sort-indicator.desc { border-top: 6px solid #fff; }
-.resize-handle { width: 24px; cursor: col-resize; align-self: stretch; position: absolute; right: -3px; top: 0; bottom: 0; }
-:deep(.status-pill) { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 1.35rem; padding: 0.15rem 0.35rem; border-radius: 2px; font-weight: 600; color: #fff; text-align: center; }
-:deep(.status-pill--success) { background: #00b14f; }
-:deep(.status-pill--warning) { background: #f0a80d; }
-:deep(.status-pill--danger) { background: #ff0000; }
-:deep(.status-pill--neutral) { background: #6b7280; }
-.detail-context-menu { position: fixed; z-index: 25; min-width: 220px; background: #fff; border: 1px solid #ced5df; border-radius: 6px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18); display: flex; flex-direction: column; }
-.detail-context-menu button { border: 0; border-bottom: 1px solid #e5e8ef; background: #fff; padding: 0.55rem 0.75rem; text-align: left; cursor: pointer; }
-.detail-context-menu button:last-child { border-bottom: 0; }
-.detail-context-menu button:hover { background: #f4f7fb; }
-.error { color: #9d1b1b; margin-bottom: 0.5rem; }
-.episode-title { text-decoration: underline; }
-.empty-state { margin: 0.35rem 0; font-size: 0.9rem; color: #4b5563; }
+.details-tabs {
+  margin-top: 1rem;
+  background: #f2f3f6;
+  border: 1px solid #cfd6df;
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.selected-episode {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #d9d9d9;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.tab {
+  border: 1px solid #c2c2c2;
+  background: #fff;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tab.active {
+  font-weight: 600;
+  background: #0e98b6;
+  color: #fff;
+  border-color: #0e98b6;
+}
+
+.tab-panel {
+  overflow: auto;
+}
+
+table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  table-layout: fixed;
+}
+
+th, td {
+  border: 1px solid #ececec;
+  text-align: left;
+  padding: 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+th {
+  padding: 0.7rem;
+  background: #1b2433;
+  color: #fff;
+  position: relative;
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.sort-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.sort-indicator {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid #b8c4d8;
+  opacity: 0.85;
+}
+
+.sort-indicator.asc {
+  border-top: 0;
+  border-bottom: 6px solid #fff;
+}
+
+.sort-indicator.desc {
+  border-top: 6px solid #fff;
+}
+
+.resize-handle {
+  width: 24px;
+  cursor: col-resize;
+  align-self: stretch;
+  position: absolute;
+  right: -3px;
+  top: 0;
+  bottom: 0;
+}
+
+:deep(.status-pill) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 1.35rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 2px;
+  text-align: center;
+}
+
+:deep(.status-pill--success) {
+  background: #00ff00;
+}
+
+:deep(.status-pill--warning) {
+  background: #f0a80d;
+}
+
+:deep(.status-pill--danger) {
+  background: #ff0000;
+}
+
+:deep(.status-pill--neutral) {
+  background: #6b7280;
+}
+
+.detail-context-menu {
+  position: fixed;
+  z-index: 25;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #ced5df;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-context-menu button {
+  border: 0;
+  border-bottom: 1px solid #e5e8ef;
+  background: #fff;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.detail-context-menu button:last-child {
+  border-bottom: 0;
+}
+
+.detail-context-menu button:hover {
+  background: #f4f7fb;
+}
+
+.error {
+  color: #9d1b1b;
+  margin-bottom: 0.5rem;
+}
+
+.episode-title {
+  text-decoration: underline;
+}
+
+.empty-state {
+  margin: 0.35rem 0;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
 </style>
