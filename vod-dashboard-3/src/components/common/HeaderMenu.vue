@@ -11,8 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
-import { env } from "@/config/env";
+import {RouterLink} from "vue-router";
+import {env} from "@/config/env";
 </script>
 
 <style scoped lang="scss">

@@ -1,10 +1,10 @@
-import { createApp } from "vue";
+import {createApp} from "vue";
 import App from "@/App.vue";
 import router from "@/router";
-import { pinia } from "@/stores";
-import { assertEnvVariables, buildWsUrl } from "@/config/env";
-import { createHttpClient } from "@/services/http";
-import { setProvidedHttpClient } from "@/composables/useHttp";
+import {pinia} from "@/stores";
+import {assertEnvVariables, buildWsUrl} from "@/config/env";
+import {createHttpClient} from "@/services/http";
+import {setProvidedHttpClient} from "@/composables/useHttp";
 
 import "@/assets/css/main.scss";
 

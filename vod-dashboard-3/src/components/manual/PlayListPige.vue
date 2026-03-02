@@ -30,7 +30,7 @@
             <td>{{ item.fileName }}</td>
             <td>{{ item.durationLabel }}</td>
             <td>{{ item.traficId }}</td>
-            <td><input v-model="item.segment" type="text" /></td>
+            <td><input v-model="item.segment" type="text"/></td>
             <td>{{ item.live ? "1" : "0" }}</td>
           </tr>
           </tbody>
@@ -81,10 +81,10 @@
         </div>
 
         <div class="panel__actions">
-          <button class= manual-btn type="button" @click="markReconcile">Réconciliation des produits</button>
-          <button class= manual-btn  type="button" @click="markDecoupeAll">Découper tous</button>
-          <button class= manual-btn type="button" @click="markDecoupeTranscode">Découpe + transcodage auto</button>
-          <button class= manual-btn type="button" @click="clearAssigned">Effacer tout</button>
+          <button class=manual-btn type="button" @click="markReconcile">Réconciliation des produits</button>
+          <button class=manual-btn type="button" @click="markDecoupeAll">Découper tous</button>
+          <button class=manual-btn type="button" @click="markDecoupeTranscode">Découpe + transcodage auto</button>
+          <button class=manual-btn type="button" @click="clearAssigned">Effacer tout</button>
         </div>
       </div>
 
@@ -149,11 +149,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { storeToRefs } from "pinia";
-import { usePlaylistOffersStore } from "@/stores/playlist.offer";
-import { useHttp } from "@/composables/useHttp";
-import type { PlaylistItem } from "@/types/domain";
+import {computed, onMounted, ref} from "vue";
+import {storeToRefs} from "pinia";
+import {usePlaylistOffersStore} from "@/stores/playlist.offer";
+import {useHttp} from "@/composables/useHttp";
+import type {PlaylistItem} from "@/types/domain";
 
 type AssignedItem = PlaylistItem & {
   reconcile?: string;
@@ -161,7 +161,7 @@ type AssignedItem = PlaylistItem & {
 };
 
 const playlistStore = usePlaylistOffersStore();
-const { listPige: items } = storeToRefs(playlistStore);
+const {listPige: items} = storeToRefs(playlistStore);
 
 const selectedIds = ref(new Set<string>());
 
@@ -184,7 +184,7 @@ function addSelected() {
   const merge = [...current] as AssignedItem[];
   for (const item of added as AssignedItem[]) {
     if (!merge.some((existing) => existing.traficId === item.traficId)) {
-      merge.push({ ...item, reconcile: "", decoupe: "" });
+      merge.push({...item, reconcile: "", decoupe: ""});
     }
   }
   playlistStore.setElementsToAssign(merge);
@@ -221,7 +221,7 @@ function clearAssigned() {
 async function loadMediaList() {
   try {
     const http = useHttp("vod-manual.loadMediaList");
-    const { data } = await http.get(`restore/service/mediarestore/${selectedRepertory.value}`);
+    const {data} = await http.get(`restore/service/mediarestore/${selectedRepertory.value}`);
     mediaList.value = Array.isArray(data) ? data : [];
   } catch {
     mediaList.value = [];

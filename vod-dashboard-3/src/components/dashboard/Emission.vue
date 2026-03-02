@@ -3,7 +3,7 @@
     <form class="manual-page__filters" @submit.prevent="search">
       <label>
         Date
-        <input v-model="selectedDate" type="date" />
+        <input v-model="selectedDate" type="date"/>
       </label>
 
       <label>
@@ -20,18 +20,18 @@
 
     <p v-if="playlistStore.error" class="error">[Vod Manuel] {{ playlistStore.error }}</p>
 
-    <PlayListPige />
+    <PlayListPige/>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { storeToRefs } from "pinia";
+import {computed, onMounted, ref} from "vue";
+import {storeToRefs} from "pinia";
 import PlayListPige from "@/components/manual/PlayListPige.vue";
-import { usePlaylistOffersStore } from "@/stores/playlist.offer";
+import {usePlaylistOffersStore} from "@/stores/playlist.offer";
 
 const playlistStore = usePlaylistOffersStore();
-const { channels } = storeToRefs(playlistStore);
+const {channels} = storeToRefs(playlistStore);
 
 const selectedDate = ref(new Date().toISOString().slice(0, 10));
 const selectedChannel = ref("LAUNE");

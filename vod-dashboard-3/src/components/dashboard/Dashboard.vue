@@ -1,34 +1,34 @@
 <template>
   <section class="dashboard-page">
     <SearchEmission
-      :channels="emissionsStore.channels"
-      :platforms="emissionsStore.platforms"
-      :vod-types="emissionsStore.vodTypes"
-      @search="onSearch"
-      @bulk-clean="onBulkClean"
+        :channels="emissionsStore.channels"
+        :platforms="emissionsStore.platforms"
+        :vod-types="emissionsStore.vodTypes"
+        @search="onSearch"
+        @bulk-clean="onBulkClean"
     />
 
     <p v-if="emissionsStore.error" class="error">[Dashboard] {{ emissionsStore.error }}</p>
 
     <EmissionsTable
-      :emissions="emissionsStore.items"
-      :loading="emissionsStore.loading"
-      :selected="emissionsStore.selected"
-      @update:selected="emissionsStore.setSelected"
-      @focus="focusedEmission = $event"
+        :emissions="emissionsStore.items"
+        :loading="emissionsStore.loading"
+        :selected="emissionsStore.selected"
+        @update:selected="emissionsStore.setSelected"
+        @focus="focusedEmission = $event"
     />
 
-    <DetailOfferTranscodeEmission :emission="focusedEmission" />
+    <DetailOfferTranscodeEmission :emission="focusedEmission"/>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import {onMounted, ref} from "vue";
 import SearchEmission from "@/components/dashboard/SearchEmission.vue";
 import EmissionsTable from "@/components/dashboard/EmissionsTable.vue";
 import DetailOfferTranscodeEmission from "@/components/dashboard/DetailOfferTranscodeEmission.vue";
-import { useEmissionsStore } from "@/stores/emissions.store";
-import type { Emission as EmissionType } from "@/types/domain";
+import {useEmissionsStore} from "@/stores/emissions.store";
+import type {Emission as EmissionType} from "@/types/domain";
 
 const emissionsStore = useEmissionsStore();
 const focusedEmission = ref<EmissionType | null>(null);
@@ -51,7 +51,7 @@ async function onBulkClean() {
 
 onMounted(async () => {
   await emissionsStore.fetchFilterOptions();
-  await emissionsStore.fetchAll({ date: new Date(), channels: [], platforms: [], statuses: [] });
+  await emissionsStore.fetchAll({date: new Date(), channels: [], platforms: [], statuses: []});
 });
 </script>
 

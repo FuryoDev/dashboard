@@ -1,23 +1,23 @@
 <template>
   <div class="app-shell">
     <header class="app-shell__topbar">
-      <HeaderMenu />
+      <HeaderMenu/>
       <p class="app-shell__user">{{ userLabel }}</p>
     </header>
 
     <main class="app-shell__content">
-      <RouterView />
+      <RouterView/>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from "vue";
-import { RouterView } from "vue-router";
+import {computed, onMounted, onUnmounted} from "vue";
+import {RouterView} from "vue-router";
 import HeaderMenu from "@/components/common/HeaderMenu.vue";
-import { useUserStore } from "@/stores/user.store";
-import { useHttp } from "@/composables/useHttp";
-import type { User } from "@/types/auth";
+import {useUserStore} from "@/stores/user.store";
+import {useHttp} from "@/composables/useHttp";
+import type {User} from "@/types/auth";
 
 const userStore = useUserStore();
 const http = useHttp();
@@ -29,7 +29,7 @@ const userLabel = computed(() => {
 });
 
 async function fetchUser() {
-  const { data } = await http.get<User>("notification/service/user");
+  const {data} = await http.get<User>("notification/service/user");
   userStore.setUser(data);
 }
 

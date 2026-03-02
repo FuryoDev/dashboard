@@ -50,12 +50,15 @@
             @contextmenu.prevent="onRowContextMenu(item, $event)"
         >
           <td>{{ String(item.channel ?? "") }}</td>
-          <td >
+          <td>
             {{ item.title }}
           </td>
           <td>{{ String(item.duree ?? "") }}</td>
           <td>{{ String(item.idEpisode ?? "") }}</td>
-          <td>{{ formatReadableDateWithMs((item.plateformOffers?.[0]?.startDateTime ?? item.dateHeureDebutVisibilite) as string | undefined) }}</td>
+          <td>{{
+              formatReadableDateWithMs((item.plateformOffers?.[0]?.startDateTime ?? item.dateHeureDebutVisibilite) as string | undefined)
+            }}
+          </td>
           <td>{{ firstPlatform(item) }}</td>
           <td><span :class="getStatusClass(String(item.recordStatusTraitementItem?.useCase ?? ''))">{{
               String(item.recordStatusTraitementItem?.useCase ?? "")
