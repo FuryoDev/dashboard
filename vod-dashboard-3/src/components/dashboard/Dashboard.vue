@@ -63,6 +63,7 @@ onMounted(async () => {
 
 .dashboard-page {
   background: transparent;
+  padding-bottom: 1.5rem;
 }
 
 </style>
