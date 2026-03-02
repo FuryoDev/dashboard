@@ -5,7 +5,8 @@
       <p v-if="loading">Chargement...</p>
     </header>
 
-    <table>
+    <div class="table-scroll">
+      <table>
       <thead>
         <tr>
           <th
@@ -59,10 +60,11 @@
           <td>{{ String(item.idStk ?? "") }}</td>
         </tr>
       </tbody>
-    </table>
+      </table>
+    </div>
 
     <footer class="pagination">
-      <div class="pagination__left">
+      <div class="pagination__page-size">
         <label for="page-size">Éléments / page</label>
         <select id="page-size" v-model.number="pageSizeChoice">
           <option :value="0">All emissions</option>
@@ -482,8 +484,18 @@ header {
   margin-bottom: 0.5rem;
 }
 
+
+.table-scroll {
+  max-width: 100%;
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid #d6dde6;
+  background: #fff;
+}
+
 table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
   background: #fff;
@@ -522,7 +534,10 @@ th {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 0.35rem;
+  text-align: left;
 }
 
 .sort-indicator {
@@ -544,7 +559,7 @@ th {
 }
 
 .resize-handle {
-  width: 8px;
+  width: 24px;
   cursor: col-resize;
   align-self: stretch;
   position: absolute;
@@ -614,6 +629,125 @@ tbody tr.selected {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pagination__page-size {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination__page-size select {
+  border: 1px solid #0e98b6;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+}
+
+.pagination__right {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.pagination__right button {
+  border: 1px solid #0e98b6;
+  background: #0e98b6;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.pagination__right button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  border: 1px solid #ced5df;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18);
+}
+
+.context-menu button {
+  border: 0;
+  border-bottom: 1px solid #e5e8ef;
+  background: #fff;
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  color: #2d3748;
+}
+
+.context-menu button:last-child {
+  border-bottom: 0;
+}
+
+.context-menu button:hover {
+  background: #f4f7fb;
+}
+
+.action-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-modal {
+  background: #fff;
+  width: min(560px, 92vw);
+  border-radius: 10px;
+  border: 1px solid #cfd6df;
+  padding: 1rem;
+}
+
+.action-modal h3 {
+  margin: 0 0 0.75rem;
+}
+
+.action-modal__form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.7rem;
+  gap: 0.3rem;
+}
+
+.action-modal__form-row input {
+  border: 1px solid #c7cfd9;
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.action-modal__buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.action-modal__buttons button {
+  border: 1px solid #0e98b6;
+  background: #0e98b6;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.action-modal__buttons .secondary {
+  background: #fff;
+  color: #0e98b6;
 }
 
 .pagination__right button {
