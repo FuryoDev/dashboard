@@ -631,47 +631,29 @@ tbody tr.selected {
 .pagination {
   margin-top: 0.6rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.7rem;
   align-items: center;
-}
-
-.pagination__left {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.pagination__left select {
-  border: 1px solid #0e98b6;
-  border-radius: 6px;
-  padding: 0.35rem 0.5rem;
+  flex-wrap: wrap;
 }
 
 .pagination__right {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
 .pagination__page-size {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: auto;
 }
 
 .pagination__page-size select {
   border: 1px solid #0e98b6;
   border-radius: 6px;
   padding: 0.35rem 0.5rem;
-}
-
-.pagination__right {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
 }
 
 .pagination__right button {
