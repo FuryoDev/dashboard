@@ -608,7 +608,26 @@ tbody tr.selected {
 .pagination {
   margin-top: 0.6rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.pagination__left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination__left select {
+  border: 1px solid #0e98b6;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+}
+
+.pagination__right {
+  display: flex;
+  align-items: center;
   gap: 0.7rem;
   align-items: center;
   flex-wrap: wrap;
@@ -630,6 +649,105 @@ tbody tr.selected {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+}
+
+.pagination__right button {
+  border: 1px solid #0e98b6;
+  background: #0e98b6;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.pagination__right button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  border: 1px solid #ced5df;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18);
+}
+
+.context-menu button {
+  border: 0;
+  border-bottom: 1px solid #e5e8ef;
+  background: #fff;
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  color: #2d3748;
+}
+
+.context-menu button:last-child {
+  border-bottom: 0;
+}
+
+.context-menu button:hover {
+  background: #f4f7fb;
+}
+
+.action-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-modal {
+  background: #fff;
+  width: min(560px, 92vw);
+  border-radius: 10px;
+  border: 1px solid #cfd6df;
+  padding: 1rem;
+}
+
+.action-modal h3 {
+  margin: 0 0 0.75rem;
+}
+
+.action-modal__form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.7rem;
+  gap: 0.3rem;
+}
+
+.action-modal__form-row input {
+  border: 1px solid #c7cfd9;
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.action-modal__buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.action-modal__buttons button {
+  border: 1px solid #0e98b6;
+  background: #0e98b6;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.action-modal__buttons .secondary {
+  background: #fff;
+  color: #0e98b6;
 }
 
 .pagination__right button {
