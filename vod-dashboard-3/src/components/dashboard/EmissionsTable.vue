@@ -2,8 +2,14 @@
   <section class="emission-list">
     <header>
       <h2>Émissions </h2>
-      <div class="">
-
+      <div class="pagination__page-size">
+        <label for="page-size">Éléments / page</label>
+        <select id="page-size" v-model.number="pageSizeChoice">
+          <option :value="0">All emissions</option>
+          <option :value="10">10</option>
+          <option :value="25">25</option>
+          <option :value="50">50</option>
+        </select>
       </div>
     </header>
 
@@ -44,8 +50,8 @@
             @contextmenu.prevent="onRowContextMenu(item, $event)"
         >
           <td>{{ String(item.channel ?? "") }}</td>
-          <td>
-            <button class="link" type="button" @click.stop="$emit('focus', item)">{{ item.title }}</button>
+          <td >
+            {{ item.title }}
           </td>
           <td>{{ String(item.duree ?? "") }}</td>
           <td>{{ String(item.idEpisode ?? "") }}</td>
@@ -72,15 +78,6 @@
     </div>
 
     <footer class="pagination">
-      <div class="pagination__page-size">
-        <label for="page-size">Éléments / page</label>
-        <select id="page-size" v-model.number="pageSizeChoice">
-          <option :value="0">All emissions</option>
-          <option :value="10">10</option>
-          <option :value="25">25</option>
-          <option :value="50">50</option>
-        </select>
-      </div>
       <div class="pagination__right" v-if="isPaginationEnabled">
         <button type="button" :disabled="page <= 1" @click="page--">Précédent</button>
         <span>Page {{ page }} / {{ totalPages }}</span>

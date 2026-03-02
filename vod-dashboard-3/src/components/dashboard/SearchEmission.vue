@@ -139,7 +139,7 @@ select {
 }
 
 select[multiple] {
-  min-height: 60%;
+  min-height: 80%;
 }
 
 .search-form__actions {
