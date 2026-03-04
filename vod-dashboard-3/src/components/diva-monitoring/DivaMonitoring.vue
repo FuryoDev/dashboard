@@ -2,12 +2,12 @@
   <section class="diva-monitoring">
     <header class="diva-monitoring__header">
       <h1>Diva Monitoring</h1>
+      <hr>
       <p>Suivi des jobs d'exportation Diva.</p>
     </header>
 
     <div class="diva-monitoring__filters">
       <label class="field">
-        <span>Date</span>
         <input v-model="selectedDate" type="date">
       </label>
 
@@ -225,7 +225,6 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  margin-top: 1.15rem;
 }
 
 .table-card {
@@ -297,5 +296,11 @@ table {
 .progress__value {
   height: 100%;
   background: linear-gradient(90deg, #4cc9f0 0%, #80ffdb 100%);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid rgba(143, 215, 236, 0.22);
+  margin: 0.5rem 0;
 }
 </style>

@@ -2,6 +2,7 @@
   <section class="manual-page">
     <header class="page-header">
       <h1>Traitement manuel</h1>
+      <hr>
       <p>Pilotage des playlists et des actions manuelles.</p>
     </header>
 
@@ -60,6 +61,13 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+
+hr {
+  border: 0;
+  border-top: 1px solid rgba(143, 215, 236, 0.22);
+  margin: 0.5rem 0;
+}
+
 .manual-page {
   background: transparent;
   min-height: calc(100vh - 80px);

@@ -1,8 +1,6 @@
 <template>
   <section class="dashboard-page">
     <header class="page-header">
-      <h1>Dashboard</h1>
-      <p>Suivi global des émissions et de leurs statuts de traitement.</p>
     </header>
 
     <SearchEmission
