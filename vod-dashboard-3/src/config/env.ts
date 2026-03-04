@@ -3,7 +3,6 @@ export type RuntimeEnvironment = "dev" | "test" | "prod";
 export interface EnvironmentConfig {
     urlBaseService: string;
     urlVodWonStatusService: string;
-    linkDivaMonitoring: string;
     apiOrigin: string;
     divaMonitoringServiceContext: string;
 }
@@ -12,21 +11,18 @@ const configs: Record<RuntimeEnvironment, EnvironmentConfig> = {
     dev: {
         urlBaseService: "/",
         urlVodWonStatusService: "https://vod-dev.rtbf.be/vod-dashboard-ws/service/",
-        linkDivaMonitoring: "https://vod-dev.rtbf.be/diva-monitoring/#/",
         apiOrigin: "https://vod-dev.rtbf.be",
         divaMonitoringServiceContext: "/restore/service/",
     },
     test: {
         urlBaseService: "/",
         urlVodWonStatusService: "https://vod-test.rtbf.be/vod-dashboard-ws/service/",
-        linkDivaMonitoring: "https://vod-test.rtbf.be/diva-monitoring/#/",
         apiOrigin: "https://vod-test.rtbf.be",
         divaMonitoringServiceContext: "/restore/service/",
     },
     prod: {
         urlBaseService: "/",
         urlVodWonStatusService: "https://vod.rtbf.be/vod-dashboard-ws/service/",
-        linkDivaMonitoring: "https://vod.rtbf.be/diva-monitoring/#/",
         apiOrigin: "https://vod.rtbf.be",
         divaMonitoringServiceContext: "/restore/service/",
     },
@@ -72,7 +68,6 @@ export const exportedConfiguration = Object.freeze({
     wsPath: env.wsPath,
     urlBaseService: env.urlBaseService,
     urlVodWonStatusService: env.urlVodWonStatusService,
-    linkDivaMonitoring: env.linkDivaMonitoring,
     serviceHost: env.serviceHost,
     servicePort: env.servicePort,
     hasApiKey: Boolean(env.apiKey),
