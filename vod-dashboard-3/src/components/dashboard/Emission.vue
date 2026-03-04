@@ -1,5 +1,10 @@
 <template>
   <section class="manual-page">
+    <header class="page-header">
+      <h1>Traitement manuel</h1>
+      <p>Pilotage des playlists et des actions manuelles.</p>
+    </header>
+
     <form class="manual-page__filters" @submit.prevent="search">
       <label>
         Date
@@ -65,34 +70,53 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
   gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid #d5dae1;
-  background: #eff0f3;
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(143, 215, 236, 0.22);
+  background: rgba(9, 31, 54, 0.7);
 }
 
 label {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
   font-size: 0.875rem;
+  color: #d4edf6;
 }
 
 input,
 select {
   flex: 1;
-  border: 1px solid #c7cfd9;
-  border-radius: 6px;
-  background: #fff;
-  padding: 0.3rem 0.4rem;
+  border: 1px solid rgba(143, 215, 236, 0.4);
+  border-radius: 8px;
+  background: #0f2b45;
+  color: #d4edf6;
+  padding: 0.42rem 0.55rem;
 }
 
 button {
-  border: 1px solid #2f9f8f;
-  background: transparent;
-  color: #fff;
-  padding: 0.4rem 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  background: #2ed0f2;
+  color: #083047;
+  font-weight: 700;
+  padding: 0.5rem 0.9rem;
   cursor: pointer;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+
+  h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.4rem;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: #a9d3e4;
+  }
 }
 
 .error {

@@ -248,17 +248,17 @@ onMounted(async () => {
 }
 
 .panel {
-  border: 1px solid #cfd6df;
-  background: #f2f3f6;
+  border: 1px solid rgba(143, 215, 236, 0.2);
+  background: rgba(8, 32, 56, 0.85);
   border-radius: 12px;
   overflow: hidden;
 }
 
 .panel__header {
-  background: linear-gradient(90deg, #1a2534 0%, #1e2f45 100%);
+  background: #0b2038;
   color: #fff;
-  padding: 0.45rem 0.6rem;
-  font-weight: 600;
+  padding: 0.55rem 0.7rem;
+  font-weight: 700;
 }
 
 .panel__body {
@@ -273,22 +273,38 @@ onMounted(async () => {
 table {
   width: 100%;
   border-collapse: collapse;
-}
 
-th,
-td {
-  border: 1px solid #e5e8ee;
-  padding: 0.35rem;
-  font-size: 0.84rem;
-  white-space: nowrap;
+  th,
+  td {
+    border-bottom: 1px solid rgba(143, 215, 236, 0.15);
+    padding: 0.5rem;
+    font-size: 0.84rem;
+    white-space: nowrap;
+    color: #d4edf6;
+    text-align: left;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: #0f2b45;
+    color: #ffffff;
+    z-index: 1;
+  }
 }
 
 .selected {
-  background: #d1e8f3;
+  background: rgba(46, 208, 242, 0.28);
 }
 
-input {
+input,
+select {
   width: 100%;
+  border: 1px solid rgba(143, 215, 236, 0.4);
+  border-radius: 8px;
+  background: #0f2b45;
+  color: #d4edf6;
+  padding: 0.4rem 0.5rem;
 }
 
 .actions {
@@ -300,23 +316,26 @@ input {
 }
 
 button {
-  border-radius: 16px;
-  border: 1px solid #333b47;
-  background: linear-gradient(90deg, #1a2534 0%, #1e2f45 100%);
-  color: #fff;
-  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(46, 208, 242, 0.35);
+  border-radius: 8px;
+  background: #2ed0f2;
+  color: #083047;
+  padding: 0.45rem 0.7rem;
   width: 100%;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .panel__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
   padding: 0.6rem;
 }
 
 .media-toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0.75rem;
   padding: 0.6rem;
@@ -326,6 +345,7 @@ button {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  color: #d4edf6;
 }
 
 .media-toolbar select {
@@ -333,8 +353,6 @@ button {
 }
 
 .manual-btn {
-  border-radius: 6px;
-  margin: auto;
-  width: 20%;
+  width: 100%;
 }
 </style>

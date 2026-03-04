@@ -1,5 +1,10 @@
 <template>
   <section class="dashboard-page">
+    <header class="page-header">
+      <h1>Dashboard</h1>
+      <p>Suivi global des émissions et de leurs statuts de traitement.</p>
+    </header>
+
     <SearchEmission
         :channels="emissionsStore.channels"
         :platforms="emissionsStore.platforms"
@@ -64,6 +69,21 @@ onMounted(async () => {
 .dashboard-page {
   background: transparent;
   padding-bottom: 1.5rem;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+
+  h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.4rem;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: #a9d3e4;
+  }
 }
 
 </style>

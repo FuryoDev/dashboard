@@ -5,14 +5,13 @@
     <div class="header-menu__links">
       <RouterLink to="/" class="header-menu__link">Dashboard</RouterLink>
       <RouterLink to="/vodmanuel" class="header-menu__link">Traitement manuel</RouterLink>
-      <a :href="env.linkDivaMonitoring" target="_blank" rel="noreferrer" class="header-menu__link">Diva Monitoring</a>
+      <RouterLink to="/diva-monitoring" class="header-menu__link">Diva Monitoring</RouterLink>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
 import {RouterLink} from "vue-router";
-import {env} from "@/config/env";
 </script>
 
 <style scoped lang="scss">

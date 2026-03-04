@@ -14,6 +14,12 @@ const routes: RouteRecordRaw[] = [
         meta: {title: "Vodoo: traitement manuel"},
     },
     {
+        path: "/diva-monitoring/:date?",
+        name: "diva-monitoring",
+        component: () => import("@/components/diva-monitoring/DivaMonitoring.vue"),
+        meta: {title: "Vodoo: Diva Monitoring"},
+    },
+    {
         path: "/accueil",
         name: "accueil",
         component: () => import("@/components/common/Accueil.vue"),

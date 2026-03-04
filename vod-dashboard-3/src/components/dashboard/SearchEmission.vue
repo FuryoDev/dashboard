@@ -103,24 +103,24 @@ function reset() {
 <style scoped lang="scss">
 .search-form {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 0.8fr) minmax(150px, 0.5fr);
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 0.9fr) minmax(150px, 0.5fr);
   gap: 0.8rem;
-  padding: 0.9rem;
-  border-radius: 12px;
-  border: 1px solid #d5dae1;
-  background: #eff0f3;
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(143, 215, 236, 0.22);
+  background: rgba(9, 31, 54, 0.7);
 }
 
 label,
 fieldset {
   display: flex;
   flex-direction: column;
-  gap: 0.28rem;
-  font-size: 0.9rem;
+  gap: 0.35rem;
+  font-size: 0.88rem;
   border: 0;
   margin: 0;
   padding: 0;
-  color: #1e2634;
+  color: #d4edf6;
 }
 
 .checkbox-inline {
@@ -132,10 +132,11 @@ fieldset {
 
 input,
 select {
-  border: 1px solid #c7cfd9;
-  background: #fff;
-  border-radius: 6px;
-  padding: 0.38rem 0.5rem;
+  border: 1px solid rgba(143, 215, 236, 0.4);
+  background: #0f2b45;
+  color: #d4edf6;
+  border-radius: 8px;
+  padding: 0.42rem 0.55rem;
 }
 
 select[multiple] {
@@ -151,13 +152,13 @@ select[multiple] {
 }
 
 button {
-  border: 1px solid #0e98b6;
-  background: #0e98b6;
-  border-radius: 6px;
-  color: #fff;
-  padding: 0.65rem 0.95rem;
-  font-size: 1rem;
-  font-weight: 600;
+  border: 0;
+  background: #2ed0f2;
+  border-radius: 8px;
+  color: #083047;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -166,12 +167,13 @@ button {
 }
 
 .secondary {
-  background: #fff;
-  color: #0e98b6;
+  background: rgba(46, 208, 242, 0.14);
+  color: #8fe6fa;
+  border: 1px solid rgba(46, 208, 242, 0.35);
 }
 
 .filter-label {
-  margin-bottom: 0.5rem;
-  font-weight: bold;
+  margin-bottom: 0.3rem;
+  font-weight: 700;
 }
 </style>
