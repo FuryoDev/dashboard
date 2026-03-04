@@ -141,12 +141,12 @@ async function refreshNow() {
 
 watch(selectedDate, async (value) => {
   if (!value) return;
-  await router.replace({name: "diva-monitoring", params: {date: value}});
+  await router.replace({name: "diva-monitoring", query: {date: value}});
   await fetchJobs();
 });
 
 watch(
-    () => route.params.date,
+    () => route.query.date,
     (value) => {
       const date = normalizeRouteDate(value);
       if (date && selectedDate.value !== date) {
@@ -156,7 +156,7 @@ watch(
 );
 
 onMounted(() => {
-  const routeDate = normalizeRouteDate(route.params.date);
+  const routeDate = normalizeRouteDate(route.query.date);
   selectedDate.value = routeDate || new Date().toISOString().slice(0, 10);
 });
 

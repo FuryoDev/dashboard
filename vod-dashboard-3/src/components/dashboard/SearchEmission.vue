@@ -176,4 +176,10 @@ button {
   margin-bottom: 0.3rem;
   font-weight: 700;
 }
+
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%) invert(93%) sepia(20%) saturate(343%) hue-rotate(156deg) brightness(100%) contrast(92%);
+  cursor: pointer;
+}
 </style>
