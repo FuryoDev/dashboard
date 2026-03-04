@@ -54,7 +54,7 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .app-shell {
-  min-height: 100vh;
+  min-height: 80vh;
   background: linear-gradient(135deg, #08253f 0%, #0c4f68 100%);
   color: #1d1d1d;
 }
