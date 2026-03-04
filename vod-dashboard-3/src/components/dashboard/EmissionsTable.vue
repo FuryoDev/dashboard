@@ -791,7 +791,7 @@ tbody tr.selected {
 .channel-logo {
   display: block;
   max-width: 100%;
-  height: 1rem;
+  height: 2.2rem;
   object-fit: contain;
   object-position: left center;
 }
