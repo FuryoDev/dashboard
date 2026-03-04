@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
   const loaded = loadEnv(mode, process.cwd(), "");
 
   const appPort = Number(loaded.VITE_APP_PORT || 8080);
-  const apiProxyTarget = loaded.VITE_API_PROXY_TARGET || "https://vod-dev.rtbf.be";
+  const apiProxyTarget = loaded.VITE_API_PROXY_TARGET ;
   const apiKey = loaded.VITE_APIKEY || "";
   const ingressPath = loaded.VITE_INGRESS_HTTP_PATH || "/";
 
