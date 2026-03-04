@@ -5,6 +5,7 @@ export interface EnvironmentConfig {
     urlVodWonStatusService: string;
     linkDivaMonitoring: string;
     apiOrigin: string;
+    divaMonitoringServiceContext: string;
 }
 
 const configs: Record<RuntimeEnvironment, EnvironmentConfig> = {
@@ -13,18 +14,21 @@ const configs: Record<RuntimeEnvironment, EnvironmentConfig> = {
         urlVodWonStatusService: "https://vod-dev.rtbf.be/vod-dashboard-ws/service/",
         linkDivaMonitoring: "https://vod-dev.rtbf.be/diva-monitoring/#/",
         apiOrigin: "https://vod-dev.rtbf.be",
+        divaMonitoringServiceContext: "/restore/service/",
     },
     test: {
         urlBaseService: "/",
         urlVodWonStatusService: "https://vod-test.rtbf.be/vod-dashboard-ws/service/",
         linkDivaMonitoring: "https://vod-test.rtbf.be/diva-monitoring/#/",
         apiOrigin: "https://vod-test.rtbf.be",
+        divaMonitoringServiceContext: "/restore/service/",
     },
     prod: {
         urlBaseService: "/",
         urlVodWonStatusService: "https://vod.rtbf.be/vod-dashboard-ws/service/",
         linkDivaMonitoring: "https://vod.rtbf.be/diva-monitoring/#/",
         apiOrigin: "https://vod.rtbf.be",
+        divaMonitoringServiceContext: "/restore/service/",
     },
 };
 
@@ -56,6 +60,8 @@ export const env = {
     serviceHost,
     servicePort,
     apiKey: (import.meta.env.VITE_APIKEY as string | undefined) ?? "",
+    divaMonitoringServiceContext:
+        (import.meta.env.VITE_DIVA_MONITORING_SERVICE_CONTEXT as string | undefined) ?? runtimeConfig.divaMonitoringServiceContext,
 } as const;
 
 export const exportedConfiguration = Object.freeze({
@@ -70,6 +76,7 @@ export const exportedConfiguration = Object.freeze({
     serviceHost: env.serviceHost,
     servicePort: env.servicePort,
     hasApiKey: Boolean(env.apiKey),
+    divaMonitoringServiceContext: env.divaMonitoringServiceContext,
 });
 
 export function buildWsUrl(): string {
