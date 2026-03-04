@@ -49,7 +49,15 @@
             @click="onRowClick(item, $event)"
             @contextmenu.prevent="onRowContextMenu(item, $event)"
         >
-          <td>{{ String(item.channel ?? "") }}</td>
+          <td>
+            <img
+              v-if="channelLogo(item.channel)"
+              :src="channelLogo(item.channel)"
+              :alt="`Logo ${String(item.channel ?? '')}`"
+              class="channel-logo"
+            >
+            <span v-else>{{ String(item.channel ?? "") }}</span>
+          </td>
           <td>
             {{ item.title }}
           </td>
@@ -179,6 +187,11 @@ import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 import type {Emission} from "@/types/domain";
 import {formatReadableDate, formatReadableDateWithMs} from "@/utils/date";
 import {getStatusClass} from "@/utils/status";
+import logoLaUne from "@/assets/images/logo/LOGO_LAUNE_RVB_26.svg";
+import logoTipik from "@/assets/images/logo/LOGO_TIPIK_26.svg";
+import logoAuvio from "@/assets/images/logo/LOGO_AUVIO_SVG_26.svg";
+import logoAuvioKids from "@/assets/images/logo/LOGO_AUVIOKIDS_SVG_26.svg";
+import logoLaTrois from "@/assets/images/logo/LOGO_LATROIS_RVB_26.svg";
 
 const props = defineProps<{
   emissions: Emission[];
@@ -288,6 +301,17 @@ const actionModalColumns = computed<Array<{ key: ActionModalColumnKey; label: st
 
   return [];
 });
+
+const channelLogos: Record<string, string> = {
+  "LA UNE": logoLaUne,
+  "LAUNE": logoLaUne,
+  "TIPIK": logoTipik,
+  "AUVIO": logoAuvio,
+  "AUVIO KIDS": logoAuvioKids,
+  "AUVIOKIDS": logoAuvioKids,
+  "LA TROIS": logoLaTrois,
+  "LATROIS": logoLaTrois,
+};
 
 const actionModalColumnWidths = reactive<Record<ActionModalColumnKey, number>>({
   title: 250,
@@ -626,6 +650,17 @@ onBeforeUnmount(() => {
   window.removeEventListener("scroll", handleGlobalPointer);
 });
 
+
+function channelLogo(channel: unknown): string {
+  const raw = String(channel ?? "").trim();
+  if (!raw) return "";
+  const normalized = raw
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase();
+  return channelLogos[normalized] ?? "";
+}
+
 function firstPlatform(item: Emission) {
   return String(item.plateformOffers?.[0]?.name ?? "");
 }
@@ -751,6 +786,14 @@ tbody tr:hover {
 
 tbody tr.selected {
   background: rgba(46, 208, 242, 0.3);
+}
+
+.channel-logo {
+  display: block;
+  max-width: 100%;
+  height: 1rem;
+  object-fit: contain;
+  object-position: left center;
 }
 
 :deep(.status-pill) {

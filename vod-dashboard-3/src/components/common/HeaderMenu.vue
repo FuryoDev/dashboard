@@ -43,13 +43,42 @@ import {RouterLink} from "vue-router";
 }
 
 .header-menu__link {
+  position: relative;
   text-decoration: none;
   color: #d4edf6;
   font-size: 1rem;
   font-weight: 500;
+  transition: color 0.2s ease, transform 0.2s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -0.25rem;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    color: #8fe6fa;
+    transform: translateY(-1px);
+
+    &::after {
+      transform: scaleX(1);
+    }
+  }
 
   &.router-link-active {
     color: #2ed0f2;
+
+    &::after {
+      transform: scaleX(1);
+    }
   }
 }
 </style>
