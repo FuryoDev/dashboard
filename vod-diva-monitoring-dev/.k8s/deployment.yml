@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "$K8S_SERVICE_NAME"
+  namespace: "$K8S_NAMESPACE"
+  annotations:
+    kubernetes.io/change-cause: "$CHANGE_CAUSE"
+  labels:
+    version: "$CONTAINER_TAG"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "$K8S_SERVICE_NAME"
+  template:
+    metadata:
+      labels:
+        app: "$K8S_SERVICE_NAME"
+        version: "$CONTAINER_TAG"
+    spec:
+      containers:
+        - image: "$CONTAINER_IMAGE"
+          name: "$K8S_SERVICE_NAME"
+          ports:
+            - containerPort: $CONTAINER_PORT_1
+          livenessProbe:
+            httpGet:
+              path: "$K8S_PROBE_LIVENESS_HTTP_GET_PATH"
+              port: $CONTAINER_PORT_1
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+          readinessProbe:
+            httpGet:
+              path: "$K8S_PROBE_READINESS_HTTP_GET_PATH"
+              port: $CONTAINER_PORT_1
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 10
+      imagePullSecrets:
+        - name: harbor
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1

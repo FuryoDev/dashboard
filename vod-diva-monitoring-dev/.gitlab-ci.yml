@@ -1,0 +1,9 @@
+include:
+  project: gitlab/ci-templates
+  ref: master
+  file: /node-k8s_dev-test-prod.yml
+
+variables:
+  NODE_CLI_INSTALL: npm install
+  NODE_CLI_BUILD: npm run ci:build
+  K8S_INGRESS_HTTP_PATH: /diva-monitoring

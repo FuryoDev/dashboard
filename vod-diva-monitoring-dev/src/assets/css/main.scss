@@ -1,0 +1,18 @@
+// Bootstrap Overwrite
+@import "_variables.scss";
+
+@import '~bootstrap';
+@import '~bootstrap-vue';
+// @import '~material-design-icons/iconfont/material-icons.css';
+
+// Fonts
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+.header {
+  
+    @include media-breakpoint-up(lg) {
+      height: 40px;
+    }
+  
+  }
