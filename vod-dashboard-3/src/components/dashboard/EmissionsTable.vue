@@ -698,7 +698,7 @@ header {
 
 .table-scroll {
   max-width: 100%;
-  max-height: 420px;
+  height: 50vh;
   overflow: auto;
   border: 1px solid rgba(143, 215, 236, 0.2);
   border-radius: 10px;
