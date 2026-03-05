@@ -478,18 +478,28 @@ watch(
 
 <style scoped lang="scss">
 .details-tabs {
+  --panel-border: rgba(143, 215, 236, 0.2);
+  --panel-border-22: rgba(143, 215, 236, 0.22);
+  --panel-border-18: rgba(143, 215, 236, 0.18);
+  --row-border: rgba(143, 215, 236, 0.15);
+  --button-border: rgba(46, 208, 242, 0.35);
+  --surface-strong: #0b2038;
+  --surface-base: #0f2b45;
+  --text-primary: #fff;
+  --text-secondary: #d4edf6;
+
   margin-top: 1rem;
   background: rgba(8, 32, 56, 0.85);
-  border: 1px solid rgba(143, 215, 236, 0.2);
+  border: 1px solid var(--panel-border);
   padding: 0.75rem;
   border-radius: 12px;
-  color: #d4edf6;
+  color: var(--text-secondary);
 }
 
 .selected-episode {
   padding: 0.55rem 0.7rem;
   margin-bottom: 0.65rem;
-  border: 1px solid rgba(143, 215, 236, 0.22);
+  border: 1px solid var(--panel-border-22);
   border-radius: 10px;
   background: rgba(15, 43, 69, 0.8);
 }
@@ -502,7 +512,7 @@ watch(
 }
 
 .tab {
-  border: 1px solid rgba(46, 208, 242, 0.35);
+  border: 1px solid var(--button-border);
   background: transparent;
   color: #8fe6fa;
   padding: 0.4rem 0.75rem;
@@ -519,7 +529,7 @@ watch(
 
 .tab-panel {
   overflow: auto;
-  border: 1px solid rgba(143, 215, 236, 0.2);
+  border: 1px solid var(--panel-border);
   border-radius: 10px;
 }
 
@@ -537,13 +547,13 @@ table {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    border-bottom: 1px solid rgba(143, 215, 236, 0.15);
-    color: #d4edf6;
+    border-bottom: 1px solid var(--row-border);
+    color: var(--text-secondary);
   }
 
   th {
-    background: #0b2038;
-    color: #fff;
+    background: var(--surface-strong);
+    color: var(--text-primary);
     position: relative;
   }
 }
@@ -607,7 +617,7 @@ table {
   padding: 0.15rem 0.35rem;
   border-radius: 999px;
   text-align: center;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 0.74rem;
   font-weight: 700;
 }
@@ -621,8 +631,8 @@ table {
   position: fixed;
   z-index: 25;
   min-width: 220px;
-  background: #0f2b45;
-  border: 1px solid rgba(143, 215, 236, 0.22);
+  background: var(--surface-base);
+  border: 1px solid var(--panel-border-22);
   border-radius: 10px;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
   display: flex;
@@ -631,9 +641,9 @@ table {
 
 .detail-context-menu button {
   border: 0;
-  border-bottom: 1px solid rgba(143, 215, 236, 0.18);
+  border-bottom: 1px solid var(--panel-border-18);
   background: transparent;
-  color: #d4edf6;
+  color: var(--text-secondary);
   padding: 0.55rem 0.75rem;
   text-align: left;
   cursor: pointer;
@@ -654,7 +664,7 @@ table {
 
 .episode-title {
   text-decoration: underline;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .empty-state {
