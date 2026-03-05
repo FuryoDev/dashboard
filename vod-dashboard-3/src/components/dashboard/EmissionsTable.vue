@@ -678,9 +678,20 @@ function statusComment(item: Emission) {
 
 <style scoped lang="scss">
 .emission-list {
+  --panel-border: rgba(143, 215, 236, 0.2);
+  --panel-border-22: rgba(143, 215, 236, 0.22);
+  --panel-border-18: rgba(143, 215, 236, 0.18);
+  --row-border: rgba(143, 215, 236, 0.15);
+  --input-border: rgba(143, 215, 236, 0.4);
+  --button-border: rgba(46, 208, 242, 0.35);
+  --surface-strong: #0b2038;
+  --surface-base: #0f2b45;
+  --text-primary: #ffffff;
+  --text-secondary: #d4edf6;
+
   margin-top: 1rem;
   background: rgba(8, 32, 56, 0.85);
-  border: 1px solid rgba(143, 215, 236, 0.2);
+  border: 1px solid var(--panel-border);
   padding: 0.8rem;
   border-radius: 12px;
 }
@@ -692,7 +703,7 @@ header {
 
   h2 {
     margin: 0;
-    color: #ffffff;
+    color: var(--text-primary);
   }
 }
 
@@ -700,7 +711,7 @@ header {
   max-width: 100%;
   height: 50vh;
   overflow: auto;
-  border: 1px solid rgba(143, 215, 236, 0.2);
+  border: 1px solid var(--panel-border);
   border-radius: 10px;
   background: rgba(8, 32, 56, 0.55);
 }
@@ -715,17 +726,17 @@ table {
   th,
   td {
     padding: 0.62rem;
-    border-bottom: 1px solid rgba(143, 215, 236, 0.15);
+    border-bottom: 1px solid var(--row-border);
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: #d4edf6;
+    color: var(--text-secondary);
   }
 
   th {
-    background: #0b2038;
-    color: #ffffff;
+    background: var(--surface-strong);
+    color: var(--text-primary);
     position: relative;
   }
 }
@@ -817,7 +828,7 @@ tbody tr.selected {
 .action-modal__table-scroll {
   max-height: 260px;
   overflow: auto;
-  border: 1px solid rgba(143, 215, 236, 0.22);
+  border: 1px solid var(--panel-border-22);
   border-radius: 10px;
   margin-bottom: 0.75rem;
 }
@@ -835,7 +846,7 @@ tbody tr.selected {
   gap: 0.7rem;
   align-items: center;
   flex-wrap: wrap;
-  color: #d4edf6;
+  color: var(--text-secondary);
 }
 
 .pagination__right {
@@ -849,20 +860,20 @@ tbody tr.selected {
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
-  color: #d4edf6;
+  color: var(--text-secondary);
 }
 
 .pagination__page-size select,
 .pagination__right button,
 .action-modal__buttons button {
-  border: 1px solid rgba(46, 208, 242, 0.35);
+  border: 1px solid var(--button-border);
   border-radius: 8px;
   padding: 0.45rem 0.8rem;
 }
 
 .pagination__page-size select {
-  background: #0f2b45;
-  color: #d4edf6;
+  background: var(--surface-base);
+  color: var(--text-secondary);
 }
 
 .pagination__right button,
@@ -884,20 +895,20 @@ tbody tr.selected {
   display: flex;
   flex-direction: column;
   min-width: 300px;
-  border: 1px solid rgba(143, 215, 236, 0.22);
+  border: 1px solid var(--panel-border-22);
   border-radius: 10px;
-  background: #0f2b45;
+  background: var(--surface-base);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
 }
 
 .context-menu button {
   border: 0;
-  border-bottom: 1px solid rgba(143, 215, 236, 0.18);
+  border-bottom: 1px solid var(--panel-border-18);
   background: transparent;
   text-align: left;
   padding: 0.6rem 0.8rem;
   cursor: pointer;
-  color: #d4edf6;
+  color: var(--text-secondary);
 }
 
 .context-menu button:last-child {
@@ -919,15 +930,15 @@ tbody tr.selected {
 }
 
 .action-modal {
-  background: #0f2b45;
-  color: #d4edf6;
+  background: var(--surface-base);
+  color: var(--text-secondary);
   width: min(60%, 92vw);
   border-radius: 12px;
-  border: 1px solid rgba(143, 215, 236, 0.22);
+  border: 1px solid var(--panel-border-22);
   padding: 1rem;
 }
 
-.action-modal h3 { margin: 0 0 0.75rem; color: #fff; }
+.action-modal h3 { margin: 0 0 0.75rem; color: var(--text-primary); }
 
 .action-modal__form-row {
   display: flex;
@@ -938,10 +949,10 @@ tbody tr.selected {
 
 .action-modal__form-row input,
 .action-modal__form-row select {
-  border: 1px solid rgba(143, 215, 236, 0.4);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
-  background: #0b2038;
-  color: #d4edf6;
+  background: var(--surface-strong);
+  color: var(--text-secondary);
   padding: 0.5rem;
 }
 
