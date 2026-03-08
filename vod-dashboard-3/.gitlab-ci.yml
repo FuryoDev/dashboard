@@ -1,0 +1,16 @@
+include:
+  project: gitlab/ci-templates
+  ref: master
+  file: /node-k8s_dev-test-prod.yml
+
+variables:
+  NODE_CLI_INSTALL: npm install
+  NODE_CLI_BUILD: npm run build
+  K8S_INGRESS_HTTP_PATH: /
+
+.rules:branch-main-or-dev:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "vod-vue3"
+
+.node-settings:
+  image: harbor.rtbf.be/library/node:24.14.0-alpine
