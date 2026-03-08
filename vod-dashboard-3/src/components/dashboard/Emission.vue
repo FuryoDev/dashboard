@@ -35,11 +35,13 @@ import {computed, onMounted, ref} from "vue";
 import {storeToRefs} from "pinia";
 import PlayListPige from "@/components/manual/PlayListPige.vue";
 import {usePlaylistOffersStore} from "@/stores/playlist.offer";
+import {useAppStore} from "@/stores/app.store";
 
 const playlistStore = usePlaylistOffersStore();
+const appStore = useAppStore();
 const {channels} = storeToRefs(playlistStore);
 
-const selectedDate = ref(new Date().toISOString().slice(0, 10));
+const selectedDate = ref(appStore.sharedDate || new Date().toISOString().slice(0, 10));
 const selectedChannel = ref("LAUNE");
 
 const selectedDateAsDate = computed(() => {
@@ -48,6 +50,7 @@ const selectedDateAsDate = computed(() => {
 });
 
 async function search() {
+  appStore.setSharedDate(selectedDate.value);
   await playlistStore.fetchPlaylistByDate(selectedChannel.value, selectedDateAsDate.value);
 }
 
