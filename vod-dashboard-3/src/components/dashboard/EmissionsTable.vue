@@ -161,6 +161,43 @@
           </table>
         </div>
 
+        <div v-if="actionModal.actionType === 'check' && focusedOffers.length" class="action-modal__table-scroll action-modal__table-scroll--secondary">
+          <table class="action-modal__table">
+            <thead>
+            <tr>
+              <th>Plateform</th>
+              <th>Offre</th>
+              <th>Prix</th>
+              <th>Début</th>
+              <th>Fin</th>
+              <th>Territoire</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(offer, index) in focusedOffers" :key="`${String(offer.recordvodxmlid ?? index)}-${index}`">
+              <td>{{ String(offer.name ?? '') }}</td>
+              <td>{{ String(offer.offerName ?? '') }}</td>
+              <td>{{ String(offer.priceCode ?? '') }}</td>
+              <td>{{ formatReadableDate(offer.startDateTime as string | undefined) }}</td>
+              <td>{{ formatReadableDate(offer.endDateTime as string | undefined) }}</td>
+              <td>{{ String(offer.territoire ?? '') }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div v-if="actionModal.actionType === 'export'" class="action-modal__form-row">
+          <label for="export-destination">Destination</label>
+          <select id="export-destination" v-model="exportDestination">
+            <option value="vodstock">vodstock</option>
+            <option value="nelinear">nelinear</option>
+            <option value="cinesys">cinesys</option>
+          </select>
+          <label class="inline-checkbox">
+            <input v-model="forceRetreatment" type="checkbox"> Forcer le re-traitement
+          </label>
+        </div>
+
         <div v-if="actionModal.actionType === 'status'" class="action-modal__form-row">
           <label for="status-value">Nouveau statut</label>
           <select id="status-value" v-model="statusInput">
@@ -175,7 +212,7 @@
 
         <div class="action-modal__buttons">
           <button type="button" class="secondary" @click="closeActionModal">Annuler</button>
-          <button type="button" @click="runAction">Lancer</button>
+          <button type="button" :disabled="props.selected.length === 0" @click="runAction">Confirmer</button>
         </div>
       </div>
     </div>
@@ -185,6 +222,9 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 import type {Emission} from "@/types/domain";
+import {useEmissionsStore} from "@/stores/emissions.store";
+import {createEmissionsApi} from "@/services/emissions.api";
+import {useHttp} from "@/composables/useHttp";
 import {formatReadableDate, formatReadableDateWithMs} from "@/utils/date";
 import {getStatusClass} from "@/utils/status";
 import logoLaUne from "@/assets/images/logo/LOGO_LAUNE_RVB_26.svg";
@@ -203,6 +243,9 @@ const emit = defineEmits<{
   "update:selected": [items: Emission[]];
   focus: [item: Emission];
 }>();
+
+const emissionsStore = useEmissionsStore();
+const emissionsApi = createEmissionsApi(useHttp("emissions-table.actions"));
 
 type SortDirection = "asc" | "desc";
 type ColumnKey =
@@ -277,6 +320,9 @@ const actionModal = reactive<{
 const statusOptions = ["USER_FORCE_LINEAIRE", "TRAITEMENT_MANUEL", "FORCE_LINEAIRE", "EXPORT_PREVU", "ETAT_INITIAL"] as const;
 const statusInput = ref<(typeof statusOptions)[number]>(statusOptions[0]);
 const delayInput = ref("24");
+const exportDestination = ref("vodstock");
+const forceRetreatment = ref(false);
+const actionStatuses = ref<Record<string, string>>({});
 const sortState = ref<{ key: ColumnKey; direction: SortDirection } | null>(null);
 const actionModalSortState = ref<{ key: ActionModalColumnKey; direction: SortDirection } | null>(null);
 
@@ -371,8 +417,11 @@ const contextMenuStyle = computed(() => ({
 const modalDescription = computed(() => {
   const count = props.selected.length;
   if (count === 0) return "Aucune émission sélectionnée.";
+  if (actionModal.actionType === "check") return "Vérification des métadonnées et fichiers à publier.";
   return `${count} émission(s) sélectionnée(s).`;
 });
+
+const focusedOffers = computed(() => contextMenuTarget.value?.plateformOffers ?? []);
 
 watch(
     () => props.emissions.length,
@@ -476,8 +525,13 @@ function openActionModal(title: string, actionType: "export" | "check" | "regene
   actionModal.open = true;
   actionModal.title = title;
   actionModal.actionType = actionType;
+  actionStatuses.value = {};
   if (actionType === "status") {
     statusInput.value = statusOptions[0];
+  }
+  if (actionType === "export") {
+    exportDestination.value = "vodstock";
+    forceRetreatment.value = false;
   }
 }
 
@@ -488,16 +542,74 @@ function closeActionModal() {
   actionModalSortState.value = null;
 }
 
-function runAction() {
-  if (actionModal.actionType === "status") {
-    // placeholder for back-end integration
-    console.info("Status change requested", {status: statusInput.value, selected: props.selected});
+async function runAction() {
+  const selected = props.selected;
+  if (!selected.length) return;
+
+  const setStatus = (id: string, ok: boolean) => {
+    actionStatuses.value[id] = ok ? "success" : "error";
+  };
+
+  if (actionModal.actionType === "export") {
+    const response = await emissionsApi.requestArchiveExport(
+        exportDestination.value,
+        forceRetreatment.value,
+        selected,
+    );
+    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200));
+    return;
   }
-  if (actionModal.actionType === "delay") {
-    console.info("Delay change requested", {delay: delayInput.value, selected: props.selected});
+
+  if (actionModal.actionType === "check") {
+    const payload = selected.map((item) => ({
+      name: String(item.plateformOffers?.[0]?.name ?? ""),
+      offerName: String(item.plateformOffers?.[0]?.offerName ?? ""),
+      recordId: item.idRecord,
+      vodDay: new Date(String(item.plannedDateTime ?? item.dateHeureDiffusion ?? Date.now())).getTime(),
+      signaletique: {CSA: "", pp: ""},
+      record: {
+        mediaId: item.idStk,
+        episodeId: item.idEpisode,
+        title: item.title,
+      },
+    }));
+    const response = await emissionsApi.checkPublication(payload);
+    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Boolean(result?.success)));
+    return;
   }
-  closeActionModal();
+
+  if (actionModal.actionType === "regenerate") {
+    const ids = selected.map((item) => String(item.idRecord ?? "")).filter(Boolean);
+    const response = await emissionsApi.regenerateSubtitles(ids);
+    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200));
+    return;
+  }
+
+  if (actionModal.actionType === "status" || actionModal.actionType === "delay") {
+    await Promise.all(selected.map(async (item) => {
+      const idRecord = String(item.idRecord ?? "");
+      const vodType = String(item.vodType ?? "");
+      const recordStatus = {
+        ...(item.recordStatusTraitementItem ?? {}),
+        createdBy: emissionsStore.selected?.[0]?.recordStatusTraitementItem?.createdBy ?? "dashboard",
+      } as Record<string, unknown>;
+
+      if (actionModal.actionType === "status") {
+        recordStatus.useCase = statusInput.value === "ETAT_INITIAL" ? null : statusInput.value;
+      } else {
+        recordStatus.scheduleDelay = Number(delayInput.value || "0");
+      }
+
+      try {
+        const statusCode = await emissionsApi.updateRecordStatus(vodType, idRecord, recordStatus, actionModal.actionType === "status");
+        setStatus(idRecord, statusCode === 200);
+      } catch {
+        setStatus(idRecord, false);
+      }
+    }));
+  }
 }
+
 
 function closeContextMenu() {
   contextMenu.open = false;
@@ -565,9 +677,14 @@ function sortValue(item: Emission, key: ColumnKey): string | number {
 
 function actionModalValue(item: Emission, key: ActionModalColumnKey) {
   if (key === "statut") {
-    return String(item.recordStatusTraitementItem?.useCase ?? "");
+    return modalStatus(item) || String(item.recordStatusTraitementItem?.useCase ?? "");
   }
   return String(actionModalSortValue(item, key) ?? "");
+}
+
+function modalStatus(item: Emission) {
+  const key = String(item.idRecord ?? item.idEpisode ?? "");
+  return actionStatuses.value[key] ?? "";
 }
 
 function actionModalSortValue(item: Emission, key: ActionModalColumnKey): string {
@@ -936,6 +1053,17 @@ tbody tr.selected {
   gap: 0.3rem;
 }
 
+
+.inline-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.action-modal__table-scroll--secondary {
+  margin-top: 0.8rem;
+}
 .action-modal__form-row input,
 .action-modal__form-row select {
   border: 1px solid rgba(143, 215, 236, 0.4);

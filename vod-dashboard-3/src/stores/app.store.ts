@@ -9,6 +9,7 @@ export interface SocketState {
 export const useAppStore = defineStore("app", {
     state: () => ({
         jourVod: null as string | null,
+        sharedDate: new Date().toISOString().slice(0, 10),
         jobs: [] as unknown[],
         socket: {
             isConnected: false,
@@ -20,6 +21,9 @@ export const useAppStore = defineStore("app", {
     actions: {
         setJourVod(date: string | null) {
             this.jourVod = date;
+        },
+        setSharedDate(date: string) {
+            this.sharedDate = date;
         },
         setJobs(jobs: unknown[]) {
             this.jobs = jobs;
