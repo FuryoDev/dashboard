@@ -99,6 +99,7 @@ watch(
 );
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
+  emit("date-change", date.value);
   emit("search", {
     date: new Date(year, month - 1, day),
     channels: selectedChannels.value,
