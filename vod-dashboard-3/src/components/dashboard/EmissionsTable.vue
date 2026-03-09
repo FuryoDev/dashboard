@@ -13,7 +13,7 @@
       </div>
     </header>
 
-    <div class="table-scroll">
+    <div class="table-scroll" :class="{ 'table-scroll--loading': props.loading }">
       <table>
         <thead>
         <tr>
@@ -42,7 +42,11 @@
         </tr>
         </thead>
         <tbody>
+        <tr v-if="props.loading" class="table-loading-row">
+          <td :colspan="columns.length">En chargement...</td>
+        </tr>
         <tr
+            v-else
             v-for="item in paginated"
             :key="String(item.idRecord)"
             :class="{ selected: isSelected(item) }"
@@ -154,7 +158,17 @@
             <tbody>
             <tr v-for="(item, index) in sortedActionModalItems" :key="`${String(item.idRecord ?? index)}-${index}`">
               <td v-for="column in actionModalColumns" :key="column.key">
-                {{ actionModalValue(item, column.key) }}
+                <template v-if="column.key === 'resultIcon'">
+                  <span v-if="modalStatusObject(item)?.ok === true" class="action-result action-result--success" title="Succès">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
+                  </span>
+                  <span v-else-if="modalStatusObject(item)?.ok === false" class="action-result action-result--error" title="Erreur">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>
+                  </span>
+                </template>
+                <template v-else>
+                  {{ actionModalValue(item, column.key) }}
+                </template>
               </td>
             </tr>
             </tbody>
@@ -264,7 +278,7 @@ type ColumnKey =
     | "datePublication"
     | "pad";
 
-type ActionModalColumnKey = "title" | "idEpisode" | "traitement" | "statut";
+type ActionModalColumnKey = "title" | "idEpisode" | "traitement" | "resultIcon" | "resultMessage";
 
 const columns: Array<{ key: ColumnKey; label: string }> = [
   {key: "channel", label: "Chaîne"},
@@ -321,7 +335,7 @@ const statusInput = ref<(typeof statusOptions)[number]>(statusOptions[0]);
 const delayInput = ref("24");
 const exportDestination = ref("vodstock");
 const forceRetreatment = ref(false);
-const actionStatuses = ref<Record<string, string>>({});
+const actionStatuses = ref<Record<string, { ok: boolean; message?: string }>>({});
 const sortState = ref<{ key: ColumnKey; direction: SortDirection } | null>(null);
 const actionModalSortState = ref<{ key: ActionModalColumnKey; direction: SortDirection } | null>(null);
 
@@ -331,7 +345,8 @@ const actionModalColumns = computed<Array<{ key: ActionModalColumnKey; label: st
       {key: "title", label: "Titre"},
       {key: "idEpisode", label: "Episode"},
       {key: "traitement", label: "Traitement"},
-      {key: "statut", label: ""},
+      {key: "resultIcon", label: ""},
+      {key: "resultMessage", label: "Résultat"},
     ];
   }
 
@@ -340,7 +355,8 @@ const actionModalColumns = computed<Array<{ key: ActionModalColumnKey; label: st
       {key: "title", label: "Titre"},
       {key: "idEpisode", label: "Episode"},
       {key: "traitement", label: "Traitement"},
-      {key: "statut", label: ""},
+      {key: "resultIcon", label: ""},
+      {key: "resultMessage", label: "Résultat"},
     ];
   }
 
@@ -362,7 +378,8 @@ const actionModalColumnWidths = reactive<Record<ActionModalColumnKey, number>>({
   title: 250,
   idEpisode: 180,
   traitement: 170,
-  statut: 80,
+  resultIcon: 60,
+  resultMessage: 260,
 });
 
 const sortedActionModalItems = computed(() => {
@@ -545,17 +562,65 @@ async function runAction() {
   const selected = props.selected;
   if (!selected.length) return;
 
-  const setStatus = (id: string, ok: boolean) => {
-    actionStatuses.value[id] = ok ? "success" : "error";
+  const setStatus = (id: string, ok: boolean, message?: string) => {
+    actionStatuses.value[id] = {ok, message};
+  };
+
+  const setGenericErrorForSelection = (message: string) => {
+    selected.forEach((item) => {
+      setStatus(String(item.idRecord ?? item.idEpisode ?? ""), false, message);
+    });
   };
 
   if (actionModal.actionType === "export") {
-    const response = await emissionsApi.requestArchiveExport(
-        exportDestination.value,
-        forceRetreatment.value,
-        selected,
-    );
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200));
+    try {
+      const response = await emissionsApi.requestArchiveExport(
+          exportDestination.value,
+          forceRetreatment.value,
+          selected,
+      );
+      const responseEntries = Object.entries(response ?? {});
+
+      selected.forEach((item) => {
+        const idRecord = String(item.idRecord ?? "");
+        const idEpisode = String(item.idEpisode ?? "");
+        const title = String(item.title ?? "");
+
+        const match = responseEntries.find(([key]) => {
+          const normalizedKey = String(key);
+          return normalizedKey === idRecord
+              || normalizedKey === idEpisode
+              || (idRecord && normalizedKey.includes(idRecord))
+              || (idEpisode && normalizedKey.includes(idEpisode))
+              || (title && normalizedKey.includes(title));
+        });
+
+        if (match) {
+          const [, result] = match;
+          setStatus(
+              idRecord || idEpisode,
+              Number(result?.statusCode ?? 500) === 200,
+              String(result?.message ?? ""),
+          );
+          return;
+        }
+
+        if (responseEntries.length === 1) {
+          const [, result] = responseEntries[0];
+          setStatus(
+              idRecord || idEpisode,
+              Number(result?.statusCode ?? 500) === 200,
+              String(result?.message ?? ""),
+          );
+          return;
+        }
+
+        setStatus(idRecord || idEpisode, false, "Réponse export non corrélée");
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur backend";
+      setGenericErrorForSelection(message);
+    }
     return;
   }
 
@@ -572,15 +637,25 @@ async function runAction() {
         title: item.title,
       },
     }));
-    const response = await emissionsApi.checkPublication(payload);
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Boolean(result?.success)));
+    try {
+      const response = await emissionsApi.checkPublication(payload);
+      Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Boolean(result?.success), String(result?.message ?? "")));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur backend";
+      setGenericErrorForSelection(message);
+    }
     return;
   }
 
   if (actionModal.actionType === "regenerate") {
     const ids = selected.map((item) => String(item.idRecord ?? "")).filter(Boolean);
-    const response = await emissionsApi.regenerateSubtitles(ids);
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200));
+    try {
+      const response = await emissionsApi.regenerateSubtitles(ids);
+      Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200, String(result?.message ?? "")));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur backend";
+      setGenericErrorForSelection(message);
+    }
     return;
   }
 
@@ -601,9 +676,9 @@ async function runAction() {
 
       try {
         const statusCode = await emissionsApi.updateRecordStatus(vodType, idRecord, recordStatus, actionModal.actionType === "status");
-        setStatus(idRecord, statusCode === 200);
+        setStatus(idRecord, statusCode === 200, statusCode === 200 ? "Mise à jour effectuée" : "Erreur backend");
       } catch {
-        setStatus(idRecord, false);
+        setStatus(idRecord, false, "Erreur backend");
       }
     }));
   }
@@ -675,15 +750,21 @@ function sortValue(item: Emission, key: ColumnKey): string | number {
 }
 
 function actionModalValue(item: Emission, key: ActionModalColumnKey) {
-  if (key === "statut") {
-    return modalStatus(item) || String(item.recordStatusTraitementItem?.useCase ?? "");
+  if (key === "resultIcon") {
+    return "";
+  }
+  if (key === "resultMessage") {
+    const status = modalStatusObject(item);
+    if (!status) return String(item.recordStatusTraitementItem?.useCase ?? "");
+    if (status.ok) return status.message || "Succès";
+    return status.message || "Erreur";
   }
   return String(actionModalSortValue(item, key) ?? "");
 }
 
-function modalStatus(item: Emission) {
+function modalStatusObject(item: Emission) {
   const key = String(item.idRecord ?? item.idEpisode ?? "");
-  return actionStatuses.value[key] ?? "";
+  return actionStatuses.value[key];
 }
 
 function actionModalSortValue(item: Emission, key: ActionModalColumnKey): string {
@@ -694,8 +775,16 @@ function actionModalSortValue(item: Emission, key: ActionModalColumnKey): string
       return String(item.idEpisode ?? "");
     case "traitement":
       return String(item.recordStatusTraitementItem?.useCase ?? "");
-    case "statut":
-      return String(item.recordStatusTraitementItem?.useCase ?? "");
+    case "resultIcon": {
+      const status = modalStatusObject(item);
+      if (!status) return "";
+      return status.ok ? "success" : "error";
+    }
+    case "resultMessage": {
+      const status = modalStatusObject(item);
+      if (!status) return String(item.recordStatusTraitementItem?.useCase ?? "");
+      return String(status.message ?? (status.ok ? "Succès" : "Erreur"));
+    }
     default:
       return "";
   }
@@ -821,6 +910,10 @@ header {
   background: rgba(8, 32, 56, 0.55);
 }
 
+.table-scroll--loading {
+  cursor: progress;
+}
+
 table {
   width: max-content;
   min-width: 100%;
@@ -842,7 +935,9 @@ table {
   th {
     background: #0b2038;
     color: #ffffff;
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 3;
   }
 }
 
@@ -994,6 +1089,40 @@ tbody tr.selected {
   cursor: default;
 }
 
+
+.action-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.action-result svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
+.action-result--success {
+  color: #36d399;
+}
+
+.action-result--error {
+  color: #f87171;
+  white-space: normal;
+}
+
+.action-modal__table td:nth-child(4),
+.action-modal__table th:nth-child(4) {
+  text-align: center;
+}
+
+.table-loading-row td {
+  text-align: center;
+  color: #d4edf6;
+  font-weight: 700;
+}
+
 .context-menu {
   position: fixed;
   z-index: 20;
@@ -1070,6 +1199,16 @@ tbody tr.selected {
   background: #0b2038;
   color: #d4edf6;
   padding: 0.5rem;
+}
+
+#delay-value {
+  appearance: auto;
+  min-height: 2.2rem;
+}
+
+#delay-value::-webkit-outer-spin-button,
+#delay-value::-webkit-inner-spin-button {
+  margin: 0.22rem 0;
 }
 
 .action-modal__buttons {
