@@ -195,7 +195,7 @@ const sortState = ref<{ key: DetailColumnKey; direction: SortDirection } | null>
 const tabItems: Array<{ key: DetailTabKey; label: string }> = [
   {key: "transcodages", label: "Transcodages"},
   {key: "offres", label: "Offres"},
-  {key: "segments", label: "Segments"},
+  {key: "segments", label: "Segments Prévus"},
   {key: "soustitrages", label: "Sous-titrages"},
 ];
 
@@ -498,6 +498,42 @@ async function stopTranscoding() {
 
 function closeContextMenu() {
   contextMenu.open = false;
+}
+
+function emissionSegmentsFallback(emission: Emission): SegmentItem[] {
+  const directSegments = normalizeSegmentCandidates(emission.segments);
+  if (directSegments.length > 0) return directSegments;
+
+  const lavaData = Array.isArray(emission.lavadata)
+      ? emission.lavadata
+      : Array.isArray(emission.lavaData)
+          ? emission.lavaData
+          : [];
+
+  for (const item of lavaData) {
+    const fromLava = normalizeSegmentCandidates((item as { segments?: unknown }).segments);
+    if (fromLava.length > 0) return fromLava;
+  }
+
+  return [];
+}
+
+function normalizeSegmentCandidates(value: unknown): SegmentItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+      .map((candidate, index) => {
+        if (!candidate || typeof candidate !== "object") return null;
+        const record = candidate as Record<string, unknown>;
+        return {
+          number: (record.number ?? record.segment ?? index + 1) as string | number,
+          name: String(record.name ?? record.sgtKey ?? record.traficId ?? ""),
+          tcin: String(record.tcin ?? record.start ?? ""),
+          tcout: String(record.tcout ?? record.end ?? ""),
+          status: String(record.status ?? ""),
+        } as SegmentItem;
+      })
+      .filter((segment): segment is SegmentItem => Boolean(segment));
 }
 
 
