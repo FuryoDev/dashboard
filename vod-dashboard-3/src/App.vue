@@ -2,7 +2,7 @@
   <div class="app-shell">
     <header class="app-shell__topbar">
       <HeaderMenu/>
-      <p class="app-shell__user">{{ userLabel }}</p>
+      <p class="app-shell__user"><span class="app-shell__user-icon" aria-hidden="true">👤</span>{{ userLabel }}</p>
     </header>
 
     <main class="app-shell__content">
@@ -75,6 +75,14 @@ onUnmounted(() => {
   color: #d4edf6;
   font-weight: 600;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.app-shell__user-icon {
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .app-shell__content {

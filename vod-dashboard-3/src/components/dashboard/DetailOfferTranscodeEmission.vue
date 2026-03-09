@@ -422,9 +422,11 @@ function openRowContextMenu(row: RowItem, event: MouseEvent) {
   }
 
   if (!contextActions.value.length) return;
+  const estimatedHeight = contextActions.value.length * 42 + 16;
+  const estimatedWidth = 250;
   contextMenu.open = true;
-  contextMenu.x = event.clientX;
-  contextMenu.y = event.clientY;
+  contextMenu.x = Math.min(event.clientX, window.innerWidth - estimatedWidth - 8);
+  contextMenu.y = Math.max(8, event.clientY - estimatedHeight);
 }
 
 async function copyContextValue(value: string) {

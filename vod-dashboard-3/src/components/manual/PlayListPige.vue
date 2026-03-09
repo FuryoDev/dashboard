@@ -84,8 +84,8 @@
 
         <div class="panel__actions">
           <button class=manual-btn type="button" :disabled="!canReconcile" @click="markReconcile">Réconciliation des produits</button>
-          <button class=manual-btn type="button" :disabled="assignedEnhanced.length === 0" @click="markDecoupeAll">Découper tous</button>
-          <button class=manual-btn type="button" :disabled="assignedEnhanced.length === 0" @click="markDecoupeTranscode">Découpe + transcodage auto</button>
+          <button class=manual-btn type="button" :disabled="!canRunCutActions" @click="markDecoupeAll">Découper tous</button>
+          <button class=manual-btn type="button" :disabled="!canRunCutActions" @click="markDecoupeTranscode">Découpe + transcodage auto</button>
           <button class=manual-btn type="button" :disabled="assignedEnhanced.length === 0" @click="clearAssigned">Effacer tout</button>
         </div>
       </div>
@@ -177,6 +177,9 @@ const mediaList = ref<Array<Record<string, unknown>>>([]);
 const assigned = computed(() => playlistStore.elementsToAssign as PlaylistItem[]);
 const assignedEnhanced = computed(() => assigned.value as AssignedItem[]);
 const canReconcile = computed(() => assignedEnhanced.value.length > 0 && selectedAssignedId.value !== null);
+const canRunCutActions = computed(() =>
+    assignedEnhanced.value.length > 0 && assignedEnhanced.value.every((item) => item.reconcile === "success"),
+);
 
 function toggle(item: { traficId: string }) {
   if (selectedIds.value.has(item.traficId)) selectedIds.value.delete(item.traficId);
@@ -214,21 +217,20 @@ async function markReconcile() {
     const date = appStore.sharedDate.split("-").reverse().join("/");
     const {data} = await http.get(`lava/plannedproductsbydate/${date}?channels=LAUNE,TIPIK,AUVIO,PROXIMUS`);
     const planned = Array.isArray(data) ? data : [];
-    current.forEach((item) => {
-      const match = planned.some((product: Record<string, unknown>) => String(product.title ?? "") === String(item.title ?? ""));
-      item.reconcile = match ? "success" : "error";
-      if (match) {
-        (item as Record<string, unknown>).lavadata = planned.filter((product: Record<string, unknown>) => String(product.title ?? "") === String(item.title ?? ""));
-      }
-    });
+    const matches = planned.filter((product: Record<string, unknown>) => String(product.title ?? "") === String(selected.title ?? ""));
+    selected.reconcile = matches.length > 0 ? "success" : "error";
+    if (matches.length > 0) {
+      (selected as Record<string, unknown>).lavadata = matches;
+    }
   } catch {
-    current.forEach((item) => (item.reconcile = "error"));
+    selected.reconcile = "error";
   }
 
   playlistStore.setElementsToAssign(current);
 }
 
 async function sendRestoreRequest(transcode: boolean) {
+  if (!canRunCutActions.value) return;
   const current = [...assignedEnhanced.value];
   const payload = current.map((item) => ({
     chaine: "",

@@ -90,6 +90,13 @@ watch(
       }
     },
 );
+
+watch(
+    date,
+    (value) => {
+      emit("date-change", value);
+    },
+);
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
   emit("date-change", date.value);
