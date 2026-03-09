@@ -104,7 +104,7 @@ import {formatReadableDate} from "@/utils/date";
 import {getStatusClass} from "@/utils/status";
 import type {Emission} from "@/types/domain";
 
-type DetailTabKey = "transcodages" | "offres" | "segments" | "segmentsPrevus" | "soustitrages";
+type DetailTabKey = "transcodages" | "offres" | "segments" | "soustitrages";
 type SortDirection = "asc" | "desc";
 type DetailColumnKey =
     | "profileName"
@@ -196,7 +196,6 @@ const tabItems: Array<{ key: DetailTabKey; label: string }> = [
   {key: "transcodages", label: "Transcodages"},
   {key: "offres", label: "Offres"},
   {key: "segments", label: "Segments"},
-  {key: "segmentsPrevus", label: "Segments prévus"},
   {key: "soustitrages", label: "Sous-titrages"},
 ];
 
@@ -222,13 +221,6 @@ const tableConfig: Record<DetailTabKey, TableColumn[]> = {
     {key: "id_record", label: "oid"},
   ],
   segments: [
-    {key: "number", label: "Nombre"},
-    {key: "name", label: "Nom"},
-    {key: "tcin", label: "Début"},
-    {key: "tcout", label: "Fin"},
-    {key: "status", label: "Statut", status: true},
-  ],
-  segmentsPrevus: [
     {key: "number", label: "Nombre"},
     {key: "name", label: "Nom"},
     {key: "tcin", label: "Début"},
@@ -287,14 +279,6 @@ const offers = computed<OfferItem[]>(() => {
   }));
 });
 
-const plannedSegments = computed<SegmentItem[]>(() => {
-  const candidate =
-      (props.emission?.segmentsPrevus as SegmentItem[] | undefined) ??
-      (props.emission?.plannedSegments as SegmentItem[] | undefined) ??
-      (props.emission?.segmentsPlanned as SegmentItem[] | undefined) ??
-      [];
-  return Array.isArray(candidate) ? candidate : [];
-});
 
 const selectedEpisodeLabel = computed(() => {
   const idEpisode = props.emission?.idEpisode ? String(props.emission.idEpisode) : "";
@@ -312,8 +296,6 @@ const activeRows = computed<RowItem[]>(() => {
       return offers.value as RowItem[];
     case "segments":
       return segments.value as RowItem[];
-    case "segmentsPrevus":
-      return plannedSegments.value as RowItem[];
     case "soustitrages":
       return subtitles.value as RowItem[];
   }
@@ -331,6 +313,21 @@ const sortedActiveRows = computed(() => {
     return 0;
   });
 });
+
+function emissionSegmentsFallback(emission: Emission): SegmentItem[] {
+  const candidates = [
+    (emission as Record<string, unknown>).segments,
+    (emission as Record<string, unknown>).segmentList,
+    (emission as Record<string, unknown>).segmentsData,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate as SegmentItem[];
+    }
+  }
+  return [];
+}
 
 async function fetchDetails(emission: Emission) {
   jobs.value = [];
@@ -373,7 +370,11 @@ async function fetchDetails(emission: Emission) {
     };
 
     const jobsData = asArray<Record<string, unknown>>(jobsResponse.data);
-    const segmentsData = asArray<SegmentItem>(segmentsResponse.data);
+    let segmentsData = asArray<SegmentItem>(segmentsResponse.data);
+
+    if (segmentsData.length === 0) {
+      segmentsData = emissionSegmentsFallback(emission);
+    }
     let subtitlesData = asArray<SubtitleItem>(subtitlesResponse.data);
 
     if (subtitlesData.length === 0 && idRecord) {
@@ -399,7 +400,7 @@ async function fetchDetails(emission: Emission) {
     subtitles.value = subtitlesData.map((entry) => ({...entry, message: truncate(entry.message)}));
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
-    error.value = "Erreur DetailOfferTranscodeEmission: chargement transcodages/offres/segments/segments prévus/sous-titrages impossible. " + `Détail: ${message}`;
+    error.value = "Erreur DetailOfferTranscodeEmission: chargement transcodages/offres/segments/sous-titrages impossible. " + `Détail: ${message}`;
   }
 }
 
@@ -415,7 +416,7 @@ function openRowContextMenu(row: RowItem, event: MouseEvent) {
     ];
   } else if (activeTab.value === "offres") {
     contextActions.value = [{label: "Copier oid", value: String(row.id_record ?? ""), type: "copy"}];
-  } else if (activeTab.value === "segments" || activeTab.value === "segmentsPrevus") {
+  } else if (activeTab.value === "segments") {
     contextActions.value = [{label: "Copier le n° de stock", value: String(row.name ?? ""), type: "copy"}];
   } else {
     contextActions.value = [];

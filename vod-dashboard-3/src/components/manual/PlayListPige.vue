@@ -53,7 +53,9 @@
             <thead>
             <tr>
               <th>Réconcilier</th>
+              <th>Message réconciliation</th>
               <th>Découpe / Transcod</th>
+              <th>Message découpe</th>
               <th>Date</th>
               <th>Titre Asrun</th>
               <th>Nom du fichier</th>
@@ -73,30 +75,26 @@
                 <span :class="['manual-status', `manual-status--${item.reconcile || 'idle'}`]">
                   <template v-if="item.reconcile === 'success'">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
-                    Succès
                   </template>
                   <template v-else-if="item.reconcile === 'error'">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>
-                    Erreur
                   </template>
                   <template v-else>-</template>
                 </span>
-                <small v-if="item.reconcileMessage" class="manual-status-message">{{ item.reconcileMessage }}</small>
-              </td>
+                </td>
+              <td>{{ item.reconcileMessage || (item.reconcile === "success" ? "Succès" : item.reconcile === "error" ? "Erreur backend" : "") }}</td>
               <td>
                 <span :class="['manual-status', `manual-status--${item.decoupe || 'idle'}`]">
                   <template v-if="item.decoupe === 'success'">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
-                    Succès
                   </template>
                   <template v-else-if="item.decoupe === 'error'">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>
-                    Erreur
                   </template>
                   <template v-else>-</template>
                 </span>
-                <small v-if="item.decoupeMessage" class="manual-status-message">{{ item.decoupeMessage }}</small>
-              </td>
+                </td>
+              <td>{{ item.decoupeMessage || (item.decoupe === "success" ? "Succès" : item.decoupe === "error" ? "Erreur backend" : "") }}</td>
               <td>{{ item.broadcastDate }}</td>
               <td>{{ item.title }}</td>
               <td>{{ item.fileName }}</td>
@@ -713,12 +711,6 @@ button:disabled {
   color: #9fb9c8;
 }
 
-.manual-status-message {
-  display: block;
-  margin-top: 0.2rem;
-  color: #fca5a5;
-  white-space: normal;
-}
 
 .loading-row {
   color: #d4edf6;

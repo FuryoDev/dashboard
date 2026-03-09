@@ -158,16 +158,13 @@
             <tbody>
             <tr v-for="(item, index) in sortedActionModalItems" :key="`${String(item.idRecord ?? index)}-${index}`">
               <td v-for="column in actionModalColumns" :key="column.key">
-                <template v-if="column.key === 'statut'">
-                  <span v-if="modalStatusObject(item)?.ok === true" class="action-result action-result--success">
+                <template v-if="column.key === 'resultIcon'">
+                  <span v-if="modalStatusObject(item)?.ok === true" class="action-result action-result--success" title="Succès">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
-                    Succès
                   </span>
-                  <span v-else-if="modalStatusObject(item)?.ok === false" class="action-result action-result--error">
+                  <span v-else-if="modalStatusObject(item)?.ok === false" class="action-result action-result--error" title="Erreur">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>
-                    {{ modalStatusObject(item)?.message || 'Erreur' }}
                   </span>
-                  <span v-else>{{ actionModalValue(item, column.key) }}</span>
                 </template>
                 <template v-else>
                   {{ actionModalValue(item, column.key) }}
@@ -281,7 +278,7 @@ type ColumnKey =
     | "datePublication"
     | "pad";
 
-type ActionModalColumnKey = "title" | "idEpisode" | "traitement" | "statut";
+type ActionModalColumnKey = "title" | "idEpisode" | "traitement" | "resultIcon" | "resultMessage";
 
 const columns: Array<{ key: ColumnKey; label: string }> = [
   {key: "channel", label: "Chaîne"},
@@ -348,7 +345,8 @@ const actionModalColumns = computed<Array<{ key: ActionModalColumnKey; label: st
       {key: "title", label: "Titre"},
       {key: "idEpisode", label: "Episode"},
       {key: "traitement", label: "Traitement"},
-      {key: "statut", label: ""},
+      {key: "resultIcon", label: ""},
+      {key: "resultMessage", label: "Résultat"},
     ];
   }
 
@@ -357,7 +355,8 @@ const actionModalColumns = computed<Array<{ key: ActionModalColumnKey; label: st
       {key: "title", label: "Titre"},
       {key: "idEpisode", label: "Episode"},
       {key: "traitement", label: "Traitement"},
-      {key: "statut", label: ""},
+      {key: "resultIcon", label: ""},
+      {key: "resultMessage", label: "Résultat"},
     ];
   }
 
@@ -379,7 +378,8 @@ const actionModalColumnWidths = reactive<Record<ActionModalColumnKey, number>>({
   title: 250,
   idEpisode: 180,
   traitement: 170,
-  statut: 80,
+  resultIcon: 60,
+  resultMessage: 260,
 });
 
 const sortedActionModalItems = computed(() => {
@@ -713,8 +713,14 @@ function sortValue(item: Emission, key: ColumnKey): string | number {
 }
 
 function actionModalValue(item: Emission, key: ActionModalColumnKey) {
-  if (key === "statut") {
-    return modalStatus(item) || String(item.recordStatusTraitementItem?.useCase ?? "");
+  if (key === "resultIcon") {
+    return "";
+  }
+  if (key === "resultMessage") {
+    const status = modalStatusObject(item);
+    if (!status) return String(item.recordStatusTraitementItem?.useCase ?? "");
+    if (status.ok) return status.message || "Succès";
+    return status.message || "Erreur";
   }
   return String(actionModalSortValue(item, key) ?? "");
 }
@@ -722,12 +728,6 @@ function actionModalValue(item: Emission, key: ActionModalColumnKey) {
 function modalStatusObject(item: Emission) {
   const key = String(item.idRecord ?? item.idEpisode ?? "");
   return actionStatuses.value[key];
-}
-
-function modalStatus(item: Emission) {
-  const status = modalStatusObject(item);
-  if (!status) return "";
-  return status.ok ? "success" : "error";
 }
 
 function actionModalSortValue(item: Emission, key: ActionModalColumnKey): string {
@@ -738,8 +738,16 @@ function actionModalSortValue(item: Emission, key: ActionModalColumnKey): string
       return String(item.idEpisode ?? "");
     case "traitement":
       return String(item.recordStatusTraitementItem?.useCase ?? "");
-    case "statut":
-      return String(item.recordStatusTraitementItem?.useCase ?? "");
+    case "resultIcon": {
+      const status = modalStatusObject(item);
+      if (!status) return "";
+      return status.ok ? "success" : "error";
+    }
+    case "resultMessage": {
+      const status = modalStatusObject(item);
+      if (!status) return String(item.recordStatusTraitementItem?.useCase ?? "");
+      return String(status.message ?? (status.ok ? "Succès" : "Erreur"));
+    }
     default:
       return "";
   }
@@ -1065,6 +1073,11 @@ tbody tr.selected {
 .action-result--error {
   color: #f87171;
   white-space: normal;
+}
+
+.action-modal__table td:nth-child(4),
+.action-modal__table th:nth-child(4) {
+  text-align: center;
 }
 
 .table-loading-row td {
