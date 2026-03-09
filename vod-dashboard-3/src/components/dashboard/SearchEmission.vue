@@ -50,13 +50,14 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import type {OptionItem} from "@/services/notification.api";
 
 const props = defineProps<{
   channels: OptionItem[];
   platforms: OptionItem[];
   vodTypes: OptionItem[];
+  initialDate?: string;
 }>();
 
 const emit = defineEmits<{
@@ -70,15 +71,32 @@ const emit = defineEmits<{
     },
   ];
   "bulk-clean": [];
+  "date-change": [value: string];
 }>();
 
-const date = ref(new Date().toISOString().slice(0, 10));
+const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
 const selectedChannels = ref<string[]>([]);
 const selectedPlatforms = ref<string[]>([]);
 const selectedStatuses = ref<string[]>([]);
 const vodType = ref("");
 const statusOptions = ["PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "PUBLIE", "ECHEC"];
 
+
+watch(
+    () => props.initialDate,
+    (value) => {
+      if (value && value !== date.value) {
+        date.value = value;
+      }
+    },
+);
+
+watch(
+    date,
+    (value) => {
+      emit("date-change", value);
+    },
+);
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
   emit("search", {
