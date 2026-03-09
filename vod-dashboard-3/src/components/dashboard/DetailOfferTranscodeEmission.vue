@@ -104,7 +104,7 @@ import {formatReadableDate} from "@/utils/date";
 import {getStatusClass} from "@/utils/status";
 import type {Emission} from "@/types/domain";
 
-type DetailTabKey = "transcodages" | "offres" | "segments" | "soustitrages";
+type DetailTabKey = "transcodages" | "offres" | "segments" | "segmentsPrevus" | "soustitrages";
 type SortDirection = "asc" | "desc";
 type DetailColumnKey =
     | "profileName"
@@ -184,6 +184,7 @@ const props = defineProps<{ emission: Emission | null; }>();
 const activeTab = ref<DetailTabKey>("transcodages");
 const jobs = ref<JobItem[]>([]);
 const segments = ref<SegmentItem[]>([]);
+const plannedSegments = ref<SegmentItem[]>([]);
 const subtitles = ref<SubtitleItem[]>([]);
 const error = ref("");
 const contextMenu = reactive({open: false, x: 0, y: 0});
@@ -196,6 +197,7 @@ const tabItems: Array<{ key: DetailTabKey; label: string }> = [
   {key: "transcodages", label: "Transcodages"},
   {key: "offres", label: "Offres"},
   {key: "segments", label: "Segments"},
+  {key: "segmentsPrevus", label: "Segments Prévus"},
   {key: "soustitrages", label: "Sous-titrages"},
 ];
 
@@ -221,6 +223,13 @@ const tableConfig: Record<DetailTabKey, TableColumn[]> = {
     {key: "id_record", label: "oid"},
   ],
   segments: [
+    {key: "number", label: "Nombre"},
+    {key: "name", label: "Nom"},
+    {key: "tcin", label: "Début"},
+    {key: "tcout", label: "Fin"},
+    {key: "status", label: "Statut", status: true},
+  ],
+  segmentsPrevus: [
     {key: "number", label: "Nombre"},
     {key: "name", label: "Nom"},
     {key: "tcin", label: "Début"},
@@ -298,6 +307,8 @@ const activeRows = computed<RowItem[]>(() => {
       return offers.value as RowItem[];
     case "segments":
       return segments.value as RowItem[];
+    case "segmentsPrevus":
+      return plannedSegments.value as RowItem[];
     case "soustitrages":
       return subtitles.value as RowItem[];
   }
@@ -320,6 +331,7 @@ const sortedActiveRows = computed(() => {
 async function fetchDetails(emission: Emission) {
   jobs.value = [];
   segments.value = [];
+  plannedSegments.value = [];
   subtitles.value = [];
   error.value = "";
 
@@ -358,11 +370,8 @@ async function fetchDetails(emission: Emission) {
     };
 
     const jobsData = asArray<Record<string, unknown>>(jobsResponse.data);
-    let segmentsData = asArray<SegmentItem>(segmentsResponse.data);
-
-    if (segmentsData.length === 0) {
-      segmentsData = emissionSegmentsFallback(emission);
-    }
+    const segmentsData = asArray<SegmentItem>(segmentsResponse.data);
+    const plannedSegmentsData = emissionSegmentsFallback(emission);
     let subtitlesData = asArray<SubtitleItem>(subtitlesResponse.data);
 
     if (subtitlesData.length === 0 && idRecord) {
@@ -385,6 +394,7 @@ async function fetchDetails(emission: Emission) {
     }));
 
     segments.value = segmentsData;
+    plannedSegments.value = plannedSegmentsData;
     subtitles.value = subtitlesData.map((entry) => ({...entry, message: truncate(entry.message)}));
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
@@ -404,7 +414,7 @@ function openRowContextMenu(row: RowItem, event: MouseEvent) {
     ];
   } else if (activeTab.value === "offres") {
     contextActions.value = [{label: "Copier oid", value: String(row.id_record ?? ""), type: "copy"}];
-  } else if (activeTab.value === "segments") {
+  } else if (activeTab.value === "segments" || activeTab.value === "segmentsPrevus") {
     contextActions.value = [{label: "Copier le n° de stock", value: String(row.name ?? ""), type: "copy"}];
   } else {
     contextActions.value = [];
@@ -498,6 +508,42 @@ async function stopTranscoding() {
 
 function closeContextMenu() {
   contextMenu.open = false;
+}
+
+function emissionSegmentsFallback(emission: Emission): SegmentItem[] {
+  const directSegments = normalizeSegmentCandidates(emission.segments);
+  if (directSegments.length > 0) return directSegments;
+
+  const lavaData = Array.isArray(emission.lavadata)
+      ? emission.lavadata
+      : Array.isArray(emission.lavaData)
+          ? emission.lavaData
+          : [];
+
+  for (const item of lavaData) {
+    const fromLava = normalizeSegmentCandidates((item as { segments?: unknown }).segments);
+    if (fromLava.length > 0) return fromLava;
+  }
+
+  return [];
+}
+
+function normalizeSegmentCandidates(value: unknown): SegmentItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+      .map((candidate, index) => {
+        if (!candidate || typeof candidate !== "object") return null;
+        const record = candidate as Record<string, unknown>;
+        return {
+          number: (record.number ?? record.segment ?? index + 1) as string | number,
+          name: String(record.name ?? record.sgtKey ?? record.traficId ?? ""),
+          tcin: String(record.tcin ?? record.start ?? ""),
+          tcout: String(record.tcout ?? record.end ?? ""),
+          status: String(record.status ?? ""),
+        } as SegmentItem;
+      })
+      .filter((segment): segment is SegmentItem => Boolean(segment));
 }
 
 
