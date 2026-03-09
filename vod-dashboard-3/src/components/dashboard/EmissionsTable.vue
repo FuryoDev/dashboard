@@ -1171,8 +1171,8 @@ tbody tr.selected {
 
 #delay-value::-webkit-inner-spin-button,
 #delay-value::-webkit-outer-spin-button {
-  transform: scale(2);
-  margin: 0.1rem;
+  padding: 1px;
+  height: 25px;
 }
 
 .action-modal__buttons {
