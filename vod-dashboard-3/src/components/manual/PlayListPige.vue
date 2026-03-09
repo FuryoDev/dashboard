@@ -69,8 +69,14 @@
                 :class="{ selected: selectedAssignedId === item.traficId }"
                 @click="selectedAssignedId = item.traficId"
             >
-              <td>{{ item.reconcile }}</td>
-              <td>{{ item.decoupe }}</td>
+              <td>
+                <span :class="['manual-status', `manual-status--${item.reconcile || 'idle'}`]">{{ displayStatus(item.reconcile) }}</span>
+                <small v-if="item.reconcileMessage" class="manual-status-message">{{ item.reconcileMessage }}</small>
+              </td>
+              <td>
+                <span :class="['manual-status', `manual-status--${item.decoupe || 'idle'}`]">{{ displayStatus(item.decoupe) }}</span>
+                <small v-if="item.decoupeMessage" class="manual-status-message">{{ item.decoupeMessage }}</small>
+              </td>
               <td>{{ item.broadcastDate }}</td>
               <td>{{ item.title }}</td>
               <td>{{ item.fileName }}</td>
@@ -352,6 +358,7 @@ function confirmReconciliation() {
     if (matchesTitle) {
       (item as Record<string, unknown>).lavadata = [chosen];
       item.reconcile = "success";
+      (item as Record<string, unknown>).reconcileMessage = "";
     }
   }
 
@@ -406,9 +413,16 @@ async function sendRestoreRequest(transcode: boolean) {
   try {
     const http = useHttp("vod-manuel.restore");
     await http.post("restore/service/record/start", payload);
-    current.forEach((item) => (item.decoupe = "success"));
-  } catch {
-    current.forEach((item) => (item.decoupe = "error"));
+    current.forEach((item) => {
+      item.decoupe = "success";
+      (item as Record<string, unknown>).decoupeMessage = "";
+    });
+  } catch (error) {
+    const message = extractErrorMessage(error);
+    current.forEach((item) => {
+      item.decoupe = "error";
+      (item as Record<string, unknown>).decoupeMessage = message;
+    });
   }
 
   playlistStore.setElementsToAssign(current);
@@ -420,6 +434,22 @@ async function markDecoupeAll() {
 
 async function markDecoupeTranscode() {
   await sendRestoreRequest(true);
+}
+
+function displayStatus(value?: string) {
+  if (value === "success") return "✓ Succès";
+  if (value === "error") return "✕ Erreur";
+  return "-";
+}
+
+function extractErrorMessage(error: unknown): string {
+  if (typeof error === "object" && error && "response" in error) {
+    const response = (error as { response?: { data?: any } }).response;
+    const message = response?.data?.message ?? response?.data?.error ?? "";
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  if (error instanceof Error && error.message) return error.message;
+  return "Erreur backend";
 }
 
 function clearAssigned() {
@@ -630,12 +660,43 @@ button:disabled {
   color: #ffffff;
 }
 
+
+.selected-element__filters input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7464%) hue-rotate(54deg) brightness(106%) contrast(104%);
+  cursor: pointer;
+}
+
 .selected-element__content p {
   color: #ffffff;
 }
 
 .modal-table-wrap {
   max-height: 50vh;
+}
+
+.manual-status {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+}
+
+.manual-status--success {
+  color: #36d399;
+}
+
+.manual-status--error {
+  color: #f87171;
+}
+
+.manual-status--idle {
+  color: #9fb9c8;
+}
+
+.manual-status-message {
+  display: block;
+  margin-top: 0.2rem;
+  color: #fca5a5;
+  white-space: normal;
 }
 
 .loading-row {
