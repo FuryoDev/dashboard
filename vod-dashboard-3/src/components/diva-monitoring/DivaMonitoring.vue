@@ -68,11 +68,13 @@ import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {useHttp} from "@/composables/useHttp";
 import {fetchDivaJobsByDay} from "@/services/diva-monitoring.api";
+import {useAppStore} from "@/stores/app.store";
 import type {DivaJob} from "@/types/diva-monitoring";
 
 const route = useRoute();
 const router = useRouter();
 const http = useHttp("DivaMonitoring");
+const appStore = useAppStore();
 
 const selectedDate = ref<string>("");
 const manualOnly = ref(false);
@@ -141,6 +143,7 @@ async function refreshNow() {
 
 watch(selectedDate, async (value) => {
   if (!value) return;
+  appStore.setSharedDate(value);
   await router.replace({name: "diva-monitoring", query: {date: value}});
   await fetchJobs();
 });
@@ -157,7 +160,8 @@ watch(
 
 onMounted(() => {
   const routeDate = normalizeRouteDate(route.query.date);
-  selectedDate.value = routeDate || new Date().toISOString().slice(0, 10);
+  selectedDate.value = routeDate || appStore.sharedDate || new Date().toISOString().slice(0, 10);
+  appStore.setSharedDate(selectedDate.value);
 });
 
 onUnmounted(() => {

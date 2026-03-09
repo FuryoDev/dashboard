@@ -67,9 +67,31 @@
 
       <div v-if="contextMenu.open" class="detail-context-menu" :style="contextMenuStyle">
         <button v-for="action in contextActions" :key="action.label" type="button"
-                @click="copyContextValue(action.value)">
+                @click="handleContextAction(action.type, action.value)">
           {{ action.label }}
         </button>
+      </div>
+
+      <div v-if="answerModal.open" class="action-modal-backdrop" @click.self="answerModal.open = false">
+        <div class="action-modal action-modal--small">
+          <h3>{{ answerModal.title }}</h3>
+          <p>Statut: {{ answerModal.status }}</p>
+          <p v-if="answerModal.message">Description: {{ answerModal.message }}</p>
+          <div class="action-modal__buttons">
+            <button type="button" class="secondary" @click="answerModal.open = false">Fermer</button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="confirmStop.open" class="action-modal-backdrop" @click.self="confirmStop.open = false">
+        <div class="action-modal action-modal--small">
+          <h3>Stopper transcodage</h3>
+          <p>Vous voulez vraiment stopper le transcodage du job: {{ confirmStop.jobId }}</p>
+          <div class="action-modal__buttons">
+            <button type="button" @click="stopTranscoding">Confirmer</button>
+            <button type="button" class="secondary" @click="confirmStop.open = false">Annuler</button>
+          </div>
+        </div>
       </div>
     </template>
   </section>
@@ -117,6 +139,7 @@ type TableColumn = { key: DetailColumnKey; label: string; date?: boolean; status
 type RowItem = Record<string, unknown>;
 
 type JobItem = {
+  id?: string;
   profileName?: string;
   offer?: string;
   lastStatus?: string;
@@ -164,7 +187,9 @@ const segments = ref<SegmentItem[]>([]);
 const subtitles = ref<SubtitleItem[]>([]);
 const error = ref("");
 const contextMenu = reactive({open: false, x: 0, y: 0});
-const contextActions = ref<Array<{ label: string; value: string }>>([]);
+const contextActions = ref<Array<{ label: string; value: string; type: "copy" | "publish" | "check" | "stop" }>>([]);
+const answerModal = reactive({open: false, title: "", status: "", message: ""});
+const confirmStop = reactive({open: false, jobId: ""});
 const sortState = ref<{ key: DetailColumnKey; direction: SortDirection } | null>(null);
 
 const tabItems: Array<{ key: DetailTabKey; label: string }> = [
@@ -358,6 +383,7 @@ async function fetchDetails(emission: Emission) {
 
     const firstOffer = offers.value[0] ?? {};
     jobs.value = jobsData.map((item: Record<string, unknown>) => ({
+      id: String(item.id ?? ""),
       profileName: String(firstOffer.name ?? ""),
       offer: String(firstOffer.offerName ?? ""),
       lastStatus: String(item.status ?? ""),
@@ -381,19 +407,26 @@ const contextMenuStyle = computed(() => ({top: `${contextMenu.y}px`, left: `${co
 
 function openRowContextMenu(row: RowItem, event: MouseEvent) {
   if (activeTab.value === "transcodages") {
-    contextActions.value = [{label: "Copier le n° de job", value: String(row.guid ?? "")}];
+    contextActions.value = [
+      {label: "Copier le n° de job", value: String(row.guid ?? ""), type: "copy"},
+      {label: "Publier", value: String(row.id ?? ""), type: "publish"},
+      {label: "Controle avant Publication", value: String(row.id ?? ""), type: "check"},
+      {label: "Stopper le transcodage", value: String(row.id ?? ""), type: "stop"},
+    ];
   } else if (activeTab.value === "offres") {
-    contextActions.value = [{label: "Copier oid", value: String(row.id_record ?? "")}];
+    contextActions.value = [{label: "Copier oid", value: String(row.id_record ?? ""), type: "copy"}];
   } else if (activeTab.value === "segments" || activeTab.value === "segmentsPrevus") {
-    contextActions.value = [{label: "Copier le n° de stock", value: String(row.name ?? "")}];
+    contextActions.value = [{label: "Copier le n° de stock", value: String(row.name ?? ""), type: "copy"}];
   } else {
     contextActions.value = [];
   }
 
   if (!contextActions.value.length) return;
+  const estimatedHeight = contextActions.value.length * 42 + 16;
+  const estimatedWidth = 250;
   contextMenu.open = true;
-  contextMenu.x = event.clientX;
-  contextMenu.y = event.clientY;
+  contextMenu.x = Math.min(event.clientX, window.innerWidth - estimatedWidth - 8);
+  contextMenu.y = Math.max(8, event.clientY - estimatedHeight);
 }
 
 async function copyContextValue(value: string) {
@@ -408,6 +441,70 @@ async function copyContextValue(value: string) {
     document.body.removeChild(helper);
   }
   contextMenu.open = false;
+}
+
+async function handleContextAction(type: "copy" | "publish" | "check" | "stop", value: string) {
+  closeContextMenu();
+  if (type === "copy") {
+    await copyContextValue(value);
+    return;
+  }
+  if (!value) return;
+
+  const http = useHttp("detail-offer-transcode-emission.context-actions");
+  if (type === "publish") {
+    try {
+      const {data} = await http.post(`distribution/service/publish/${value}`);
+      answerModal.open = true;
+      answerModal.title = "Publication";
+      answerModal.status = String(data?.status ?? "OK");
+      answerModal.message = String(data?.error ?? "");
+    } catch (e) {
+      answerModal.open = true;
+      answerModal.title = "Publication";
+      answerModal.status = "Erreur";
+      answerModal.message = e instanceof Error ? e.message : String(e);
+    }
+    return;
+  }
+
+  if (type === "check") {
+    try {
+      const {data} = await http.post(`distribution/service/checkup/${value}`);
+      answerModal.open = true;
+      answerModal.title = "Controle";
+      answerModal.status = data?.success ? "success" : "error";
+      answerModal.message = String(data?.message ?? "");
+    } catch (e) {
+      answerModal.open = true;
+      answerModal.title = "Controle";
+      answerModal.status = "Erreur";
+      answerModal.message = e instanceof Error ? e.message : String(e);
+    }
+    return;
+  }
+
+  confirmStop.open = true;
+  confirmStop.jobId = value;
+}
+
+async function stopTranscoding() {
+  if (!confirmStop.jobId) return;
+  const http = useHttp("detail-offer-transcode-emission.stop-transcoding");
+  try {
+    const {data} = await http.post(`transcode/service/job/stop/${confirmStop.jobId}`);
+    answerModal.open = true;
+    answerModal.title = "Stopper le transcodage";
+    answerModal.status = data?.success ? "OK" : "Erreur";
+    answerModal.message = data?.success ? "" : String(data?.error ?? "");
+  } catch (e) {
+    answerModal.open = true;
+    answerModal.title = "Stopper le transcodage";
+    answerModal.status = "Erreur";
+    answerModal.message = e instanceof Error ? e.message : String(e);
+  } finally {
+    confirmStop.open = false;
+  }
 }
 
 function closeContextMenu() {
@@ -663,4 +760,43 @@ table {
   color: #a9d3e4;
   padding: 0.7rem;
 }
+
+.action-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+}
+
+.action-modal {
+  width: min(520px, 90vw);
+  border-radius: 12px;
+  border: 1px solid rgba(143, 215, 236, 0.22);
+  background: #0f2b45;
+  padding: 1rem;
+}
+
+.action-modal__buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.action-modal__buttons button {
+  border: 1px solid rgba(46, 208, 242, 0.35);
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  background: #2ed0f2;
+  color: #083047;
+  font-weight: 700;
+}
+
+.action-modal__buttons button.secondary {
+  background: rgba(46, 208, 242, 0.14);
+  color: #8fe6fa;
+}
+
 </style>

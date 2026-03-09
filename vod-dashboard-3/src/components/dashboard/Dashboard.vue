@@ -7,7 +7,9 @@
         :channels="emissionsStore.channels"
         :platforms="emissionsStore.platforms"
         :vod-types="emissionsStore.vodTypes"
+        :initial-date="appStore.sharedDate"
         @search="onSearch"
+        @date-change="appStore.setSharedDate"
         @bulk-clean="onBulkClean"
     />
 
@@ -31,9 +33,11 @@ import SearchEmission from "@/components/dashboard/SearchEmission.vue";
 import EmissionsTable from "@/components/dashboard/EmissionsTable.vue";
 import DetailOfferTranscodeEmission from "@/components/dashboard/DetailOfferTranscodeEmission.vue";
 import {useEmissionsStore} from "@/stores/emissions.store";
+import {useAppStore} from "@/stores/app.store";
 import type {Emission as EmissionType} from "@/types/domain";
 
 const emissionsStore = useEmissionsStore();
+const appStore = useAppStore();
 const focusedEmission = ref<EmissionType | null>(null);
 
 async function onSearch(payload: {
@@ -43,6 +47,7 @@ async function onSearch(payload: {
   statuses: string[];
   vodType?: string;
 }) {
+  appStore.setSharedDate(payload.date.toISOString().slice(0, 10));
   await emissionsStore.fetchAll(payload);
 }
 
@@ -54,7 +59,8 @@ async function onBulkClean() {
 
 onMounted(async () => {
   await emissionsStore.fetchFilterOptions();
-  await emissionsStore.fetchAll({date: new Date(), channels: [], platforms: [], statuses: []});
+  const [year, month, day] = appStore.sharedDate.split("-").map(Number);
+  await emissionsStore.fetchAll({date: new Date(year, month - 1, day), channels: [], platforms: [], statuses: []});
 });
 </script>
 

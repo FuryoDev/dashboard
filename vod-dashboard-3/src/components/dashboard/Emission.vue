@@ -31,16 +31,22 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {storeToRefs} from "pinia";
 import PlayListPige from "@/components/manual/PlayListPige.vue";
 import {usePlaylistOffersStore} from "@/stores/playlist.offer";
+import {useAppStore} from "@/stores/app.store";
 
 const playlistStore = usePlaylistOffersStore();
+const appStore = useAppStore();
 const {channels} = storeToRefs(playlistStore);
 
-const selectedDate = ref(new Date().toISOString().slice(0, 10));
+const selectedDate = ref(appStore.sharedDate || new Date().toISOString().slice(0, 10));
 const selectedChannel = ref("LAUNE");
+
+watch(selectedDate, (value) => {
+  appStore.setSharedDate(value);
+});
 
 const selectedDateAsDate = computed(() => {
   const [year, month, day] = selectedDate.value.split("-").map(Number);
@@ -48,6 +54,7 @@ const selectedDateAsDate = computed(() => {
 });
 
 async function search() {
+  appStore.setSharedDate(selectedDate.value);
   await playlistStore.fetchPlaylistByDate(selectedChannel.value, selectedDateAsDate.value);
 }
 
@@ -129,5 +136,10 @@ button {
 
 .error {
   color: #9d1b1b;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%) invert(93%) sepia(20%) saturate(343%) hue-rotate(156deg) brightness(100%) contrast(92%);
+  cursor: pointer;
 }
 </style>

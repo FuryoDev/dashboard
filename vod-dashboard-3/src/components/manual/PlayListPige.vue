@@ -40,8 +40,8 @@
 
     <!-- MIDDLE: actions -->
     <div class="actions">
-      <button type="button" @click="addSelected">≫ Ajouter</button>
-      <button type="button" @click="removeSelected">≪ Retirer</button>
+      <button type="button" :disabled="selectedIds.size === 0" @click="addSelected">≫ Ajouter</button>
+      <button type="button" :disabled="selectedAssignedId === null" @click="removeSelected">≪ Retirer</button>
     </div>
 
     <!-- RIGHT: selected + media list -->
@@ -66,6 +66,8 @@
             <tr
                 v-for="item in assignedEnhanced"
                 :key="`${item.traficId}-${item.broadcastDateFull}-assigned`"
+                :class="{ selected: selectedAssignedId === item.traficId }"
+                @click="selectedAssignedId = item.traficId"
             >
               <td>{{ item.reconcile }}</td>
               <td>{{ item.decoupe }}</td>
@@ -81,10 +83,10 @@
         </div>
 
         <div class="panel__actions">
-          <button class=manual-btn type="button" @click="markReconcile">Réconciliation des produits</button>
-          <button class=manual-btn type="button" @click="markDecoupeAll">Découper tous</button>
-          <button class=manual-btn type="button" @click="markDecoupeTranscode">Découpe + transcodage auto</button>
-          <button class=manual-btn type="button" @click="clearAssigned">Effacer tout</button>
+          <button class=manual-btn type="button" :disabled="!canReconcile" @click="markReconcile">Réconciliation des produits</button>
+          <button class=manual-btn type="button" :disabled="!canRunCutActions" @click="markDecoupeAll">Découper tous</button>
+          <button class=manual-btn type="button" :disabled="!canRunCutActions" @click="markDecoupeTranscode">Découpe + transcodage auto</button>
+          <button class=manual-btn type="button" :disabled="assignedEnhanced.length === 0" @click="clearAssigned">Effacer tout</button>
         </div>
       </div>
 
@@ -153,6 +155,7 @@ import {computed, onMounted, ref} from "vue";
 import {storeToRefs} from "pinia";
 import {usePlaylistOffersStore} from "@/stores/playlist.offer";
 import {useHttp} from "@/composables/useHttp";
+import {useAppStore} from "@/stores/app.store";
 import type {PlaylistItem} from "@/types/domain";
 
 type AssignedItem = PlaylistItem & {
@@ -164,6 +167,8 @@ const playlistStore = usePlaylistOffersStore();
 const {listPige: items} = storeToRefs(playlistStore);
 
 const selectedIds = ref(new Set<string>());
+const selectedAssignedId = ref<string | null>(null);
+const appStore = useAppStore();
 
 const selectedRepertory = ref("NONLINEAIRE");
 const repertoryOptions = ["NONLINEAIRE", "LAUNE", "TIPIK", "AUVIO"];
@@ -171,6 +176,10 @@ const mediaList = ref<Array<Record<string, unknown>>>([]);
 
 const assigned = computed(() => playlistStore.elementsToAssign as PlaylistItem[]);
 const assignedEnhanced = computed(() => assigned.value as AssignedItem[]);
+const canReconcile = computed(() => assignedEnhanced.value.length > 0 && selectedAssignedId.value !== null);
+const canRunCutActions = computed(() =>
+    assignedEnhanced.value.length > 0 && assignedEnhanced.value.every((item) => item.reconcile === "success"),
+);
 
 function toggle(item: { traficId: string }) {
   if (selectedIds.value.has(item.traficId)) selectedIds.value.delete(item.traficId);
@@ -191,31 +200,77 @@ function addSelected() {
 }
 
 function removeSelected() {
+  if (!selectedAssignedId.value) return;
   const current = (playlistStore.elementsToAssign as PlaylistItem[]) ?? [];
-  playlistStore.setElementsToAssign(current.filter((item) => !selectedIds.value.has(item.traficId)));
-  selectedIds.value.clear();
+  playlistStore.setElementsToAssign(current.filter((item) => item.traficId !== selectedAssignedId.value));
+  selectedAssignedId.value = null;
 }
 
-function markReconcile() {
+async function markReconcile() {
+  if (!canReconcile.value) return;
   const current = [...assignedEnhanced.value];
-  current.forEach((item) => (item.reconcile = "OK"));
+  const selected = current.find((item) => item.traficId === selectedAssignedId.value);
+  if (!selected) return;
+
+  try {
+    const http = useHttp("vod-manuel.reconcile");
+    const date = appStore.sharedDate.split("-").reverse().join("/");
+    const {data} = await http.get(`lava/plannedproductsbydate/${date}?channels=LAUNE,TIPIK,AUVIO,PROXIMUS`);
+    const planned = Array.isArray(data) ? data : [];
+    const matches = planned.filter((product: Record<string, unknown>) => String(product.title ?? "") === String(selected.title ?? ""));
+    selected.reconcile = matches.length > 0 ? "success" : "error";
+    if (matches.length > 0) {
+      (selected as Record<string, unknown>).lavadata = matches;
+    }
+  } catch {
+    selected.reconcile = "error";
+  }
+
   playlistStore.setElementsToAssign(current);
 }
 
-function markDecoupeAll() {
+async function sendRestoreRequest(transcode: boolean) {
+  if (!canRunCutActions.value) return;
   const current = [...assignedEnhanced.value];
-  current.forEach((item) => (item.decoupe = "DECOUPE"));
+  const payload = current.map((item) => ({
+    chaine: "",
+    vodDay: appStore.sharedDate.split("-").reverse().join("/"),
+    mediaId: item.fileName,
+    episodeId: String((item as Record<string, unknown>).lavadata?.[0]?.idEpisode ?? ""),
+    startDate: item.broadcastDateFull,
+    duration: item.durationLabel,
+    titre: item.title,
+    segments: [{number: item.segment, traficId: item.traficId}],
+    publish: false,
+    live: item.live,
+    byAutomation: false,
+    transcode,
+    manual: true,
+    platforms: [],
+  }));
+
+  try {
+    const http = useHttp("vod-manuel.restore");
+    await http.post("restore/service/record/start", payload);
+    current.forEach((item) => (item.decoupe = "success"));
+  } catch {
+    current.forEach((item) => (item.decoupe = "error"));
+  }
+
   playlistStore.setElementsToAssign(current);
 }
 
-function markDecoupeTranscode() {
-  const current = [...assignedEnhanced.value];
-  current.forEach((item) => (item.decoupe = "DECOUPE+TRANSCOD"));
-  playlistStore.setElementsToAssign(current);
+async function markDecoupeAll() {
+  await sendRestoreRequest(false);
+}
+
+async function markDecoupeTranscode() {
+  await sendRestoreRequest(true);
 }
 
 function clearAssigned() {
   playlistStore.setElementsToAssign([]);
+  selectedAssignedId.value = null;
 }
 
 async function loadMediaList() {
