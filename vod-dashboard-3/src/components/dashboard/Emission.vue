@@ -137,4 +137,9 @@ button {
 .error {
   color: #9d1b1b;
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%) invert(93%) sepia(20%) saturate(343%) hue-rotate(156deg) brightness(100%) contrast(92%);
+  cursor: pointer;
+}
 </style>

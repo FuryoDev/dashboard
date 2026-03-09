@@ -2,7 +2,7 @@
   <div class="app-shell">
     <header class="app-shell__topbar">
       <HeaderMenu/>
-      <p class="app-shell__user"><span class="app-shell__user-icon" aria-hidden="true">👤</span>{{ userLabel }}</p>
+      <p class="app-shell__user"><span class="app-shell__user-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c1.6-4 4.6-6 8-6s6.4 2 8 6"></path></svg></span>{{ userLabel }}</p>
     </header>
 
     <main class="app-shell__content">
@@ -81,8 +81,22 @@ onUnmounted(() => {
 }
 
 .app-shell__user-icon {
-  font-size: 0.95rem;
-  line-height: 1;
+  width: 0.95rem;
+  height: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-shell__user-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.95;
 }
 
 .app-shell__content {
