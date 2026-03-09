@@ -1164,6 +1164,16 @@ tbody tr.selected {
   padding: 0.5rem;
 }
 
+#delay-value {
+  appearance: auto;
+  min-height: 2.2rem;
+}
+
+#delay-value::-webkit-outer-spin-button,
+#delay-value::-webkit-inner-spin-button {
+  margin: 0.22rem 0;
+}
+
 .action-modal__buttons {
   display: flex;
   justify-content: flex-end;
