@@ -384,9 +384,13 @@ function confirmReconciliation() {
   isReconciliationModalOpen.value = false;
 }
 
-function toSlashDate(value: string) {
-  const [year, month, day] = value.split("-");
-  return `${day}/${month}/${year}`;
+function toIsoLocalDate(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    const [day, month, year] = value.split("/");
+    return `${year}-${month}-${day}`;
+  }
+  return value;
 }
 
 function getPlatforms(item: AssignedItem) {
@@ -407,7 +411,7 @@ function createRestorePayload(item: AssignedItem, transcode: boolean) {
   const channel = playlistStore.searchCriteria.chaine || "";
   return {
     chaine: channel === "NONLINEAIRE" ? "" : channel,
-    vodDay: toSlashDate(item.broadcastDate),
+    vodDay: toIsoLocalDate(item.broadcastDate),
     mediaId: item.fileName,
     episodeId: String((item as Record<string, any>).lavadata?.[0]?.idEpisode ?? ""),
     startDate: item.broadcastDateFull,
