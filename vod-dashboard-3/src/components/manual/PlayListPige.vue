@@ -622,7 +622,7 @@ button:disabled {
 }
 
 .media-toolbar select {
-  min-width: 220px;
+  max-width: 220px;
 }
 
 .manual-btn {

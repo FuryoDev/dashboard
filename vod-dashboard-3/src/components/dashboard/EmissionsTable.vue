@@ -1206,9 +1206,10 @@ tbody tr.selected {
   min-height: 2.2rem;
 }
 
-#delay-value::-webkit-outer-spin-button,
-#delay-value::-webkit-inner-spin-button {
-  margin: 0.22rem 0;
+#delay-value::-webkit-inner-spin-button,
+#delay-value::-webkit-outer-spin-button {
+  padding: 1px;
+  height: 25px;
 }
 
 .action-modal__buttons {
