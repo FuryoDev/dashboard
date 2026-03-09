@@ -13,7 +13,7 @@
       </div>
     </header>
 
-    <div class="table-scroll">
+    <div class="table-scroll" :class="{ 'table-scroll--loading': props.loading }">
       <table>
         <thead>
         <tr>
@@ -42,7 +42,11 @@
         </tr>
         </thead>
         <tbody>
+        <tr v-if="props.loading" class="table-loading-row">
+          <td :colspan="columns.length">En chargement...</td>
+        </tr>
         <tr
+            v-else
             v-for="item in paginated"
             :key="String(item.idRecord)"
             :class="{ selected: isSelected(item) }"
@@ -155,9 +159,13 @@
             <tr v-for="(item, index) in sortedActionModalItems" :key="`${String(item.idRecord ?? index)}-${index}`">
               <td v-for="column in actionModalColumns" :key="column.key">
                 <template v-if="column.key === 'statut'">
-                  <span v-if="modalStatusObject(item)?.ok === true" class="action-result action-result--success">✓ Succès</span>
+                  <span v-if="modalStatusObject(item)?.ok === true" class="action-result action-result--success">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
+                    Succès
+                  </span>
                   <span v-else-if="modalStatusObject(item)?.ok === false" class="action-result action-result--error">
-                    ✕ {{ modalStatusObject(item)?.message || 'Erreur' }}
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>
+                    {{ modalStatusObject(item)?.message || 'Erreur' }}
                   </span>
                   <span v-else>{{ actionModalValue(item, column.key) }}</span>
                 </template>
@@ -558,13 +566,24 @@ async function runAction() {
     actionStatuses.value[id] = {ok, message};
   };
 
+  const setGenericErrorForSelection = (message: string) => {
+    selected.forEach((item) => {
+      setStatus(String(item.idRecord ?? item.idEpisode ?? ""), false, message);
+    });
+  };
+
   if (actionModal.actionType === "export") {
-    const response = await emissionsApi.requestArchiveExport(
-        exportDestination.value,
-        forceRetreatment.value,
-        selected,
-    );
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200, String(result?.message ?? "")));
+    try {
+      const response = await emissionsApi.requestArchiveExport(
+          exportDestination.value,
+          forceRetreatment.value,
+          selected,
+      );
+      Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200, String(result?.message ?? "")));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur backend";
+      setGenericErrorForSelection(message);
+    }
     return;
   }
 
@@ -581,15 +600,25 @@ async function runAction() {
         title: item.title,
       },
     }));
-    const response = await emissionsApi.checkPublication(payload);
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Boolean(result?.success), String(result?.message ?? "")));
+    try {
+      const response = await emissionsApi.checkPublication(payload);
+      Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Boolean(result?.success), String(result?.message ?? "")));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur backend";
+      setGenericErrorForSelection(message);
+    }
     return;
   }
 
   if (actionModal.actionType === "regenerate") {
     const ids = selected.map((item) => String(item.idRecord ?? "")).filter(Boolean);
-    const response = await emissionsApi.regenerateSubtitles(ids);
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200, String(result?.message ?? "")));
+    try {
+      const response = await emissionsApi.regenerateSubtitles(ids);
+      Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200, String(result?.message ?? "")));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur backend";
+      setGenericErrorForSelection(message);
+    }
     return;
   }
 
@@ -610,9 +639,9 @@ async function runAction() {
 
       try {
         const statusCode = await emissionsApi.updateRecordStatus(vodType, idRecord, recordStatus, actionModal.actionType === "status");
-        setStatus(idRecord, statusCode === 200);
+        setStatus(idRecord, statusCode === 200, statusCode === 200 ? "Mise à jour effectuée" : "Erreur backend");
       } catch {
-        setStatus(idRecord, false);
+        setStatus(idRecord, false, "Erreur backend");
       }
     }));
   }
@@ -836,6 +865,10 @@ header {
   background: rgba(8, 32, 56, 0.55);
 }
 
+.table-scroll--loading {
+  cursor: progress;
+}
+
 table {
   width: max-content;
   min-width: 100%;
@@ -1019,6 +1052,12 @@ tbody tr.selected {
   font-weight: 700;
 }
 
+.action-result svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
 .action-result--success {
   color: #36d399;
 }
@@ -1026,6 +1065,12 @@ tbody tr.selected {
 .action-result--error {
   color: #f87171;
   white-space: normal;
+}
+
+.table-loading-row td {
+  text-align: center;
+  color: #d4edf6;
+  font-weight: 700;
 }
 
 .context-menu {

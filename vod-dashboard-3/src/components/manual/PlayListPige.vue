@@ -70,11 +70,31 @@
                 @click="selectedAssignedId = item.traficId"
             >
               <td>
-                <span :class="['manual-status', `manual-status--${item.reconcile || 'idle'}`]">{{ displayStatus(item.reconcile) }}</span>
+                <span :class="['manual-status', `manual-status--${item.reconcile || 'idle'}`]">
+                  <template v-if="item.reconcile === 'success'">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
+                    Succès
+                  </template>
+                  <template v-else-if="item.reconcile === 'error'">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>
+                    Erreur
+                  </template>
+                  <template v-else>-</template>
+                </span>
                 <small v-if="item.reconcileMessage" class="manual-status-message">{{ item.reconcileMessage }}</small>
               </td>
               <td>
-                <span :class="['manual-status', `manual-status--${item.decoupe || 'idle'}`]">{{ displayStatus(item.decoupe) }}</span>
+                <span :class="['manual-status', `manual-status--${item.decoupe || 'idle'}`]">
+                  <template v-if="item.decoupe === 'success'">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
+                    Succès
+                  </template>
+                  <template v-else-if="item.decoupe === 'error'">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>
+                    Erreur
+                  </template>
+                  <template v-else>-</template>
+                </span>
                 <small v-if="item.decoupeMessage" class="manual-status-message">{{ item.decoupeMessage }}</small>
               </td>
               <td>{{ item.broadcastDate }}</td>
@@ -436,12 +456,6 @@ async function markDecoupeTranscode() {
   await sendRestoreRequest(true);
 }
 
-function displayStatus(value?: string) {
-  if (value === "success") return "✓ Succès";
-  if (value === "error") return "✕ Erreur";
-  return "-";
-}
-
 function extractErrorMessage(error: unknown): string {
   if (typeof error === "object" && error && "response" in error) {
     const response = (error as { response?: { data?: any } }).response;
@@ -677,7 +691,14 @@ button:disabled {
 .manual-status {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   font-weight: 700;
+}
+
+.manual-status svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
 }
 
 .manual-status--success {
