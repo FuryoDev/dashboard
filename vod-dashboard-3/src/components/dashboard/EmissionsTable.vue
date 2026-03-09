@@ -190,8 +190,7 @@
           <label for="export-destination">Destination</label>
           <select id="export-destination" v-model="exportDestination">
             <option value="vodstock">vodstock</option>
-            <option value="nelinear">nelinear</option>
-            <option value="cinesys">cinesys</option>
+            <option value="vodauto">vodauto</option>
           </select>
           <label class="inline-checkbox">
             <input v-model="forceRetreatment" type="checkbox"> Forcer le re-traitement
