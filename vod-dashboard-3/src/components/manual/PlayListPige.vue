@@ -121,8 +121,8 @@
           <label>
             Répertoire :
             <select v-model="selectedRepertory">
-              <option v-for="option in repertoryOptions" :key="option" :value="option">
-                {{ option }}
+              <option v-for="option in repertoryOptions" :key="option.value" :value="option.value">
+                {{ option.text }}
               </option>
             </select>
           </label>
@@ -269,8 +269,15 @@ const selectedIds = ref(new Set<string>());
 const selectedAssignedId = ref<string | null>(null);
 const appStore = useAppStore();
 
-const selectedRepertory = ref("NONLINEAIRE");
-const repertoryOptions = ["NONLINEAIRE", "LAUNE", "TIPIK", "AUVIO"];
+type RepertoryOption = { value: string; text: string };
+
+const repertoryOptions: RepertoryOption[] = [
+  {value: "SnipRecLo", text: "SnipRecLo"},
+  {value: "SnipRecHi", text: "SnipRecHi"},
+  {value: "manuel", text: "Manuel"},
+  {value: "Diva", text: "VodStock"},
+];
+const selectedRepertory = ref<string>(repertoryOptions[0].value);
 const mediaList = ref<Array<Record<string, unknown>>>([]);
 
 const assigned = computed(() => playlistStore.elementsToAssign as PlaylistItem[]);
