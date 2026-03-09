@@ -627,6 +627,11 @@ button:disabled {
 .selected-element__filters label {
   display: grid;
   grid-template-columns: auto 1fr;
+  color: #ffffff;
+}
+
+.selected-element__content p {
+  color: #ffffff;
 }
 
 .modal-table-wrap {
