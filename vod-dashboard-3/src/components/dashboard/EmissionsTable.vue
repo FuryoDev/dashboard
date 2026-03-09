@@ -579,7 +579,44 @@ async function runAction() {
           forceRetreatment.value,
           selected,
       );
-      Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200, String(result?.message ?? "")));
+      const responseEntries = Object.entries(response ?? {});
+
+      selected.forEach((item) => {
+        const idRecord = String(item.idRecord ?? "");
+        const idEpisode = String(item.idEpisode ?? "");
+        const title = String(item.title ?? "");
+
+        const match = responseEntries.find(([key]) => {
+          const normalizedKey = String(key);
+          return normalizedKey === idRecord
+              || normalizedKey === idEpisode
+              || (idRecord && normalizedKey.includes(idRecord))
+              || (idEpisode && normalizedKey.includes(idEpisode))
+              || (title && normalizedKey.includes(title));
+        });
+
+        if (match) {
+          const [, result] = match;
+          setStatus(
+              idRecord || idEpisode,
+              Number(result?.statusCode ?? 500) === 200,
+              String(result?.message ?? ""),
+          );
+          return;
+        }
+
+        if (responseEntries.length === 1) {
+          const [, result] = responseEntries[0];
+          setStatus(
+              idRecord || idEpisode,
+              Number(result?.statusCode ?? 500) === 200,
+              String(result?.message ?? ""),
+          );
+          return;
+        }
+
+        setStatus(idRecord || idEpisode, false, "Réponse export non corrélée");
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erreur backend";
       setGenericErrorForSelection(message);
