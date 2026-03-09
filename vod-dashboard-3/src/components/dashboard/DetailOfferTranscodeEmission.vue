@@ -354,7 +354,7 @@ async function fetchDetails(emission: Emission) {
 
     const [jobsResponse, segmentsResponse, subtitlesResponse] = await Promise.all([
       idRecord ? http.get(`transcode/service/status/${idRecord}`, noCacheConfig(1)) : Promise.resolve({data: []}),
-      idRecord ? http.get(`restore/service/segment/${idRecord}`, noCacheConfig(2)) : Promise.resolve({data: []}),
+      idRecord ? http.get(`restore/service/segment/${idRecord}`) : Promise.resolve({data: []}),
       idEpisode ? http.get(`subtitle/service/medias/episode/${idEpisode}`, noCacheConfig(3)) : Promise.resolve({data: []}),
     ]);
 
