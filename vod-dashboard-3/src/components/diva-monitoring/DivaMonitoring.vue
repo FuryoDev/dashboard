@@ -231,6 +231,12 @@ onUnmounted(() => {
   gap: 0.45rem;
 }
 
+
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7464%) hue-rotate(54deg) brightness(106%) contrast(104%);
+  cursor: pointer;
+}
+
 .table-card {
   background: rgba(8, 32, 56, 0.85);
   border: 1px solid rgba(143, 215, 236, 0.2);
