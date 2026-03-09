@@ -154,7 +154,16 @@
             <tbody>
             <tr v-for="(item, index) in sortedActionModalItems" :key="`${String(item.idRecord ?? index)}-${index}`">
               <td v-for="column in actionModalColumns" :key="column.key">
-                {{ actionModalValue(item, column.key) }}
+                <template v-if="column.key === 'statut'">
+                  <span v-if="modalStatusObject(item)?.ok === true" class="action-result action-result--success">✓ Succès</span>
+                  <span v-else-if="modalStatusObject(item)?.ok === false" class="action-result action-result--error">
+                    ✕ {{ modalStatusObject(item)?.message || 'Erreur' }}
+                  </span>
+                  <span v-else>{{ actionModalValue(item, column.key) }}</span>
+                </template>
+                <template v-else>
+                  {{ actionModalValue(item, column.key) }}
+                </template>
               </td>
             </tr>
             </tbody>
@@ -321,7 +330,7 @@ const statusInput = ref<(typeof statusOptions)[number]>(statusOptions[0]);
 const delayInput = ref("24");
 const exportDestination = ref("vodstock");
 const forceRetreatment = ref(false);
-const actionStatuses = ref<Record<string, string>>({});
+const actionStatuses = ref<Record<string, { ok: boolean; message?: string }>>({});
 const sortState = ref<{ key: ColumnKey; direction: SortDirection } | null>(null);
 const actionModalSortState = ref<{ key: ActionModalColumnKey; direction: SortDirection } | null>(null);
 
@@ -545,8 +554,8 @@ async function runAction() {
   const selected = props.selected;
   if (!selected.length) return;
 
-  const setStatus = (id: string, ok: boolean) => {
-    actionStatuses.value[id] = ok ? "success" : "error";
+  const setStatus = (id: string, ok: boolean, message?: string) => {
+    actionStatuses.value[id] = {ok, message};
   };
 
   if (actionModal.actionType === "export") {
@@ -555,7 +564,7 @@ async function runAction() {
         forceRetreatment.value,
         selected,
     );
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200));
+    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200, String(result?.message ?? "")));
     return;
   }
 
@@ -573,14 +582,14 @@ async function runAction() {
       },
     }));
     const response = await emissionsApi.checkPublication(payload);
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Boolean(result?.success)));
+    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Boolean(result?.success), String(result?.message ?? "")));
     return;
   }
 
   if (actionModal.actionType === "regenerate") {
     const ids = selected.map((item) => String(item.idRecord ?? "")).filter(Boolean);
     const response = await emissionsApi.regenerateSubtitles(ids);
-    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200));
+    Object.entries(response ?? {}).forEach(([id, result]) => setStatus(String(id), Number(result?.statusCode ?? 500) === 200, String(result?.message ?? "")));
     return;
   }
 
@@ -681,9 +690,15 @@ function actionModalValue(item: Emission, key: ActionModalColumnKey) {
   return String(actionModalSortValue(item, key) ?? "");
 }
 
-function modalStatus(item: Emission) {
+function modalStatusObject(item: Emission) {
   const key = String(item.idRecord ?? item.idEpisode ?? "");
-  return actionStatuses.value[key] ?? "";
+  return actionStatuses.value[key];
+}
+
+function modalStatus(item: Emission) {
+  const status = modalStatusObject(item);
+  if (!status) return "";
+  return status.ok ? "success" : "error";
 }
 
 function actionModalSortValue(item: Emission, key: ActionModalColumnKey): string {
@@ -842,7 +857,9 @@ table {
   th {
     background: #0b2038;
     color: #ffffff;
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 3;
   }
 }
 
@@ -992,6 +1009,23 @@ tbody tr.selected {
 .pagination__right button:disabled {
   opacity: 0.55;
   cursor: default;
+}
+
+
+.action-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.action-result--success {
+  color: #36d399;
+}
+
+.action-result--error {
+  color: #f87171;
+  white-space: normal;
 }
 
 .context-menu {
