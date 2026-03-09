@@ -5,6 +5,18 @@ import {createNotificationApi, type OptionItem} from "@/services/notification.ap
 import {toLavaDate} from "@/utils/date";
 import type {Emission} from "@/types/domain";
 
+
+
+type SocketNotificationItem = {
+    recordId?: string | number;
+    traitementType?: number;
+    status?: string;
+    message?: string;
+    progress?: string | number;
+    creation?: string;
+    [key: string]: unknown;
+};
+
 type FetchParams = {
     date?: Date;
     channels?: string[];
@@ -132,6 +144,52 @@ export const useEmissionsStore = defineStore("emissions", {
             } finally {
                 this.loading = false;
             }
+        },
+        applySocketNotifications(payload: unknown) {
+            if (!Array.isArray(payload) || payload.length === 0) return;
+
+            const notifications = payload as SocketNotificationItem[];
+
+            notifications.forEach((notification) => {
+                const recordId = String(notification.recordId ?? "");
+                if (!recordId) return;
+
+                const index = this.items.findIndex((item) => String(item.idRecord ?? "") === recordId);
+                if (index < 0) return;
+
+                const current = this.items[index];
+                const next = {...current};
+
+                switch (notification.traitementType) {
+                    case 1:
+                        next.recordStatusTraitementItem = {
+                            ...(next.recordStatusTraitementItem ?? {}),
+                            useCase: notification.status,
+                            caseComment: notification.message,
+                        };
+                        break;
+                    case 2:
+                        next.recordStatusTranscodageItem = {
+                            ...(next.recordStatusTranscodageItem ?? {}),
+                            useCase: notification.status,
+                            transcodeProgress: notification.progress,
+                            caseComment: notification.message,
+                        };
+                        break;
+                    case 3:
+                        next.recordStatusPublicationItem = {
+                            ...(next.recordStatusPublicationItem ?? {}),
+                            useCase: notification.status,
+                            caseComment: notification.message,
+                            creationTimestamp: notification.creation,
+                        };
+                        break;
+                    default:
+                        return;
+                }
+
+                this.items.splice(index, 1, next);
+            });
         },
     },
 });

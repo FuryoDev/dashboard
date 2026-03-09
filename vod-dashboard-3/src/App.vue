@@ -12,15 +12,23 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted} from "vue";
+import {computed, inject, onMounted, onUnmounted, watch} from "vue";
 import {RouterView} from "vue-router";
 import HeaderMenu from "@/components/common/HeaderMenu.vue";
 import {useUserStore} from "@/stores/user.store";
+import {useAppStore} from "@/stores/app.store";
+import {useEmissionsStore} from "@/stores/emissions.store";
+import {useDashboardSocket} from "@/composables/useDashboardSocket";
 import {useHttp} from "@/composables/useHttp";
 import type {User} from "@/types/auth";
 
 const userStore = useUserStore();
+const appStore = useAppStore();
+const emissionsStore = useEmissionsStore();
 const http = useHttp();
+
+const wsUrl = inject<string>("wsUrl");
+const dashboardSocket = wsUrl ? useDashboardSocket(wsUrl) : null;
 
 const userLabel = computed(() => {
   const user = userStore.user;
@@ -35,6 +43,31 @@ async function fetchUser() {
 
 let userTimer: ReturnType<typeof setInterval> | null = null;
 
+watch(
+  () => dashboardSocket?.message.value,
+  (newMessage) => {
+    if (!dashboardSocket || newMessage == null) return;
+    appStore.setSocketMessage(newMessage);
+    emissionsStore.applySocketNotifications(newMessage);
+  },
+);
+
+watch(
+  () => dashboardSocket?.isConnected.value,
+  (connected) => {
+    if (typeof connected !== "boolean") return;
+    appStore.setSocketConnected(connected);
+  },
+);
+
+watch(
+  () => dashboardSocket?.reconnectError.value,
+  (hasError) => {
+    if (typeof hasError !== "boolean") return;
+    appStore.setSocketReconnectError(hasError);
+  },
+);
+
 onMounted(async () => {
   try {
     await fetchUser();
@@ -45,10 +78,13 @@ onMounted(async () => {
   userTimer = setInterval(() => {
     void fetchUser().catch((error) => console.error("Rafraîchissement utilisateur en erreur", error));
   }, 50 * 60 * 1000);
+
+  dashboardSocket?.connect();
 });
 
 onUnmounted(() => {
   if (userTimer) clearInterval(userTimer);
+  dashboardSocket?.disconnect();
 });
 </script>
 
