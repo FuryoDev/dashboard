@@ -280,6 +280,7 @@ const offers = computed<OfferItem[]>(() => {
 });
 
 
+
 const selectedEpisodeLabel = computed(() => {
   const idEpisode = props.emission?.idEpisode ? String(props.emission.idEpisode) : "";
   const title = props.emission?.title ? String(props.emission.title) : "";
@@ -314,20 +315,6 @@ const sortedActiveRows = computed(() => {
   });
 });
 
-function emissionSegmentsFallback(emission: Emission): SegmentItem[] {
-  const candidates = [
-    (emission as Record<string, unknown>).segments,
-    (emission as Record<string, unknown>).segmentList,
-    (emission as Record<string, unknown>).segmentsData,
-  ];
-
-  for (const candidate of candidates) {
-    if (Array.isArray(candidate)) {
-      return candidate as SegmentItem[];
-    }
-  }
-  return [];
-}
 
 async function fetchDetails(emission: Emission) {
   jobs.value = [];
