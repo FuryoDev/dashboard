@@ -13,7 +13,7 @@
       </div>
     </header>
 
-    <div class="table-scroll" :class="{ 'table-scroll--loading': props.loading }">
+    <div class="table-scroll">
       <table>
         <thead>
         <tr>
@@ -908,10 +908,6 @@ header {
   border: 1px solid rgba(143, 215, 236, 0.2);
   border-radius: 10px;
   background: rgba(8, 32, 56, 0.55);
-}
-
-.table-scroll--loading {
-  cursor: progress;
 }
 
 table {

@@ -2,15 +2,16 @@ import axios, {type AxiosInstance} from "axios";
 import {env} from "@/config/env";
 
 let pendingRequests = 0;
+const WAIT_CLASS = "app-wait-cursor";
 
 function applyWaitCursor() {
     if (typeof document === "undefined") return;
-    document.body.style.cursor = "wait";
+    document.body.classList.add(WAIT_CLASS);
 }
 
 function clearWaitCursor() {
     if (typeof document === "undefined") return;
-    document.body.style.cursor = "";
+    document.body.classList.remove(WAIT_CLASS);
 }
 
 function onRequestStart() {

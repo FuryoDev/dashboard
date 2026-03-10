@@ -9,3 +9,8 @@ body {
   color: #111827;
   border-radius: 30px;
 }
+
+body.app-wait-cursor,
+body.app-wait-cursor * {
+  cursor: wait !important;
+}
