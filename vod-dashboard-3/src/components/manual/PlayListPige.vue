@@ -121,8 +121,8 @@
           <label>
             Répertoire :
             <select v-model="selectedRepertory">
-              <option v-for="option in repertoryOptions" :key="option" :value="option">
-                {{ option }}
+              <option v-for="option in repertoryOptions" :key="option.value" :value="option.value">
+                {{ option.text }}
               </option>
             </select>
           </label>
@@ -133,38 +133,12 @@
           <table>
             <thead>
             <tr>
-              <th>Réconcilier</th>
-              <th>Transcod</th>
-              <th>Ordre</th>
-              <th>Statut</th>
-              <th>Filière</th>
-              <th>Chaîne</th>
-              <th>Titre</th>
-              <th>Episode</th>
-              <th>MediaID</th>
-              <th>Seg</th>
-              <th>Date de début</th>
-              <th>Date de fin</th>
-              <th>Création date</th>
-              <th>Path</th>
+              <th v-for="column in mediaColumns" :key="column.key">{{ column.label }}</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="(item, idx) in mediaList" :key="`${String(item.path ?? idx)}-${idx}`">
-              <td>{{ String(item.reconcile ?? "") }}</td>
-              <td>{{ String(item.transcod ?? "") }}</td>
-              <td>{{ String(item.orderseg ?? item.order ?? "") }}</td>
-              <td>{{ String(item.status ?? "") }}</td>
-              <td>{{ String(item.filiere ?? "") }}</td>
-              <td>{{ String(item.chaine ?? "") }}</td>
-              <td>{{ String(item.title ?? "") }}</td>
-              <td>{{ String(item.episodeId ?? "") }}</td>
-              <td>{{ String(item.mediaId ?? "") }}</td>
-              <td>{{ String(item.segment ?? "") }}</td>
-              <td>{{ String(item.startDate ?? "") }}</td>
-              <td>{{ String(item.endDate ?? "") }}</td>
-              <td>{{ String(item.creationDate ?? "") }}</td>
-              <td>{{ String(item.path ?? "") }}</td>
+              <td v-for="column in mediaColumns" :key="`${column.key}-${idx}`">{{ String(item[column.key] ?? "") }}</td>
             </tr>
             </tbody>
           </table>
@@ -269,9 +243,45 @@ const selectedIds = ref(new Set<string>());
 const selectedAssignedId = ref<string | null>(null);
 const appStore = useAppStore();
 
-const selectedRepertory = ref("NONLINEAIRE");
-const repertoryOptions = ["NONLINEAIRE", "LAUNE", "TIPIK", "AUVIO"];
+type RepertoryOption = { value: string; text: string };
+type MediaColumn = { key: string; label: string };
+
+const repertoryOptions: RepertoryOption[] = [
+  {value: "SnipRecLo", text: "SnipRecLo"},
+  {value: "SnipRecHi", text: "SnipRecHi"},
+  {value: "manuel", text: "Manuel"},
+  {value: "Diva", text: "VodStock"},
+];
+const selectedRepertory = ref<string>(repertoryOptions[0].value);
 const mediaList = ref<Array<Record<string, unknown>>>([]);
+
+const snipRecColumns: MediaColumn[] = [
+  {key: "mediaId", label: "MediaID"},
+  {key: "episodeId", label: "Episode"},
+  {key: "start", label: "Date de début"},
+  {key: "destination", label: "Path"},
+  {key: "status", label: "Statut"},
+  {key: "progress", label: "Progression"},
+  {key: "title", label: "Titre"},
+  {key: "filiere", label: "Filière"},
+  {key: "segment", label: "Seg"},
+  {key: "creation", label: "Création date"},
+  {key: "finishedDate", label: "Date de fin"},
+  {key: "chaine", label: "Chaîne"},
+];
+
+const stockColumns: MediaColumn[] = [
+  {key: "destination", label: "Path"},
+  {key: "title", label: "Titre"},
+  {key: "creation", label: "Création date"},
+];
+
+const mediaColumns = computed<MediaColumn[]>(() => {
+  if (selectedRepertory.value === "SnipRecLo" || selectedRepertory.value === "SnipRecHi") {
+    return snipRecColumns;
+  }
+  return stockColumns;
+});
 
 const assigned = computed(() => playlistStore.elementsToAssign as PlaylistItem[]);
 const assignedEnhanced = computed(() => assigned.value as AssignedItem[]);
