@@ -598,8 +598,24 @@ async function runAction() {
           forceRetreatment.value,
           selected,
       );
+
+      // Cas 1 : réponse globale booléenne
+      if (typeof response === "boolean") {
+        selected.forEach((item) => {
+          setStatus(
+              String(item.idRecord ?? item.idEpisode ?? ""),
+              response,
+              response ? "Export effectué" : "Export refusé"
+          );
+        });
+        return;
+      }
+
       const responseEntries = Object.entries(response ?? {});
-      const hasOnlyGlobalResponse = responseEntries.length === 1 && ["statusCode", "message", "success"].includes(responseEntries[0][0]);
+      const hasOnlyGlobalResponse =
+          responseEntries.length === 1 &&
+          ["statusCode", "message", "success"].includes(responseEntries[0][0]);
+
       const globalStatusCode = Number((response as { statusCode?: number | string })?.statusCode ?? 200);
       const globalSuccess = (response as { success?: boolean })?.success;
       const defaultOk = globalSuccess ?? (Number.isNaN(globalStatusCode) ? true : globalStatusCode === 200);
@@ -621,24 +637,25 @@ async function runAction() {
 
         if (match) {
           const [, result] = match;
-          const rawStatus = Number(result?.statusCode);
-          const isOk = Number.isNaN(rawStatus) ? defaultOk : rawStatus === 200;
-          setStatus(
-              idRecord || idEpisode,
-              isOk,
-              String(result?.message ?? ""),
-          );
-          return;
-        }
 
-        if (responseEntries.length === 1) {
-          const [, result] = responseEntries[0];
-          const rawStatus = Number(result?.statusCode);
-          const isOk = Number.isNaN(rawStatus) ? defaultOk : rawStatus === 200;
+          // Cas 2 : réponse par item = booléen
+          if (typeof result === "boolean") {
+            setStatus(
+                idRecord || idEpisode,
+                result,
+                result ? "Export effectué" : "Export refusé"
+            );
+            return;
+          }
+
+          const rawStatus = Number((result as { statusCode?: number | string })?.statusCode);
+          const itemSuccess = (result as { success?: boolean })?.success;
+          const isOk = itemSuccess ?? (Number.isNaN(rawStatus) ? defaultOk : rawStatus === 200);
+
           setStatus(
               idRecord || idEpisode,
               isOk,
-              String(result?.message ?? defaultMessage),
+              String((result as { message?: string })?.message ?? defaultMessage),
           );
           return;
         }
@@ -1050,7 +1067,7 @@ tbody tr.selected {
 .vod-type-logo {
   display: block;
   max-width: 100%;
-  height: 1.5rem;
+  height: 2.4rem;
   object-fit: contain;
   object-position: left center;
 }
