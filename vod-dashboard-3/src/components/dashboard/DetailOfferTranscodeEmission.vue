@@ -196,8 +196,8 @@ const sortState = ref<{ key: DetailColumnKey; direction: SortDirection } | null>
 const tabItems: Array<{ key: DetailTabKey; label: string }> = [
   {key: "transcodages", label: "Transcodages"},
   {key: "offres", label: "Offres"},
-  {key: "segments", label: "Segments"},
-  {key: "segmentsPrevus", label: "Segments Prévus"},
+  {key: "segments", label: "Segments transcodés"},
+  {key: "segmentsPrevus", label: "Segments prévus"},
   {key: "soustitrages", label: "Sous-titrages"},
 ];
 
