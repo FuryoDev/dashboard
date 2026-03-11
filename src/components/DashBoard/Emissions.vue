@@ -1570,6 +1570,9 @@ export default {
           )
           .then(
             (result) => {
+              if (result?.data?.useCase !== undefined) {
+                emission.recordStatusTraitementItem.useCase = result.data.useCase;
+              }
               this.updateStatusChangeFronted(
                 result.status,
                 this.$store.getters.emissionsToChangeStatus[index].id_record
@@ -1614,6 +1617,9 @@ export default {
           .then(
             (result) => {
               console.log("sucess = " + result.data);
+              if (result?.data?.useCase !== undefined) {
+                emission.recordStatusTraitementItem.useCase = result.data.useCase;
+              }
               this.updateStatusDelayFronted(
                 result.status,
                 this.$store.getters.emissionsToChangeDelay[index].id_record
