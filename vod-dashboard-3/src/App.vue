@@ -2,7 +2,10 @@
   <div class="app-shell">
     <header class="app-shell__topbar">
       <HeaderMenu/>
-      <p class="app-shell__user"><span class="app-shell__user-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c1.6-4 4.6-6 8-6s6.4 2 8 6"></path></svg></span>{{ userLabel }}</p>
+      <p class="app-shell__user"><span class="app-shell__user-icon" aria-hidden="true"><svg viewBox="0 0 24 24"
+                                                                                            focusable="false"><circle
+          cx="12" cy="8" r="4"></circle><path d="M4 20c1.6-4 4.6-6 8-6s6.4 2 8 6"></path></svg></span>{{ userLabel }}
+      </p>
     </header>
 
     <main class="app-shell__content">
@@ -44,28 +47,28 @@ async function fetchUser() {
 let userTimer: ReturnType<typeof setInterval> | null = null;
 
 watch(
-  () => dashboardSocket?.message.value,
-  (newMessage) => {
-    if (!dashboardSocket || newMessage == null) return;
-    appStore.setSocketMessage(newMessage);
-    emissionsStore.applySocketNotifications(newMessage);
-  },
+    () => dashboardSocket?.message.value,
+    (newMessage) => {
+      if (!dashboardSocket || newMessage == null) return;
+      appStore.setSocketMessage(newMessage);
+      emissionsStore.applySocketNotifications(newMessage);
+    },
 );
 
 watch(
-  () => dashboardSocket?.isConnected.value,
-  (connected) => {
-    if (typeof connected !== "boolean") return;
-    appStore.setSocketConnected(connected);
-  },
+    () => dashboardSocket?.isConnected.value,
+    (connected) => {
+      if (typeof connected !== "boolean") return;
+      appStore.setSocketConnected(connected);
+    },
 );
 
 watch(
-  () => dashboardSocket?.reconnectError.value,
-  (hasError) => {
-    if (typeof hasError !== "boolean") return;
-    appStore.setSocketReconnectError(hasError);
-  },
+    () => dashboardSocket?.reconnectError.value,
+    (hasError) => {
+      if (typeof hasError !== "boolean") return;
+      appStore.setSocketReconnectError(hasError);
+    },
 );
 
 onMounted(async () => {
