@@ -63,6 +63,15 @@
             <span v-else>{{ String(item.channel ?? "") }}</span>
           </td>
           <td>
+            <img
+              v-if="vodTypeLogo(item.vodType)"
+              :src="vodTypeLogo(item.vodType)"
+              :alt="`Type VOD ${String(item.vodType ?? '')}`"
+              class="vod-type-logo"
+            >
+            <span v-else>{{ String(item.vodType ?? "") }}</span>
+          </td>
+          <td>
             {{ item.title }}
           </td>
           <td>{{ String(item.duree ?? "") }}</td>
@@ -245,6 +254,8 @@ import logoTipik from "@/assets/images/logo/LOGO_TIPIK_26.svg";
 import logoAuvio from "@/assets/images/logo/LOGO_AUVIO_SVG_26.svg";
 import logoAuvioKids from "@/assets/images/logo/LOGO_AUVIOKIDS_SVG_26.svg";
 import logoLaTrois from "@/assets/images/logo/LOGO_LATROIS_RVB_26.svg";
+import vodTypeFast from "@/assets/images/vodtype/FAST.png";
+import vodTypeCatch from "@/assets/images/vodtype/CATCH.png";
 
 const props = defineProps<{
   emissions: Emission[];
@@ -263,6 +274,7 @@ const emissionsApi = createEmissionsApi(useHttp("emissions-table.actions"));
 type SortDirection = "asc" | "desc";
 type ColumnKey =
     | "channel"
+    | "vodType"
     | "title"
     | "duree"
     | "idEpisode"
@@ -282,6 +294,7 @@ type ActionModalColumnKey = "title" | "idEpisode" | "traitement" | "resultIcon" 
 
 const columns: Array<{ key: ColumnKey; label: string }> = [
   {key: "channel", label: "Chaîne"},
+  {key: "vodType", label: "Type VOD"},
   {key: "title", label: "Titre"},
   {key: "duree", label: "Durée"},
   {key: "idEpisode", label: "Episode"},
@@ -300,6 +313,7 @@ const columns: Array<{ key: ColumnKey; label: string }> = [
 
 const columnWidths = reactive<Record<ColumnKey, number>>({
   channel: 120,
+  vodType: 95,
   title: 260,
   duree: 90,
   idEpisode: 170,
@@ -372,6 +386,11 @@ const channelLogos: Record<string, string> = {
   "AUVIOKIDS": logoAuvioKids,
   "LA TROIS": logoLaTrois,
   "LATROIS": logoLaTrois,
+};
+
+const vodTypeLogos: Record<string, string> = {
+  FAST: vodTypeFast,
+  CATCH: vodTypeCatch,
 };
 
 const actionModalColumnWidths = reactive<Record<ActionModalColumnKey, number>>({
@@ -580,6 +599,11 @@ async function runAction() {
           selected,
       );
       const responseEntries = Object.entries(response ?? {});
+      const hasOnlyGlobalResponse = responseEntries.length === 1 && ["statusCode", "message", "success"].includes(responseEntries[0][0]);
+      const globalStatusCode = Number((response as { statusCode?: number | string })?.statusCode ?? 200);
+      const globalSuccess = (response as { success?: boolean })?.success;
+      const defaultOk = globalSuccess ?? (Number.isNaN(globalStatusCode) ? true : globalStatusCode === 200);
+      const defaultMessage = String((response as { message?: string })?.message ?? "");
 
       selected.forEach((item) => {
         const idRecord = String(item.idRecord ?? "");
@@ -597,9 +621,11 @@ async function runAction() {
 
         if (match) {
           const [, result] = match;
+          const rawStatus = Number(result?.statusCode);
+          const isOk = Number.isNaN(rawStatus) ? defaultOk : rawStatus === 200;
           setStatus(
               idRecord || idEpisode,
-              Number(result?.statusCode ?? 500) === 200,
+              isOk,
               String(result?.message ?? ""),
           );
           return;
@@ -607,11 +633,18 @@ async function runAction() {
 
         if (responseEntries.length === 1) {
           const [, result] = responseEntries[0];
+          const rawStatus = Number(result?.statusCode);
+          const isOk = Number.isNaN(rawStatus) ? defaultOk : rawStatus === 200;
           setStatus(
               idRecord || idEpisode,
-              Number(result?.statusCode ?? 500) === 200,
-              String(result?.message ?? ""),
+              isOk,
+              String(result?.message ?? defaultMessage),
           );
+          return;
+        }
+
+        if (hasOnlyGlobalResponse) {
+          setStatus(idRecord || idEpisode, defaultOk, defaultMessage);
           return;
         }
 
@@ -716,6 +749,8 @@ function sortValue(item: Emission, key: ColumnKey): string | number {
   switch (key) {
     case "channel":
       return String(item.channel ?? "");
+    case "vodType":
+      return String(item.vodType ?? "");
     case "title":
       return String(item.title ?? "");
     case "duree":
@@ -866,6 +901,15 @@ function channelLogo(channel: unknown): string {
   return channelLogos[normalized] ?? "";
 }
 
+function vodTypeLogo(vodType: unknown): string {
+  const raw = String(vodType ?? "").trim();
+  if (!raw) return "";
+  const normalized = raw.toUpperCase();
+  if (normalized.includes("FAST")) return vodTypeLogos.FAST;
+  if (normalized.includes("CATCH")) return vodTypeLogos.CATCH;
+  return vodTypeLogos[normalized] ?? "";
+}
+
 function firstPlatform(item: Emission) {
   return String(item.plateformOffers?.[0]?.name ?? "");
 }
@@ -999,6 +1043,14 @@ tbody tr.selected {
   display: block;
   max-width: 100%;
   height: 2.2rem;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.vod-type-logo {
+  display: block;
+  max-width: 100%;
+  height: 1.5rem;
   object-fit: contain;
   object-position: left center;
 }
