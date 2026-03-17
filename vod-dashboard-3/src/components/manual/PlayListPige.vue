@@ -197,8 +197,8 @@
               <tr
                   v-for="(item, idx) in plannedProducts"
                   :key="`${String(item.idEpisode ?? idx)}-${idx}`"
-                  :class="{ selected: selectedPlannedProductIndex === idx }"
-                  @click="selectedPlannedProductIndex = idx"
+                  :class="{ selected: selectedPlannedProductIndexes.has(idx) }"
+                  @click="onPlannedProductRowClick(idx, $event)"
               >
                 <td>{{ String(item.channel ?? "") }}</td>
                 <td>{{ String(item.plannedDateTime ?? "") }}</td>
@@ -216,7 +216,7 @@
         </div>
 
         <footer class="reconcile-modal__footer">
-          <button type="button" :disabled="selectedPlannedProductIndex === null" @click="confirmReconciliation">Réconcilier</button>
+          <button type="button" :disabled="selectedPlannedProductIndexes.size === 0" @click="confirmReconciliation">Réconcilier</button>
         </footer>
       </section>
     </div>
@@ -296,7 +296,8 @@ const canRunCutActions = computed(() =>
 const isReconciliationModalOpen = ref(false);
 const isSearchingPlannedProducts = ref(false);
 const plannedProducts = ref<Array<Record<string, any>>>([]);
-const selectedPlannedProductIndex = ref<number | null>(null);
+const selectedPlannedProductIndexes = ref(new Set<number>());
+const plannedSelectionAnchor = ref<number | null>(null);
 const reconciliationDate = ref(appStore.sharedDate);
 const reconciliationChannel = ref(playlistStore.searchCriteria.chaine || "LAUNE");
 
@@ -330,13 +331,15 @@ function openReconciliationModal() {
   reconciliationDate.value = appStore.sharedDate;
   reconciliationChannel.value = playlistStore.searchCriteria.chaine || "LAUNE";
   plannedProducts.value = [];
-  selectedPlannedProductIndex.value = null;
+  selectedPlannedProductIndexes.value = new Set();
+  plannedSelectionAnchor.value = null;
   isReconciliationModalOpen.value = true;
   void searchPlannedProducts();
 }
 
 function closeReconciliationModal() {
   isReconciliationModalOpen.value = false;
+  plannedSelectionAnchor.value = null;
 }
 
 function getReconciliationChannels(channel: string) {
@@ -358,7 +361,8 @@ function toLavaDate(value: string) {
 
 async function searchPlannedProducts() {
   isSearchingPlannedProducts.value = true;
-  selectedPlannedProductIndex.value = null;
+  selectedPlannedProductIndexes.value = new Set();
+  plannedSelectionAnchor.value = null;
   try {
     const http = useHttp("vod-manuel.reconcile.search");
     const channel = getReconciliationChannels(reconciliationChannel.value);
@@ -371,9 +375,40 @@ async function searchPlannedProducts() {
   }
 }
 
+function togglePlannedProductSelection(index: number, checked: boolean) {
+  const nextSelection = new Set(selectedPlannedProductIndexes.value);
+  if (checked) nextSelection.add(index);
+  else nextSelection.delete(index);
+  selectedPlannedProductIndexes.value = nextSelection;
+}
+
+function onPlannedProductRowClick(index: number, event: MouseEvent) {
+  if (event.shiftKey && plannedSelectionAnchor.value !== null) {
+    const start = Math.min(plannedSelectionAnchor.value, index);
+    const end = Math.max(plannedSelectionAnchor.value, index);
+    const range = new Set<number>();
+    for (let cursor = start; cursor <= end; cursor += 1) {
+      range.add(cursor);
+    }
+    selectedPlannedProductIndexes.value = range;
+    return;
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    togglePlannedProductSelection(index, !selectedPlannedProductIndexes.value.has(index));
+    plannedSelectionAnchor.value = index;
+    return;
+  }
+
+  selectedPlannedProductIndexes.value = new Set([index]);
+  plannedSelectionAnchor.value = index;
+}
+
 function confirmReconciliation() {
-  if (selectedPlannedProductIndex.value === null || !selectedAssignedItem.value) return;
-  const chosen = plannedProducts.value[selectedPlannedProductIndex.value];
+  if (selectedPlannedProductIndexes.value.size === 0 || !selectedAssignedItem.value) return;
+  const chosenItems = [...selectedPlannedProductIndexes.value]
+      .map((index) => plannedProducts.value[index])
+      .filter(Boolean);
   const current = [...assignedEnhanced.value];
 
   for (const item of current) {
@@ -384,7 +419,7 @@ function confirmReconciliation() {
         : selectedTitle === item.title;
 
     if (matchesTitle) {
-      (item as Record<string, unknown>).lavadata = [chosen];
+      (item as Record<string, unknown>).lavadata = chosenItems;
       item.reconcile = "success";
       (item as Record<string, unknown>).reconcileMessage = "";
     }
