@@ -182,7 +182,6 @@
             <table>
               <thead>
               <tr>
-                <th>Sélection</th>
                 <th>Chaine</th>
                 <th>Date/heure</th>
                 <th>Titre</th>
@@ -199,9 +198,8 @@
                   v-for="(item, idx) in plannedProducts"
                   :key="`${String(item.idEpisode ?? idx)}-${idx}`"
                   :class="{ selected: selectedPlannedProductIndexes.has(idx) }"
-                  @click="togglePlannedProductSelection(idx)"
+                  @click="onPlannedProductRowClick(idx, $event)"
               >
-                <td><input type="checkbox" :checked="selectedPlannedProductIndexes.has(idx)" @click.stop="togglePlannedProductSelection(idx)"></td>
                 <td>{{ String(item.channel ?? "") }}</td>
                 <td>{{ String(item.plannedDateTime ?? "") }}</td>
                 <td>{{ String(item.title ?? "") }}</td>
@@ -299,6 +297,7 @@ const isReconciliationModalOpen = ref(false);
 const isSearchingPlannedProducts = ref(false);
 const plannedProducts = ref<Array<Record<string, any>>>([]);
 const selectedPlannedProductIndexes = ref(new Set<number>());
+const plannedSelectionAnchor = ref<number | null>(null);
 const reconciliationDate = ref(appStore.sharedDate);
 const reconciliationChannel = ref(playlistStore.searchCriteria.chaine || "LAUNE");
 
@@ -333,12 +332,14 @@ function openReconciliationModal() {
   reconciliationChannel.value = playlistStore.searchCriteria.chaine || "LAUNE";
   plannedProducts.value = [];
   selectedPlannedProductIndexes.value = new Set();
+  plannedSelectionAnchor.value = null;
   isReconciliationModalOpen.value = true;
   void searchPlannedProducts();
 }
 
 function closeReconciliationModal() {
   isReconciliationModalOpen.value = false;
+  plannedSelectionAnchor.value = null;
 }
 
 function getReconciliationChannels(channel: string) {
@@ -361,6 +362,7 @@ function toLavaDate(value: string) {
 async function searchPlannedProducts() {
   isSearchingPlannedProducts.value = true;
   selectedPlannedProductIndexes.value = new Set();
+  plannedSelectionAnchor.value = null;
   try {
     const http = useHttp("vod-manuel.reconcile.search");
     const channel = getReconciliationChannels(reconciliationChannel.value);
@@ -373,11 +375,33 @@ async function searchPlannedProducts() {
   }
 }
 
-function togglePlannedProductSelection(index: number) {
+function togglePlannedProductSelection(index: number, checked: boolean) {
   const nextSelection = new Set(selectedPlannedProductIndexes.value);
-  if (nextSelection.has(index)) nextSelection.delete(index);
-  else nextSelection.add(index);
+  if (checked) nextSelection.add(index);
+  else nextSelection.delete(index);
   selectedPlannedProductIndexes.value = nextSelection;
+}
+
+function onPlannedProductRowClick(index: number, event: MouseEvent) {
+  if (event.shiftKey && plannedSelectionAnchor.value !== null) {
+    const start = Math.min(plannedSelectionAnchor.value, index);
+    const end = Math.max(plannedSelectionAnchor.value, index);
+    const range = new Set<number>();
+    for (let cursor = start; cursor <= end; cursor += 1) {
+      range.add(cursor);
+    }
+    selectedPlannedProductIndexes.value = range;
+    return;
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    togglePlannedProductSelection(index, !selectedPlannedProductIndexes.value.has(index));
+    plannedSelectionAnchor.value = index;
+    return;
+  }
+
+  selectedPlannedProductIndexes.value = new Set([index]);
+  plannedSelectionAnchor.value = index;
 }
 
 function confirmReconciliation() {
