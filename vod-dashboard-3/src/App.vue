@@ -103,7 +103,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 0.8rem 1.2rem;
+  padding: 0.2rem 1.2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   background: linear-gradient(90deg, #0b2038 0%, #0f5b77 100%);
 }
@@ -139,6 +139,6 @@ onUnmounted(() => {
 }
 
 .app-shell__content {
-  padding: 1rem;
+  padding: 0.2rem;
 }
 </style>

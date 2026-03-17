@@ -20,7 +20,7 @@ import {RouterLink} from "vue-router";
   display: grid;
   grid-template-columns: 160px 1fr;
   align-items: center;
-  min-height: 52px;
+  min-height: 30px;
 }
 
 .header-menu__brand {

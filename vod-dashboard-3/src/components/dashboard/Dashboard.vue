@@ -83,7 +83,7 @@ onMounted(async () => {
 }
 
 .page-header {
-  margin-bottom: 1rem;
+  margin-bottom: 1.0rem;
 
   h1 {
     margin: 0;

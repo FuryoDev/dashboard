@@ -2,7 +2,7 @@
   <form class="search-form" @submit.prevent="submit">
     <div class="">
       <label class="filter-label">
-        <span class="filter-label">VOD</span>
+        <span class="filter-label">Type</span>
         <select v-model="vodType">
           <option value="">Tous</option>
           <option v-for="item in vodTypes" :key="item.value" :value="item.value">
@@ -11,7 +11,7 @@
         </select>
       </label>
       <label>
-        <span class="filter-label">Jour VOD</span>
+        <span class="filter-label">Jour</span>
         <input v-model="date" type="date"/>
       </label>
     </div>
@@ -34,7 +34,7 @@
       </select>
     </label>
 
-    <fieldset>
+    <fieldset class="status-diff-container">
       <legend class="filter-label">Statut diffusion</legend>
       <label v-for="status in statusOptions" :key="status" class="checkbox-inline">
         <input v-model="selectedStatuses" type="checkbox" :value="status"/> {{ status }}
@@ -124,7 +124,7 @@ function reset() {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 0.9fr) minmax(150px, 0.5fr);
   gap: 0.8rem;
-  padding: 0.85rem;
+  padding: 0.45rem;
   border-radius: 10px;
   border: 1px solid rgba(143, 215, 236, 0.22);
   background: rgba(9, 31, 54, 0.7);
@@ -200,5 +200,10 @@ button {
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: brightness(0) saturate(100%) invert(93%) sepia(20%) saturate(343%) hue-rotate(156deg) brightness(100%) contrast(92%);
   cursor: pointer;
+}
+
+.status-diff-container {
+ display: block;
+  height: 100px;
 }
 </style>
