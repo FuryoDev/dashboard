@@ -25,6 +25,13 @@ type FetchParams = {
     vodType?: string;
 };
 
+function normalizeBroadcastStatus(value: unknown): string {
+    return String(value ?? "")
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, "_");
+}
+
 function toDetailedError(error: unknown, context: string): string {
     const message = error instanceof Error ? error.message : String(error);
     return `Erreur dans ${context}: ${message}`;
@@ -112,13 +119,15 @@ export const useEmissionsStore = defineStore("emissions", {
                 }
 
                 if (params?.statuses?.length) {
+                    const selectedStatuses = params.statuses.map((status) => normalizeBroadcastStatus(status));
                     data = data.filter((item) => {
-                        const cases = [
-                            item.recordStatusTraitementItem?.useCase,
-                            item.recordStatusTranscodageItem?.useCase,
-                            item.recordStatusPublicationItem?.useCase,
-                        ].filter(Boolean) as string[];
-                        return cases.some((status) => params.statuses?.includes(status));
+                        const statuses = [
+                            item.statusEmission,
+                            item.globalPubStatusName,
+                        ]
+                            .map((status) => normalizeBroadcastStatus(status))
+                            .filter(Boolean);
+                        return statuses.some((status) => selectedStatuses.includes(status));
                     });
                 }
 
