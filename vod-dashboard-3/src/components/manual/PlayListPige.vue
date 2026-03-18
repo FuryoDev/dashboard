@@ -197,8 +197,8 @@
               <tr
                   v-for="(item, idx) in plannedProducts"
                   :key="`${String(item.idEpisode ?? idx)}-${idx}`"
-                  :class="{ selected: selectedPlannedProductIndex === idx }"
-                  @click="selectedPlannedProductIndex = idx"
+                  :class="{ selected: selectedPlannedProductIndexes.has(idx) }"
+                  @click="onPlannedProductRowClick(idx, $event)"
               >
                 <td>{{ String(item.channel ?? "") }}</td>
                 <td>{{ String(item.plannedDateTime ?? "") }}</td>
@@ -216,7 +216,7 @@
         </div>
 
         <footer class="reconcile-modal__footer">
-          <button type="button" :disabled="selectedPlannedProductIndex === null" @click="confirmReconciliation">Réconcilier</button>
+          <button type="button" :disabled="selectedPlannedProductIndexes.size === 0" @click="confirmReconciliation">Réconcilier</button>
         </footer>
       </section>
     </div>
@@ -296,7 +296,8 @@ const canRunCutActions = computed(() =>
 const isReconciliationModalOpen = ref(false);
 const isSearchingPlannedProducts = ref(false);
 const plannedProducts = ref<Array<Record<string, any>>>([]);
-const selectedPlannedProductIndex = ref<number | null>(null);
+const selectedPlannedProductIndexes = ref(new Set<number>());
+const selectedPlannedProductAnchor = ref<number | null>(null);
 const reconciliationDate = ref(appStore.sharedDate);
 const reconciliationChannel = ref(playlistStore.searchCriteria.chaine || "LAUNE");
 
@@ -330,7 +331,8 @@ function openReconciliationModal() {
   reconciliationDate.value = appStore.sharedDate;
   reconciliationChannel.value = playlistStore.searchCriteria.chaine || "LAUNE";
   plannedProducts.value = [];
-  selectedPlannedProductIndex.value = null;
+  selectedPlannedProductIndexes.value.clear();
+  selectedPlannedProductAnchor.value = null;
   isReconciliationModalOpen.value = true;
   void searchPlannedProducts();
 }
@@ -358,7 +360,8 @@ function toLavaDate(value: string) {
 
 async function searchPlannedProducts() {
   isSearchingPlannedProducts.value = true;
-  selectedPlannedProductIndex.value = null;
+  selectedPlannedProductIndexes.value.clear();
+  selectedPlannedProductAnchor.value = null;
   try {
     const http = useHttp("vod-manuel.reconcile.search");
     const channel = getReconciliationChannels(reconciliationChannel.value);
@@ -371,9 +374,40 @@ async function searchPlannedProducts() {
   }
 }
 
+function onPlannedProductRowClick(index: number, event: MouseEvent) {
+  if (event.shiftKey && selectedPlannedProductAnchor.value !== null) {
+    const start = Math.min(selectedPlannedProductAnchor.value, index);
+    const end = Math.max(selectedPlannedProductAnchor.value, index);
+    const range = new Set<number>();
+    for (let i = start; i <= end; i += 1) {
+      range.add(i);
+    }
+    selectedPlannedProductIndexes.value = range;
+    return;
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    const next = new Set(selectedPlannedProductIndexes.value);
+    if (next.has(index)) {
+      next.delete(index);
+    } else {
+      next.add(index);
+    }
+    selectedPlannedProductIndexes.value = next;
+    selectedPlannedProductAnchor.value = index;
+    return;
+  }
+
+  selectedPlannedProductIndexes.value = new Set([index]);
+  selectedPlannedProductAnchor.value = index;
+}
+
 function confirmReconciliation() {
-  if (selectedPlannedProductIndex.value === null || !selectedAssignedItem.value) return;
-  const chosen = plannedProducts.value[selectedPlannedProductIndex.value];
+  if (selectedPlannedProductIndexes.value.size === 0 || !selectedAssignedItem.value) return;
+  const chosen = Array.from(selectedPlannedProductIndexes.value)
+      .sort((left, right) => left - right)
+      .map((index) => plannedProducts.value[index])
+      .filter((entry): entry is Record<string, any> => Boolean(entry));
   const current = [...assignedEnhanced.value];
 
   for (const item of current) {
@@ -384,7 +418,7 @@ function confirmReconciliation() {
         : selectedTitle === item.title;
 
     if (matchesTitle) {
-      (item as Record<string, unknown>).lavadata = [chosen];
+      (item as Record<string, unknown>).lavadata = chosen;
       item.reconcile = "success";
       (item as Record<string, unknown>).reconcileMessage = "";
     }
