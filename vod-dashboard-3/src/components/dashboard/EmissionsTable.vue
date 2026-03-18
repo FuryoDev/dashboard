@@ -1393,6 +1393,9 @@ tbody tr.selected {
 :deep(.status-pill--warning) {
   background: #d08a22;
 }
+:deep(.status-pill--in-progress) {
+  background: #e0b420;
+}
 :deep(.status-pill--danger) {
   background: #c24242;
 }

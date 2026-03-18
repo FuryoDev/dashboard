@@ -746,6 +746,7 @@ table {
 
 :deep(.status-pill--success) { background: #1c8f5a; }
 :deep(.status-pill--warning) { background: #d08a22; }
+:deep(.status-pill--in-progress) { background: #e0b420; }
 :deep(.status-pill--danger) { background: #c24242; }
 :deep(.status-pill--neutral) { background: #6b7280; }
 
