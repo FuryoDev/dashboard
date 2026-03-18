@@ -36,8 +36,8 @@
 
     <fieldset class="status-diff-container">
       <legend class="filter-label">Statut diffusion</legend>
-      <label v-for="status in statusOptions" :key="status" class="checkbox-inline">
-        <input v-model="selectedStatuses" type="checkbox" :value="status"/> {{ status }}
+      <label v-for="status in statusOptions" :key="status.value" class="checkbox-inline">
+        <input v-model="selectedStatuses" type="checkbox" :value="status.value"/> {{ status.label }}
       </label>
     </fieldset>
 
@@ -79,7 +79,14 @@ const selectedChannels = ref<string[]>([]);
 const selectedPlatforms = ref<string[]>([]);
 const selectedStatuses = ref<string[]>([]);
 const vodType = ref("");
-const statusOptions = ["PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "PUBLIE", "ECHEC"];
+const statusOptions = [
+  {value: "PREVU", label: "PREVU"},
+  {value: "attente", label: "EN_ATTENTE"},
+  {value: "EN_COURS", label: "EN_COURS"},
+  {value: "TERMINE", label: "TERMINE"},
+  {value: "Publié", label: "PUBLIE"},
+  {value: "ECHEC", label: "ECHEC"},
+];
 
 
 watch(
