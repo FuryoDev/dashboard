@@ -32,7 +32,10 @@ export function createEmissionsApi(http: AxiosInstance) {
         async updateRecordStatus(vodType: string, idRecord: string | number, payload: unknown, clean = false) {
             const suffix = clean ? "?clean=true" : "";
             const response = await http.post(`lava/recordstatus/update/${vodType}/${idRecord}${suffix}`, payload);
-            return response.status;
+            return {
+                status: response.status,
+                data: response.data,
+            };
         },
     };
 }
