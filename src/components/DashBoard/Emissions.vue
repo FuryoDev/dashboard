@@ -1570,9 +1570,7 @@ export default {
           )
           .then(
             (result) => {
-              if (result?.data?.useCase !== undefined) {
-                emission.recordStatusTraitementItem.useCase = result.data.useCase;
-              }
+              this.updateEmissionRecordStatusFromResponse(emission, result?.data);
               this.updateStatusChangeFronted(
                 result.status,
                 this.$store.getters.emissionsToChangeStatus[index].id_record
@@ -1617,9 +1615,7 @@ export default {
           .then(
             (result) => {
               console.log("sucess = " + result.data);
-              if (result?.data?.useCase !== undefined) {
-                emission.recordStatusTraitementItem.useCase = result.data.useCase;
-              }
+              this.updateEmissionRecordStatusFromResponse(emission, result?.data);
               this.updateStatusDelayFronted(
                 result.status,
                 this.$store.getters.emissionsToChangeDelay[index].id_record
@@ -1663,6 +1659,15 @@ export default {
           break;
         }
       }
+    },
+    updateEmissionRecordStatusFromResponse(emission, recordStatusResponse) {
+      if (!emission || !recordStatusResponse || typeof recordStatusResponse !== "object") {
+        return;
+      }
+      emission.recordStatusTraitementItem = {
+        ...(emission.recordStatusTraitementItem || {}),
+        ...recordStatusResponse,
+      };
     },
     updateStatusDelayFronted(answerChange, id_record) {
       let answerTag = "";
