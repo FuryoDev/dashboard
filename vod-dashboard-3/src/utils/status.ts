@@ -1,37 +1,49 @@
 const STATUS_LABELS: Record<string, string> = {
-    NEW: "Nouveau",
-    READY: "Prêt",
-    ERROR: "Erreur",
-    WARNING: "Avertissement",
     PARTIALLY_PUBLISHED: "Partiellement publié",
     PUBLISHED: "Publié",
 };
 
 const SUCCESS_KEYWORDS = [
-    "OK",
+    "ACCOMPLI",
     "TERMINE",
     "TERMINÉ",
-    "ACCOMPLI",
     "PUBLIE",
     "PUBLIÉ",
-    "SUCCESS",
-    "READY",
-    "DONE",
+    "PUBLI",
+    "REVOKE",
     "EXPORT_TERMINE",
     "FASTCATCH_TERMINEE",
     "TRANSCODAGE_TERMINE",
+    "OK",
 ];
 
-const WARNING_KEYWORDS = ["ATTENTE", "EN_COURS", "PREVU", "ANNULE", "ANNULÉ", "WARNING", "PENDING", "DEMANDE", "DEMANDÉ"];
+const IN_PROGRESS_KEYWORDS = ["EN_COURS", "EN COURS"];
 
-const ERROR_KEYWORDS = ["ECHEC", "ÉCHEC", "ERREUR", "ERROR", "FAIL", "BLOQUE", "BLOQUÉ", "KO"];
+const WARNING_KEYWORDS = [
+    "ATTENTE",
+    "PREVU",
+    "PRÉVU",
+    "ANNULE",
+    "ANNULÉ",
+    "DEMANDE",
+    "DEMANDÉ",
+    "FORCE_LINEAIRE",
+    "FORCE_LINEAIRE_PREVU",
+    "USER_FORCE_LINEAIRE",
+    "TRAITEMENT_MANUEL",
+    "EMPÊCHÉE",
+    "EMPECHEE",
+    "XML INVALIDE",
+];
+
+const ERROR_KEYWORDS = ["ECHEC", "ÉCHEC", "ERREUR", "FAIL", "BLOQUE", "BLOQUÉ", "KO"];
 
 export function getStatusLabel(status?: string): string {
     if (!status) return "";
     return STATUS_LABELS[status] ?? status;
 }
 
-export type StatusTone = "success" | "warning" | "danger" | "neutral";
+export type StatusTone = "success" | "warning" | "in-progress" | "danger" | "neutral";
 
 export function getStatusTone(value?: string): StatusTone {
     if (!value) return "neutral";
@@ -39,6 +51,7 @@ export function getStatusTone(value?: string): StatusTone {
 
     if (SUCCESS_KEYWORDS.some((keyword) => normalized.includes(keyword))) return "success";
     if (ERROR_KEYWORDS.some((keyword) => normalized.includes(keyword))) return "danger";
+    if (IN_PROGRESS_KEYWORDS.some((keyword) => normalized.includes(keyword))) return "in-progress";
     if (WARNING_KEYWORDS.some((keyword) => normalized.includes(keyword))) return "warning";
     return "neutral";
 }
