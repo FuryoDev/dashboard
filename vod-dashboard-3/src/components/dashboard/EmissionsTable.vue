@@ -936,21 +936,45 @@ async function runAction() {
         }
 
         try {
+          console.log("[EmissionsTable] updateRecordStatus:request", {
+            idRecord,
+            vodType,
+            actionType: actionModal.actionType,
+            payload: recordStatus,
+          });
           const response = await emissionsApi.updateRecordStatus(
             vodType,
             idRecord,
             recordStatus,
             actionModal.actionType === "status"
           );
+          const httpStatus = Number(
+            (response as { status?: number | string })?.status
+          );
+          const isSuccess = httpStatus === 200;
+          console.log("[EmissionsTable] updateRecordStatus:response", {
+            idRecord,
+            vodType,
+            httpStatus,
+            rawResponse: response,
+            responseData: response?.data,
+            isSuccess,
+          });
           pushRecordStatusResponseToEmission(item, response.data);
           setStatus(
             idRecord,
-            response.status === 200,
-            response.status === 200
+            isSuccess,
+            isSuccess
               ? "Mise à jour effectuée"
               : "Erreur backend"
           );
-        } catch {
+        } catch (error) {
+          console.log("[EmissionsTable] updateRecordStatus:error", {
+            idRecord,
+            vodType,
+            actionType: actionModal.actionType,
+            error,
+          });
           setStatus(idRecord, false, "Erreur backend");
         }
       })
@@ -996,6 +1020,12 @@ function pushRecordStatusResponseToEmission(
       ...(candidate.recordStatusTraitementItem ?? {}),
       ...responseRecordStatus,
     };
+  });
+
+  console.log("[EmissionsTable] recordStatus merged", {
+    sourceId,
+    mergedRecordStatus: responseRecordStatus,
+    updatedCandidates: candidateItems.length,
   });
 }
 
