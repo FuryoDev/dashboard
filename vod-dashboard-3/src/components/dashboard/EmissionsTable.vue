@@ -936,23 +936,97 @@ async function runAction() {
         }
 
         try {
-          const statusCode = await emissionsApi.updateRecordStatus(
+          console.log("[EmissionsTable] updateRecordStatus:request", {
+            idRecord,
+            vodType,
+            actionType: actionModal.actionType,
+            payload: recordStatus,
+          });
+          const response = await emissionsApi.updateRecordStatus(
             vodType,
             idRecord,
             recordStatus,
             actionModal.actionType === "status"
           );
+          const httpStatus = Number(
+            (response as { status?: number | string })?.status
+          );
+          const isSuccess = httpStatus === 200;
+          console.log("[EmissionsTable] updateRecordStatus:response", {
+            idRecord,
+            vodType,
+            httpStatus,
+            rawResponse: response,
+            responseData: response?.data,
+            isSuccess,
+          });
+          pushRecordStatusResponseToEmission(item, response.data);
           setStatus(
             idRecord,
-            statusCode === 200,
-            statusCode === 200 ? "Mise à jour effectuée" : "Erreur backend"
+            isSuccess,
+            isSuccess
+              ? "Mise à jour effectuée"
+              : "Erreur backend"
           );
-        } catch {
+        } catch (error) {
+          console.log("[EmissionsTable] updateRecordStatus:error", {
+            idRecord,
+            vodType,
+            actionType: actionModal.actionType,
+            error,
+          });
           setStatus(idRecord, false, "Erreur backend");
         }
       })
     );
   }
+}
+
+function extractRecordStatusResponse(rawResponse: unknown) {
+  if (!rawResponse || typeof rawResponse !== "object") return null;
+
+  const asRecord = rawResponse as Record<string, unknown>;
+  const nestedRecordStatus = asRecord.recordStatusTraitementItem;
+  if (nestedRecordStatus && typeof nestedRecordStatus === "object") {
+    return nestedRecordStatus as Record<string, unknown>;
+  }
+
+  return asRecord;
+}
+
+function pushRecordStatusResponseToEmission(
+  sourceEmission: Emission,
+  rawResponse: unknown
+) {
+  const responseRecordStatus = extractRecordStatusResponse(rawResponse);
+  if (!responseRecordStatus) return;
+
+  const sourceId = String(sourceEmission.idRecord ?? "");
+  const candidateItems = [sourceEmission];
+
+  if (sourceId) {
+    candidateItems.push(
+      ...emissionsStore.items.filter(
+        (storeItem) => String(storeItem.idRecord ?? "") === sourceId
+      ),
+      ...emissionsStore.selected.filter(
+        (selectedItem) => String(selectedItem.idRecord ?? "") === sourceId
+      )
+    );
+  }
+
+  candidateItems.forEach((candidate) => {
+    candidate.recordStatusTraitementItem = {
+      ...(candidate.recordStatusTraitementItem ?? {}),
+      ...responseRecordStatus,
+    };
+  });
+
+  console.log("[EmissionsTable] recordStatus merged", {
+    sourceId,
+    mergedRecordStatus: responseRecordStatus,
+    updatedCandidates: candidateItems.length,
+  });
 }
 
 function closeContextMenu() {
