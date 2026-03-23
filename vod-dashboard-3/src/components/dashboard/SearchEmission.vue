@@ -15,6 +15,12 @@
         <input v-model="date" type="date"/>
       </label>
     </div>
+    <fieldset class="status-diff-container">
+      <legend class="filter-label">Statut diffusion</legend>
+      <label v-for="status in statusOptions" :key="status.value" class="checkbox-inline">
+        <input v-model="selectedStatuses" type="checkbox" :value="status.value"/> {{ status.label }}
+      </label>
+    </fieldset>
 
     <div class="search-form__actions search-form__actions--compact">
       <button type="submit">Rechercher</button>
@@ -37,6 +43,7 @@ const emit = defineEmits<{
   search: [
     payload: {
       date: Date;
+      statuses: string[];
       vodType?: string;
     },
   ];
@@ -46,6 +53,15 @@ const emit = defineEmits<{
 
 const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
 const vodType = ref("");
+const selectedStatuses = ref<string[]>([]);
+const statusOptions = [
+  {value: "PREVU", label: "PREVU"},
+  {value: "attente", label: "EN_ATTENTE"},
+  {value: "EN_COURS", label: "EN_COURS"},
+  {value: "TERMINE", label: "TERMINE"},
+  {value: "Publié", label: "PUBLIE"},
+  {value: "ECHEC", label: "ECHEC"},
+];
 
 
 watch(
@@ -68,6 +84,7 @@ function submit() {
   emit("date-change", date.value);
   emit("search", {
     date: new Date(year, month - 1, day),
+    statuses: selectedStatuses.value,
     vodType: vodType.value || undefined,
   });
 }
@@ -75,6 +92,7 @@ function submit() {
 function reset() {
   date.value = new Date().toISOString().slice(0, 10);
   vodType.value = "";
+  selectedStatuses.value = [];
   submit();
 }
 </script>
@@ -82,7 +100,7 @@ function reset() {
 <style scoped lang="scss">
 .search-form {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.45fr);
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1fr) minmax(150px, 0.45fr);
   gap: 0.8rem;
   padding: 0.45rem;
   border-radius: 10px;
@@ -160,6 +178,13 @@ button {
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: brightness(0) saturate(100%) invert(93%) sepia(20%) saturate(343%) hue-rotate(156deg) brightness(100%) contrast(92%);
   cursor: pointer;
+}
+
+.status-diff-container {
+  display: block;
+  border: 0;
+  margin: 0;
+  min-height: 60px;
 }
 
 </style>

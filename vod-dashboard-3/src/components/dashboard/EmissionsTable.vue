@@ -46,8 +46,11 @@
                   >
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path
-                        d="M3 5h18l-7 8v5l-4 2v-7L3 5z"
-                        fill="currentColor"
+                        d="M4 5h16l-6.8 8.2V19l-2.4-1.2v-4.6L4 5z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linejoin="round"
                       />
                     </svg>
                   </button>
@@ -554,12 +557,11 @@ const actionModalSortState = ref<{
   key: ActionModalColumnKey;
   direction: SortDirection;
 } | null>(null);
-const openedFilterMenu = ref<"channel" | "plateforme" | "traitement" | null>(
+const openedFilterMenu = ref<"channel" | "plateforme" | null>(
   null
 );
 const selectedChannelFilters = ref<string[]>([]);
 const selectedPlatformFilters = ref<string[]>([]);
-const selectedStatusFilters = ref<string[]>([]);
 
 const actionModalColumns = computed<
   Array<{ key: ActionModalColumnKey; label: string }>
@@ -662,31 +664,10 @@ const availablePlatforms = computed(() =>
   )
 );
 
-const availableStatuses = computed(() =>
-  uniqueValues(
-    props.emissions.flatMap((item) =>
-      [
-        item.recordStatusTraitementItem?.useCase,
-        item.recordStatusTranscodageItem?.useCase,
-        item.recordStatusPublicationItem?.useCase,
-      ]
-        .map((status) => String(status ?? "").trim())
-        .filter(Boolean)
-    )
-  )
-);
-
 const filteredEmissions = computed(() => {
   return props.emissions.filter((item) => {
     const channel = String(item.channel ?? "").trim();
     const platform = firstPlatform(item).trim();
-    const statuses = [
-      item.recordStatusTraitementItem?.useCase,
-      item.recordStatusTranscodageItem?.useCase,
-      item.recordStatusPublicationItem?.useCase,
-    ]
-      .map((status) => String(status ?? "").trim())
-      .filter(Boolean);
 
     const matchChannel =
       selectedChannelFilters.value.length === 0 ||
@@ -694,15 +675,8 @@ const filteredEmissions = computed(() => {
     const matchPlatform =
       selectedPlatformFilters.value.length === 0 ||
       selectedPlatformFilters.value.includes(platform);
-    const matchStatus =
-      selectedStatusFilters.value.length === 0 ||
-      statuses.some((status) =>
-        selectedStatusFilters.value.some((selected) =>
-          status.toLowerCase().includes(selected.toLowerCase())
-        )
-      );
 
-    return matchChannel && matchPlatform && matchStatus;
+    return matchChannel && matchPlatform;
   });
 });
 
@@ -1149,7 +1123,7 @@ function uniqueValues(values: string[]) {
 }
 
 function isFilterableColumn(key: ColumnKey) {
-  return key === "channel" || key === "plateforme" || key === "traitement";
+  return key === "channel" || key === "plateforme";
 }
 
 function isFilterMenuOpen(key: ColumnKey) {
@@ -1164,14 +1138,12 @@ function toggleFilterMenu(key: ColumnKey) {
 function filterOptions(key: ColumnKey) {
   if (key === "channel") return availableChannels.value;
   if (key === "plateforme") return availablePlatforms.value;
-  if (key === "traitement") return availableStatuses.value;
   return [];
 }
 
 function filterSelectionRef(key: ColumnKey) {
   if (key === "channel") return selectedChannelFilters;
-  if (key === "plateforme") return selectedPlatformFilters;
-  return selectedStatusFilters;
+  return selectedPlatformFilters;
 }
 
 function isFilterOptionSelected(key: ColumnKey, option: string) {
@@ -1493,28 +1465,25 @@ table {
 
 .filter-button {
   border: 0;
-  background: rgba(46, 208, 242, 0.08);
-  border: 1px solid rgba(46, 208, 242, 0.25);
-  border-radius: 6px;
-  color: #8fe6fa;
+  background: transparent;
+  color: #68d7f5;
   cursor: pointer;
-  width: 1.35rem;
-  height: 1.25rem;
+  width: 1rem;
+  height: 1rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  padding: 0;
 }
 
 .filter-button svg {
-  width: 0.72rem;
-  height: 0.72rem;
+  width: 0.85rem;
+  height: 0.85rem;
 }
 
 .filter-button.active {
   color: #2ed0f2;
-  background: rgba(46, 208, 242, 0.2);
-  border-color: rgba(46, 208, 242, 0.55);
 }
 
 .header-filter-menu {
@@ -1571,14 +1540,25 @@ table {
 }
 
 .resize-handle {
-  width: 8px;
+  width: 18px;
   cursor: col-resize;
   align-self: stretch;
   position: absolute;
-  right: -4px;
+  right: -9px;
   top: 0;
   bottom: 0;
   z-index: 9;
+}
+
+.resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 tbody tr:hover {
