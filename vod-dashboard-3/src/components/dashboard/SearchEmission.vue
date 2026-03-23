@@ -1,6 +1,6 @@
 <template>
   <form class="search-form" @submit.prevent="submit">
-    <div class="">
+    <div class="search-form__main">
       <label class="filter-label">
         <span class="filter-label">Type</span>
         <select v-model="vodType">
@@ -90,7 +90,6 @@ function submit() {
 }
 
 function reset() {
-  date.value = new Date().toISOString().slice(0, 10);
   vodType.value = "";
   selectedStatuses.value = [];
   submit();
@@ -99,13 +98,21 @@ function reset() {
 
 <style scoped lang="scss">
 .search-form {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1fr) minmax(150px, 0.45fr);
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: nowrap;
   gap: 0.8rem;
   padding: 0.45rem;
   border-radius: 10px;
   border: 1px solid rgba(143, 215, 236, 0.22);
   background: rgba(9, 31, 54, 0.7);
+}
+
+.search-form__main {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  min-width: 340px;
 }
 
 label,
@@ -142,10 +149,10 @@ select[multiple] {
 
 .search-form__actions {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  align-items: stretch;
+  flex-direction: row;
+  align-items: flex-end;
   gap: 0.5rem;
+  margin-left: auto;
 }
 
 button {
@@ -160,7 +167,7 @@ button {
 }
 
 .search-form__actions--compact {
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .secondary {
@@ -181,10 +188,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .status-diff-container {
-  display: block;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
   border: 0;
   margin: 0;
-  min-height: 60px;
+  min-width: 380px;
+}
+
+.status-diff-container .filter-label {
+  margin: 0 0.25rem 0 0;
 }
 
 </style>
