@@ -43,6 +43,7 @@ export const useEmissionsStore = defineStore("emissions", {
         vodTypes: [] as OptionItem[],
         loading: false,
         error: null as string | null,
+        fetchAllRequestId: 0,
     }),
 
     getters: {
@@ -91,6 +92,7 @@ export const useEmissionsStore = defineStore("emissions", {
             }
         },
         async fetchAll(params?: FetchParams) {
+            const requestId = ++this.fetchAllRequestId;
             this.loading = true;
             this.error = null;
             try {
@@ -122,11 +124,17 @@ export const useEmissionsStore = defineStore("emissions", {
                     });
                 }
 
-                this.items = data;
+                if (requestId === this.fetchAllRequestId) {
+                    this.items = data;
+                }
             } catch (e: unknown) {
-                this.error = toDetailedError(e, "Dashboard > Recherche émissions (lava/plannedproductsbydate)");
+                if (requestId === this.fetchAllRequestId) {
+                    this.error = toDetailedError(e, "Dashboard > Recherche émissions (lava/plannedproductsbydate)");
+                }
             } finally {
-                this.loading = false;
+                if (requestId === this.fetchAllRequestId) {
+                    this.loading = false;
+                }
             }
         },
         async bulkUpdateStatus(clean = false) {
