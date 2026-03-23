@@ -1533,11 +1533,11 @@ table {
 }
 
 .resize-handle {
-  width: 24px;
+  width: 18px;
   cursor: col-resize;
   align-self: stretch;
   position: absolute;
-  right: -1px;
+  right: -9px;
   top: 0;
   bottom: 0;
   z-index: 9;
