@@ -34,6 +34,41 @@
                     :class="sortClass(column.key)"
                   ></span>
                 </button>
+                <button
+                  v-if="isFilterableColumn(column.key)"
+                  type="button"
+                  class="filter-button"
+                  :class="{ active: hasActiveFilter(column.key) }"
+                  @click.stop="toggleFilterMenu(column.key)"
+                  aria-label="Filtrer"
+                >
+                  ⏷
+                </button>
+                <div
+                  v-if="isFilterableColumn(column.key) && isFilterMenuOpen(column.key)"
+                  class="header-filter-menu"
+                  @click.stop
+                >
+                  <label
+                    v-for="option in filterOptions(column.key)"
+                    :key="`${column.key}-${option}`"
+                    class="header-filter-option"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="isFilterOptionSelected(column.key, option)"
+                      @change="toggleFilterOption(column.key, option)"
+                    />
+                    {{ option }}
+                  </label>
+                  <button
+                    type="button"
+                    class="header-filter-reset"
+                    @click="clearFilter(column.key)"
+                  >
+                    Réinitialiser
+                  </button>
+                </div>
                 <span
                   class="resize-handle"
                   role="separator"
@@ -510,6 +545,12 @@ const actionModalSortState = ref<{
   key: ActionModalColumnKey;
   direction: SortDirection;
 } | null>(null);
+const openedFilterMenu = ref<"channel" | "plateforme" | "traitement" | null>(
+  null
+);
+const selectedChannelFilters = ref<string[]>([]);
+const selectedPlatformFilters = ref<string[]>([]);
+const selectedStatusFilters = ref<string[]>([]);
 
 const actionModalColumns = computed<
   Array<{ key: ActionModalColumnKey; label: string }>
@@ -585,18 +626,74 @@ const totalPages = computed(() => {
 });
 
 const sortedEmissions = computed(() => {
-  if (!sortState.value) return props.emissions;
+  if (!sortState.value) return filteredEmissions.value;
 
   const { key, direction } = sortState.value;
   const factor = direction === "asc" ? 1 : -1;
 
-  return [...props.emissions].sort((a, b) => {
+  return [...filteredEmissions.value].sort((a, b) => {
     const aValue = sortValue(a, key);
     const bValue = sortValue(b, key);
 
     if (aValue < bValue) return -1 * factor;
     if (aValue > bValue) return 1 * factor;
     return 0;
+  });
+});
+
+const availableChannels = computed(() =>
+  uniqueValues(
+    props.emissions.map((item) => String(item.channel ?? "").trim()).filter(Boolean)
+  )
+);
+
+const availablePlatforms = computed(() =>
+  uniqueValues(
+    props.emissions.map((item) => firstPlatform(item).trim()).filter(Boolean)
+  )
+);
+
+const availableStatuses = computed(() =>
+  uniqueValues(
+    props.emissions.flatMap((item) =>
+      [
+        item.recordStatusTraitementItem?.useCase,
+        item.recordStatusTranscodageItem?.useCase,
+        item.recordStatusPublicationItem?.useCase,
+      ]
+        .map((status) => String(status ?? "").trim())
+        .filter(Boolean)
+    )
+  )
+);
+
+const filteredEmissions = computed(() => {
+  return props.emissions.filter((item) => {
+    const channel = String(item.channel ?? "").trim();
+    const platform = firstPlatform(item).trim();
+    const statuses = [
+      item.recordStatusTraitementItem?.useCase,
+      item.recordStatusTranscodageItem?.useCase,
+      item.recordStatusPublicationItem?.useCase,
+    ]
+      .map((status) => String(status ?? "").trim())
+      .filter(Boolean);
+
+    const matchChannel =
+      selectedChannelFilters.value.length === 0 ||
+      selectedChannelFilters.value.includes(channel);
+    const matchPlatform =
+      selectedPlatformFilters.value.length === 0 ||
+      selectedPlatformFilters.value.includes(platform);
+    const matchStatus =
+      selectedStatusFilters.value.length === 0 ||
+      statuses.some((status) =>
+        selectedStatusFilters.value.some((selected) =>
+          status.toLowerCase().includes(selected.toLowerCase())
+        )
+      );
+
+    return matchChannel && matchPlatform && matchStatus;
   });
 });
 
@@ -1035,6 +1132,58 @@ function closeContextMenu() {
 
 function handleGlobalPointer() {
   closeContextMenu();
+  openedFilterMenu.value = null;
+}
+
+function uniqueValues(values: string[]) {
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b, "fr"));
+}
+
+function isFilterableColumn(key: ColumnKey) {
+  return key === "channel" || key === "plateforme" || key === "traitement";
+}
+
+function isFilterMenuOpen(key: ColumnKey) {
+  return openedFilterMenu.value === key;
+}
+
+function toggleFilterMenu(key: ColumnKey) {
+  if (!isFilterableColumn(key)) return;
+  openedFilterMenu.value = openedFilterMenu.value === key ? null : key;
+}
+
+function filterOptions(key: ColumnKey) {
+  if (key === "channel") return availableChannels.value;
+  if (key === "plateforme") return availablePlatforms.value;
+  if (key === "traitement") return availableStatuses.value;
+  return [];
+}
+
+function filterSelectionRef(key: ColumnKey) {
+  if (key === "channel") return selectedChannelFilters;
+  if (key === "plateforme") return selectedPlatformFilters;
+  return selectedStatusFilters;
+}
+
+function isFilterOptionSelected(key: ColumnKey, option: string) {
+  return filterSelectionRef(key).value.includes(option);
+}
+
+function toggleFilterOption(key: ColumnKey, option: string) {
+  const target = filterSelectionRef(key);
+  if (target.value.includes(option)) {
+    target.value = target.value.filter((item) => item !== option);
+  } else {
+    target.value = [...target.value, option];
+  }
+}
+
+function clearFilter(key: ColumnKey) {
+  filterSelectionRef(key).value = [];
+}
+
+function hasActiveFilter(key: ColumnKey) {
+  return filterSelectionRef(key).value.length > 0;
 }
 
 function toggleSort(key: ColumnKey) {
@@ -1304,6 +1453,7 @@ table {
   align-items: center;
   justify-content: space-between;
   gap: 0.35rem;
+  position: relative;
 }
 
 .sort-button {
@@ -1319,6 +1469,55 @@ table {
   width: 100%;
   gap: 0.35rem;
   text-align: left;
+}
+
+.filter-button {
+  border: 0;
+  background: transparent;
+  color: #8fe6fa;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+
+.filter-button.active {
+  color: #2ed0f2;
+}
+
+.header-filter-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 0.5rem;
+  border: 1px solid rgba(143, 215, 236, 0.35);
+  border-radius: 8px;
+  background: #0f2b45;
+  z-index: 8;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.header-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  margin-bottom: 0.3rem;
+  color: #d4edf6;
+}
+
+.header-filter-reset {
+  border: 1px solid rgba(46, 208, 242, 0.35);
+  border-radius: 6px;
+  background: rgba(46, 208, 242, 0.14);
+  color: #8fe6fa;
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  cursor: pointer;
+  font-size: 0.75rem;
 }
 
 .sort-indicator {
