@@ -1,6 +1,6 @@
 <template>
   <form class="search-form" @submit.prevent="submit">
-    <div class="">
+    <div class="search-form__main">
       <label class="filter-label">
         <span class="filter-label">Type</span>
         <select v-model="vodType">
@@ -15,25 +15,6 @@
         <input v-model="date" type="date"/>
       </label>
     </div>
-
-    <label>
-      <span class="filter-label">Chaine de diffusion</span>
-      <select v-model="selectedChannels" multiple>
-        <option v-for="channel in channels" :key="channel.value" :value="channel.text">
-          {{ channel.text }}
-        </option>
-      </select>
-    </label>
-
-    <label>
-      <span class="filter-label">Plateforme</span>
-      <select v-model="selectedPlatforms" multiple>
-        <option v-for="platform in platforms" :key="platform.value" :value="platform.text">
-          {{ platform.text }}
-        </option>
-      </select>
-    </label>
-
     <fieldset class="status-diff-container">
       <legend class="filter-label">Statut diffusion</legend>
       <label v-for="status in statusOptions" :key="status.value" class="checkbox-inline">
@@ -54,8 +35,6 @@ import {ref, watch} from "vue";
 import type {OptionItem} from "@/services/notification.api";
 
 const props = defineProps<{
-  channels: OptionItem[];
-  platforms: OptionItem[];
   vodTypes: OptionItem[];
   initialDate?: string;
 }>();
@@ -64,8 +43,6 @@ const emit = defineEmits<{
   search: [
     payload: {
       date: Date;
-      channels: string[];
-      platforms: string[];
       statuses: string[];
       vodType?: string;
     },
@@ -75,10 +52,8 @@ const emit = defineEmits<{
 }>();
 
 const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
-const selectedChannels = ref<string[]>([]);
-const selectedPlatforms = ref<string[]>([]);
-const selectedStatuses = ref<string[]>([]);
 const vodType = ref("");
+const selectedStatuses = ref<string[]>([]);
 const statusOptions = [
   {value: "PREVU", label: "PREVU"},
   {value: "attente", label: "EN_ATTENTE"},
@@ -109,32 +84,35 @@ function submit() {
   emit("date-change", date.value);
   emit("search", {
     date: new Date(year, month - 1, day),
-    channels: selectedChannels.value,
-    platforms: selectedPlatforms.value,
     statuses: selectedStatuses.value,
     vodType: vodType.value || undefined,
   });
 }
 
 function reset() {
-  date.value = new Date().toISOString().slice(0, 10);
-  selectedChannels.value = [];
-  selectedPlatforms.value = [];
-  selectedStatuses.value = [];
   vodType.value = "";
+  selectedStatuses.value = [];
   submit();
 }
 </script>
 
 <style scoped lang="scss">
 .search-form {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 0.9fr) minmax(150px, 0.5fr);
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: nowrap;
   gap: 0.8rem;
   padding: 0.45rem;
   border-radius: 10px;
   border: 1px solid rgba(143, 215, 236, 0.22);
   background: rgba(9, 31, 54, 0.7);
+}
+
+.search-form__main {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  min-width: 340px;
 }
 
 label,
@@ -171,10 +149,10 @@ select[multiple] {
 
 .search-form__actions {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  align-items: stretch;
+  flex-direction: row;
+  align-items: flex-end;
   gap: 0.5rem;
+  margin-left: auto;
 }
 
 button {
@@ -189,7 +167,7 @@ button {
 }
 
 .search-form__actions--compact {
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .secondary {
@@ -210,7 +188,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .status-diff-container {
- display: block;
-  height: 100px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  border: 0;
+  margin: 0;
+  min-width: 380px;
 }
+
+.status-diff-container .filter-label {
+  margin: 0 0.25rem 0 0;
+}
+
 </style>

@@ -4,8 +4,6 @@
     </header>
 
     <SearchEmission
-        :channels="emissionsStore.channels"
-        :platforms="emissionsStore.platforms"
         :vod-types="emissionsStore.vodTypes"
         :initial-date="appStore.sharedDate"
         @search="onSearch"
@@ -49,8 +47,6 @@ function toLocalIsoDate(date: Date): string {
 
 async function onSearch(payload: {
   date: Date;
-  channels: string[];
-  platforms: string[];
   statuses: string[];
   vodType?: string;
 }) {
@@ -67,7 +63,7 @@ async function onBulkClean() {
 onMounted(async () => {
   await emissionsStore.fetchFilterOptions();
   const [year, month, day] = appStore.sharedDate.split("-").map(Number);
-  await emissionsStore.fetchAll({date: new Date(year, month - 1, day), channels: [], platforms: [], statuses: []});
+  await emissionsStore.fetchAll({date: new Date(year, month - 1, day)});
 });
 </script>
 
