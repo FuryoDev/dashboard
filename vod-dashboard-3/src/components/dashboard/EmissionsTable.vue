@@ -23,52 +23,61 @@
               :style="{ width: `${columnWidths[column.key]}px` }"
             >
               <div class="th-content">
-                <button
-                  type="button"
-                  class="sort-button"
-                  @click="toggleSort(column.key)"
-                >
-                  {{ column.label }}
-                  <span
-                    class="sort-indicator"
-                    :class="sortClass(column.key)"
-                  ></span>
-                </button>
-                <button
-                  v-if="isFilterableColumn(column.key)"
-                  type="button"
-                  class="filter-button"
-                  :class="{ active: hasActiveFilter(column.key) }"
-                  @click.stop="toggleFilterMenu(column.key)"
-                  aria-label="Filtrer"
-                >
-                  ⏷
-                </button>
-                <div
-                  v-if="isFilterableColumn(column.key) && isFilterMenuOpen(column.key)"
-                  class="header-filter-menu"
-                  @click.stop
-                >
-                  <label
-                    v-for="option in filterOptions(column.key)"
-                    :key="`${column.key}-${option}`"
-                    class="header-filter-option"
-                  >
-                    <input
-                      type="checkbox"
-                      :checked="isFilterOptionSelected(column.key, option)"
-                      @change="toggleFilterOption(column.key, option)"
-                    />
-                    {{ option }}
-                  </label>
+                <div class="th-main-controls">
                   <button
                     type="button"
-                    class="header-filter-reset"
-                    @click="clearFilter(column.key)"
+                    class="sort-button"
+                    @click="toggleSort(column.key)"
                   >
-                    Réinitialiser
+                    {{ column.label }}
+                    <span
+                      class="sort-indicator"
+                      :class="sortClass(column.key)"
+                    ></span>
                   </button>
+                  <button
+                    v-if="isFilterableColumn(column.key)"
+                    type="button"
+                    class="filter-button"
+                    :class="{ active: hasActiveFilter(column.key) }"
+                    @click.stop="toggleFilterMenu(column.key)"
+                    aria-label="Filtrer la colonne"
+                    title="Filtrer"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M3 5h18l-7 8v5l-4 2v-7L3 5z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </button>
+                  <div
+                    v-if="isFilterableColumn(column.key) && isFilterMenuOpen(column.key)"
+                    class="header-filter-menu"
+                    @click.stop
+                  >
+                    <label
+                      v-for="option in filterOptions(column.key)"
+                      :key="`${column.key}-${option}`"
+                      class="header-filter-option"
+                    >
+                      <input
+                        type="checkbox"
+                        :checked="isFilterOptionSelected(column.key, option)"
+                        @change="toggleFilterOption(column.key, option)"
+                      />
+                      {{ option }}
+                    </label>
+                    <button
+                      type="button"
+                      class="header-filter-reset"
+                      @click="clearFilter(column.key)"
+                    >
+                      Réinitialiser
+                    </button>
+                  </div>
                 </div>
+                
                 <span
                   class="resize-handle"
                   role="separator"
@@ -1451,9 +1460,16 @@ table {
 .th-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.35rem;
   position: relative;
+  min-height: 1.6rem;
+}
+
+.th-main-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: calc(100% - 10px);
+  min-width: 0;
 }
 
 .sort-button {
@@ -1473,16 +1489,28 @@ table {
 
 .filter-button {
   border: 0;
-  background: transparent;
+  background: rgba(46, 208, 242, 0.08);
+  border: 1px solid rgba(46, 208, 242, 0.25);
+  border-radius: 6px;
   color: #8fe6fa;
   cursor: pointer;
-  font-size: 0.85rem;
-  line-height: 1;
-  padding: 0 0.2rem;
+  width: 1.35rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.filter-button svg {
+  width: 0.72rem;
+  height: 0.72rem;
 }
 
 .filter-button.active {
   color: #2ed0f2;
+  background: rgba(46, 208, 242, 0.2);
+  border-color: rgba(46, 208, 242, 0.55);
 }
 
 .header-filter-menu {
@@ -1539,13 +1567,14 @@ table {
 }
 
 .resize-handle {
-  width: 24px;
+  width: 8px;
   cursor: col-resize;
   align-self: stretch;
   position: absolute;
-  right: -1px;
+  right: -4px;
   top: 0;
   bottom: 0;
+  z-index: 9;
 }
 
 tbody tr:hover {
