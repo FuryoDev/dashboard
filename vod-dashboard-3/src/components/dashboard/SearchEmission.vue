@@ -1,15 +1,42 @@
 <template>
   <form class="search-form" @submit.prevent="submit">
     <div class="search-form__main">
-      <label class="filter-label">
+      <label v-if="canSelectVodType" class="filter-label">
         <span class="filter-label">Type</span>
-        <select v-if="canSelectVodType" v-model="vodType">
-          <option value="">Tous</option>
-          <option v-for="item in vodTypes" :key="item.value" :value="item.value">
-            {{ item.value }}
-          </option>
-        </select>
-        <span v-else class="readonly-vod-type">{{ effectiveVodType }}</span>
+        <div class="vod-type-filter" @click.stop>
+          <button
+              type="button"
+              class="vod-type-filter__trigger"
+              @click="toggleVodTypeMenu"
+          >
+            {{ vodTypeFilterLabel }}
+          </button>
+          <div v-if="vodTypeMenuOpen" class="vod-type-filter__menu">
+            <label
+                v-for="item in vodTypes"
+                :key="`vod-type-${item.value}`"
+                class="vod-type-filter__option"
+            >
+              <input
+                  type="checkbox"
+                  :checked="selectedVodTypes.includes(item.value)"
+                  @change="toggleVodType(item.value)"
+              />
+              {{ item.text || item.value }}
+            </label>
+            <button
+                type="button"
+                class="vod-type-filter__reset"
+                @click="clearVodTypeFilter"
+            >
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+      </label>
+      <label v-else class="filter-label">
+        <span class="filter-label">Type forcé</span>
+        <span class="readonly-vod-type">{{ effectiveVodType || "—" }}</span>
       </label>
       <label>
         <span class="filter-label">Jour</span>
@@ -35,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import type {OptionItem} from "@/services/notification.api";
 import {useUserStore} from "@/stores/user.store";
 
@@ -49,7 +76,7 @@ const emit = defineEmits<{
     payload: {
       date: Date;
       statuses: string[];
-      vodType?: string;
+      vodTypes?: string[];
     },
   ];
   "bulk-clean": [];
@@ -57,8 +84,9 @@ const emit = defineEmits<{
 }>();
 
 const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
-const vodType = ref("");
+const selectedVodTypes = ref<string[]>([]);
 const selectedStatuses = ref<string[]>([]);
+const vodTypeMenuOpen = ref(false);
 const userStore = useUserStore();
 
 const canSelectVodType = computed(() => userStore.canSelectVodType);
@@ -99,7 +127,13 @@ const forcedVodType = computed(() => {
   if (canSelectVodType.value) return "";
   return resolveForcedVodType(props.vodTypes);
 });
-const effectiveVodType = computed(() => forcedVodType.value || vodType.value);
+const effectiveVodType = computed(() => forcedVodType.value);
+const vodTypeFilterLabel = computed(() => {
+  const count = selectedVodTypes.value.length;
+  if (count === 0) return "Tous";
+  if (count === 1) return selectedVodTypes.value[0];
+  return `${count} types sélectionnés`;
+});
 const statusOptions = [
   {value: "PREVU", label: "PREVU"},
   {value: "attente", label: "EN_ATTENTE"},
@@ -129,23 +163,66 @@ watch(
 watch(
     forcedVodType,
     (value) => {
-      vodType.value = value;
+      if (!canSelectVodType.value) {
+        selectedVodTypes.value = value ? [value] : [];
+      }
     },
     {immediate: true},
 );
 
+function handleGlobalPointer() {
+  vodTypeMenuOpen.value = false;
+}
+
+onMounted(() => {
+  window.addEventListener("click", handleGlobalPointer);
+  window.addEventListener("scroll", handleGlobalPointer);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("click", handleGlobalPointer);
+  window.removeEventListener("scroll", handleGlobalPointer);
+});
+
+function toggleVodTypeMenu() {
+  vodTypeMenuOpen.value = !vodTypeMenuOpen.value;
+}
+
+function toggleVodType(value: string) {
+  if (selectedVodTypes.value.includes(value)) {
+    selectedVodTypes.value = selectedVodTypes.value.filter((item) => item !== value);
+  } else {
+    selectedVodTypes.value = [...selectedVodTypes.value, value];
+  }
+}
+
+function clearVodTypeFilter() {
+  selectedVodTypes.value = [];
+}
+
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
+  const vodTypes = canSelectVodType.value
+      ? selectedVodTypes.value
+      : effectiveVodType.value
+          ? [effectiveVodType.value]
+          : [];
+
   emit("date-change", date.value);
   emit("search", {
     date: new Date(year, month - 1, day),
     statuses: selectedStatuses.value,
-    vodType: effectiveVodType.value || undefined,
+    vodTypes: vodTypes.length ? vodTypes : undefined,
   });
+  vodTypeMenuOpen.value = false;
 }
 
 function reset() {
-  vodType.value = forcedVodType.value || "";
+  selectedVodTypes.value = canSelectVodType.value
+      ? []
+      : forcedVodType.value
+          ? [forcedVodType.value]
+          : [];
   selectedStatuses.value = [];
   submit();
 }
@@ -251,6 +328,44 @@ button {
   min-height: 2.2rem;
   display: inline-flex;
   align-items: center;
+}
+
+.vod-type-filter {
+  position: relative;
+}
+
+.vod-type-filter__trigger {
+  margin: 0;
+  min-width: 170px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.vod-type-filter__menu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  z-index: 10;
+  min-width: 220px;
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid rgba(143, 215, 236, 0.35);
+  border-radius: 8px;
+  background: #0f2b45;
+  padding: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.vod-type-filter__option {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.vod-type-filter__reset {
+  margin: 0.25rem 0 0;
 }
 
 
