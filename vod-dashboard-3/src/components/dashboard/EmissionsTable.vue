@@ -1443,9 +1443,12 @@ table {
     padding: 0.2rem;
     border-bottom: 1px solid rgba(143, 215, 236, 0.15);
     text-align: left;
-    overflow: hidden;
     text-overflow: ellipsis;
     color: #d4edf6;
+  }
+
+  td {
+    overflow: hidden;
   }
 
   th {
@@ -1454,6 +1457,7 @@ table {
     position: sticky;
     top: 0;
     z-index: 3;
+    overflow: visible;
   }
 }
 
