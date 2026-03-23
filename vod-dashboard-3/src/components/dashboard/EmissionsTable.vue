@@ -23,17 +23,64 @@
               :style="{ width: `${columnWidths[column.key]}px` }"
             >
               <div class="th-content">
-                <button
-                  type="button"
-                  class="sort-button"
-                  @click="toggleSort(column.key)"
-                >
-                  {{ column.label }}
-                  <span
-                    class="sort-indicator"
-                    :class="sortClass(column.key)"
-                  ></span>
-                </button>
+                <div class="th-main-controls">
+                  <button
+                    type="button"
+                    class="sort-button"
+                    @click="toggleSort(column.key)"
+                  >
+                    {{ column.label }}
+                    <span
+                      class="sort-indicator"
+                      :class="sortClass(column.key)"
+                    ></span>
+                  </button>
+                  <button
+                    v-if="isFilterableColumn(column.key)"
+                    type="button"
+                    class="filter-button"
+                    :class="{ active: hasActiveFilter(column.key) }"
+                    @click.stop="toggleFilterMenu(column.key)"
+                    aria-label="Filtrer la colonne"
+                    title="Filtrer"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M4 5h16l-6.8 8.2V19l-2.4-1.2v-4.6L4 5z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <div
+                    v-if="isFilterableColumn(column.key) && isFilterMenuOpen(column.key)"
+                    class="header-filter-menu"
+                    @click.stop
+                  >
+                    <label
+                      v-for="option in filterOptions(column.key)"
+                      :key="`${column.key}-${option}`"
+                      class="header-filter-option"
+                    >
+                      <input
+                        type="checkbox"
+                        :checked="isFilterOptionSelected(column.key, option)"
+                        @change="toggleFilterOption(column.key, option)"
+                      />
+                      {{ option }}
+                    </label>
+                    <button
+                      type="button"
+                      class="header-filter-reset"
+                      @click="clearFilter(column.key)"
+                    >
+                      Réinitialiser
+                    </button>
+                  </div>
+                </div>
+                
                 <span
                   class="resize-handle"
                   role="separator"
@@ -510,6 +557,11 @@ const actionModalSortState = ref<{
   key: ActionModalColumnKey;
   direction: SortDirection;
 } | null>(null);
+const openedFilterMenu = ref<"channel" | "plateforme" | null>(
+  null
+);
+const selectedChannelFilters = ref<string[]>([]);
+const selectedPlatformFilters = ref<string[]>([]);
 
 const actionModalColumns = computed<
   Array<{ key: ActionModalColumnKey; label: string }>
@@ -585,18 +637,46 @@ const totalPages = computed(() => {
 });
 
 const sortedEmissions = computed(() => {
-  if (!sortState.value) return props.emissions;
+  if (!sortState.value) return filteredEmissions.value;
 
   const { key, direction } = sortState.value;
   const factor = direction === "asc" ? 1 : -1;
 
-  return [...props.emissions].sort((a, b) => {
+  return [...filteredEmissions.value].sort((a, b) => {
     const aValue = sortValue(a, key);
     const bValue = sortValue(b, key);
 
     if (aValue < bValue) return -1 * factor;
     if (aValue > bValue) return 1 * factor;
     return 0;
+  });
+});
+
+const availableChannels = computed(() =>
+  uniqueValues(
+    props.emissions.map((item) => String(item.channel ?? "").trim()).filter(Boolean)
+  )
+);
+
+const availablePlatforms = computed(() =>
+  uniqueValues(
+    props.emissions.map((item) => firstPlatform(item).trim()).filter(Boolean)
+  )
+);
+
+const filteredEmissions = computed(() => {
+  return props.emissions.filter((item) => {
+    const channel = String(item.channel ?? "").trim();
+    const platform = firstPlatform(item).trim();
+
+    const matchChannel =
+      selectedChannelFilters.value.length === 0 ||
+      selectedChannelFilters.value.includes(channel);
+    const matchPlatform =
+      selectedPlatformFilters.value.length === 0 ||
+      selectedPlatformFilters.value.includes(platform);
+
+    return matchChannel && matchPlatform;
   });
 });
 
@@ -1035,6 +1115,56 @@ function closeContextMenu() {
 
 function handleGlobalPointer() {
   closeContextMenu();
+  openedFilterMenu.value = null;
+}
+
+function uniqueValues(values: string[]) {
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b, "fr"));
+}
+
+function isFilterableColumn(key: ColumnKey) {
+  return key === "channel" || key === "plateforme";
+}
+
+function isFilterMenuOpen(key: ColumnKey) {
+  return openedFilterMenu.value === key;
+}
+
+function toggleFilterMenu(key: ColumnKey) {
+  if (!isFilterableColumn(key)) return;
+  openedFilterMenu.value = openedFilterMenu.value === key ? null : key;
+}
+
+function filterOptions(key: ColumnKey) {
+  if (key === "channel") return availableChannels.value;
+  if (key === "plateforme") return availablePlatforms.value;
+  return [];
+}
+
+function filterSelectionRef(key: ColumnKey) {
+  if (key === "channel") return selectedChannelFilters;
+  return selectedPlatformFilters;
+}
+
+function isFilterOptionSelected(key: ColumnKey, option: string) {
+  return filterSelectionRef(key).value.includes(option);
+}
+
+function toggleFilterOption(key: ColumnKey, option: string) {
+  const target = filterSelectionRef(key);
+  if (target.value.includes(option)) {
+    target.value = target.value.filter((item) => item !== option);
+  } else {
+    target.value = [...target.value, option];
+  }
+}
+
+function clearFilter(key: ColumnKey) {
+  filterSelectionRef(key).value = [];
+}
+
+function hasActiveFilter(key: ColumnKey) {
+  return filterSelectionRef(key).value.length > 0;
 }
 
 function toggleSort(key: ColumnKey) {
@@ -1285,9 +1415,12 @@ table {
     padding: 0.2rem;
     border-bottom: 1px solid rgba(143, 215, 236, 0.15);
     text-align: left;
-    overflow: hidden;
     text-overflow: ellipsis;
     color: #d4edf6;
+  }
+
+  td {
+    overflow: hidden;
   }
 
   th {
@@ -1296,14 +1429,23 @@ table {
     position: sticky;
     top: 0;
     z-index: 3;
+    overflow: visible;
   }
 }
 
 .th-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.35rem;
+  position: relative;
+  min-height: 1.6rem;
+}
+
+.th-main-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: calc(100% - 10px);
+  min-width: 0;
 }
 
 .sort-button {
@@ -1319,6 +1461,64 @@ table {
   width: 100%;
   gap: 0.35rem;
   text-align: left;
+}
+
+.filter-button {
+  border: 0;
+  background: transparent;
+  color: #68d7f5;
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.filter-button svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.filter-button.active {
+  color: #2ed0f2;
+}
+
+.header-filter-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 0.5rem;
+  border: 1px solid rgba(143, 215, 236, 0.35);
+  border-radius: 8px;
+  background: #0f2b45;
+  z-index: 8;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.header-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  margin-bottom: 0.3rem;
+  color: #d4edf6;
+}
+
+.header-filter-reset {
+  border: 1px solid rgba(46, 208, 242, 0.35);
+  border-radius: 6px;
+  background: rgba(46, 208, 242, 0.14);
+  color: #8fe6fa;
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  cursor: pointer;
+  font-size: 0.75rem;
 }
 
 .sort-indicator {
@@ -1340,13 +1540,25 @@ table {
 }
 
 .resize-handle {
-  width: 24px;
+  width: 18px;
   cursor: col-resize;
   align-self: stretch;
   position: absolute;
-  right: -1px;
+  right: -9px;
   top: 0;
   bottom: 0;
+  z-index: 9;
+}
+
+.resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 tbody tr:hover {
