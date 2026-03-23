@@ -3,12 +3,13 @@
     <div class="search-form__main">
       <label class="filter-label">
         <span class="filter-label">Type</span>
-        <select v-model="vodType">
+        <select v-if="canSelectVodType" v-model="vodType">
           <option value="">Tous</option>
           <option v-for="item in vodTypes" :key="item.value" :value="item.value">
             {{ item.value }}
           </option>
         </select>
+        <span v-else class="readonly-vod-type">{{ effectiveVodType }}</span>
       </label>
       <label>
         <span class="filter-label">Jour</span>
@@ -34,8 +35,9 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch} from "vue";
+import {computed, ref, watch} from "vue";
 import type {OptionItem} from "@/services/notification.api";
+import {useUserStore} from "@/stores/user.store";
 
 const props = defineProps<{
   vodTypes: OptionItem[];
@@ -57,6 +59,16 @@ const emit = defineEmits<{
 const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
 const vodType = ref("");
 const selectedStatuses = ref<string[]>([]);
+const userStore = useUserStore();
+
+const canSelectVodType = computed(() => userStore.canSelectVodType);
+const forcedVodType = computed(() => {
+  if (canSelectVodType.value) return "";
+  if (userStore.hasFastTvGroup) return "FastTV";
+  if (userStore.hasVodUsersGroup) return "FVOD_Catchup";
+  return "";
+});
+const effectiveVodType = computed(() => forcedVodType.value || vodType.value);
 const statusOptions = [
   {value: "PREVU", label: "PREVU"},
   {value: "attente", label: "EN_ATTENTE"},
@@ -83,18 +95,26 @@ watch(
     },
 );
 
+watch(
+    forcedVodType,
+    (value) => {
+      vodType.value = value;
+    },
+    {immediate: true},
+);
+
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
   emit("date-change", date.value);
   emit("search", {
     date: new Date(year, month - 1, day),
     statuses: selectedStatuses.value,
-    vodType: vodType.value || undefined,
+    vodType: effectiveVodType.value || undefined,
   });
 }
 
 function reset() {
-  vodType.value = "";
+  vodType.value = forcedVodType.value || "";
   selectedStatuses.value = [];
   submit();
 }
@@ -189,6 +209,17 @@ button {
 
 .filter-label-status {
   margin-bottom: 0.8rem;
+}
+
+.readonly-vod-type {
+  border: 1px solid rgba(143, 215, 236, 0.4);
+  background: rgba(15, 43, 69, 0.35);
+  color: #d4edf6;
+  border-radius: 8px;
+  padding: 0.42rem 0.55rem;
+  min-height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
 }
 
 
