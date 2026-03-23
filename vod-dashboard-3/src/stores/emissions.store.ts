@@ -22,6 +22,7 @@ type FetchParams = {
     channels?: string[];
     platforms?: string[];
     statuses?: string[];
+    vodTypes?: string[];
     vodType?: string;
 };
 
@@ -102,7 +103,10 @@ export const useEmissionsStore = defineStore("emissions", {
                 let data = await api.listPlannedProducts(toLavaDate(selectedDate), channels);
                 data = (data ?? []).filter((item) => !String(item.action ?? "").match(/Deleted/i));
 
-                if (params?.vodType) {
+                const selectedVodTypes = params?.vodTypes?.filter(Boolean) ?? [];
+                if (selectedVodTypes.length) {
+                    data = data.filter((item) => selectedVodTypes.includes(String(item.vodType ?? "")));
+                } else if (params?.vodType) {
                     data = data.filter((item) => String(item.vodType ?? "") === params.vodType);
                 }
 

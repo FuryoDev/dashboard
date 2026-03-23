@@ -570,8 +570,9 @@ const actionModalSortState = ref<{
   key: ActionModalColumnKey;
   direction: SortDirection;
 } | null>(null);
-const openedFilterMenu = ref<"channel" | "plateforme" | null>(null);
+const openedFilterMenu = ref<"channel" | "vodType" | "plateforme" | null>(null);
 const selectedChannelFilters = ref<string[]>([]);
+const selectedVodTypeFilters = ref<string[]>([]);
 const selectedPlatformFilters = ref<string[]>([]);
 
 const actionModalColumns = computed<
@@ -660,20 +661,31 @@ const availablePlatforms = computed(() =>
         props.emissions.map((item) => firstPlatform(item).trim()).filter(Boolean)
     )
 );
+const availableVodTypes = computed(() =>
+    uniqueValues(
+        props.emissions
+            .map((item) => String(item.vodType ?? "").trim())
+            .filter(Boolean)
+    )
+);
 
 const filteredEmissions = computed(() => {
   return props.emissions.filter((item) => {
     const channel = String(item.channel ?? "").trim();
+    const vodType = String(item.vodType ?? "").trim();
     const platform = firstPlatform(item).trim();
 
     const matchChannel =
         selectedChannelFilters.value.length === 0 ||
         selectedChannelFilters.value.includes(channel);
+    const matchVodType =
+        selectedVodTypeFilters.value.length === 0 ||
+        selectedVodTypeFilters.value.includes(vodType);
     const matchPlatform =
         selectedPlatformFilters.value.length === 0 ||
         selectedPlatformFilters.value.includes(platform);
 
-    return matchChannel && matchPlatform;
+    return matchChannel && matchVodType && matchPlatform;
   });
 });
 
@@ -1132,7 +1144,7 @@ function uniqueValues(values: string[]) {
 }
 
 function isFilterableColumn(key: ColumnKey) {
-  return key === "channel" || key === "plateforme";
+  return key === "channel" || key === "vodType" || key === "plateforme";
 }
 
 function isFilterMenuOpen(key: ColumnKey) {
@@ -1146,12 +1158,14 @@ function toggleFilterMenu(key: ColumnKey) {
 
 function filterOptions(key: ColumnKey) {
   if (key === "channel") return availableChannels.value;
+  if (key === "vodType") return availableVodTypes.value;
   if (key === "plateforme") return availablePlatforms.value;
   return [];
 }
 
 function filterSelectionRef(key: ColumnKey) {
   if (key === "channel") return selectedChannelFilters;
+  if (key === "vodType") return selectedVodTypeFilters;
   return selectedPlatformFilters;
 }
 
