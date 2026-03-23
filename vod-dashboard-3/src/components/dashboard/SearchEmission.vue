@@ -62,11 +62,42 @@ const selectedStatuses = ref<string[]>([]);
 const userStore = useUserStore();
 
 const canSelectVodType = computed(() => userStore.canSelectVodType);
+
+function normalizeVodType(value: string): string {
+  return value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[\s_-]/g, "")
+      .toUpperCase();
+}
+
+function resolveForcedVodType(vodTypes: OptionItem[]): string {
+  const values = vodTypes
+      .map((item) => String(item.value ?? "").trim())
+      .filter(Boolean);
+
+  const findByMatchers = (matchers: RegExp[]) =>
+      values.find((value) => {
+        const normalized = normalizeVodType(value);
+        return matchers.some((matcher) => matcher.test(normalized));
+      });
+
+  if (userStore.hasFastTvGroup) {
+    const fastType = findByMatchers([/FAST/]);
+    if (fastType) return fastType;
+  }
+
+  if (userStore.hasVodUsersGroup) {
+    const catchupType = findByMatchers([/CATCH/, /CATCHUP/, /FVOD/]);
+    if (catchupType) return catchupType;
+  }
+
+  return "";
+}
+
 const forcedVodType = computed(() => {
   if (canSelectVodType.value) return "";
-  if (userStore.hasFastTvGroup) return "FastTV";
-  if (userStore.hasVodUsersGroup) return "FVOD_Catchup";
-  return "";
+  return resolveForcedVodType(props.vodTypes);
 });
 const effectiveVodType = computed(() => forcedVodType.value || vodType.value);
 const statusOptions = [
