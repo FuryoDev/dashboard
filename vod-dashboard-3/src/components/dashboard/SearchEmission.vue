@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import type {OptionItem} from "@/services/notification.api";
 import {useUserStore} from "@/stores/user.store";
 
@@ -62,6 +62,7 @@ const emit = defineEmits<{
 const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
 const selectedVodType = ref("");
 const selectedStatuses = ref<string[]>([]);
+const vodTypeMenuOpen = ref(false);
 const userStore = useUserStore();
 
 const canSelectVodType = computed(() => userStore.canSelectVodType);
@@ -139,6 +140,36 @@ watch(
     {immediate: true},
 );
 
+function handleGlobalPointer() {
+  vodTypeMenuOpen.value = false;
+}
+
+onMounted(() => {
+  window.addEventListener("click", handleGlobalPointer);
+  window.addEventListener("scroll", handleGlobalPointer);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("click", handleGlobalPointer);
+  window.removeEventListener("scroll", handleGlobalPointer);
+});
+
+function toggleVodTypeMenu() {
+  vodTypeMenuOpen.value = !vodTypeMenuOpen.value;
+}
+
+function toggleVodType(value: string) {
+  if (selectedVodTypes.value.includes(value)) {
+    selectedVodTypes.value = selectedVodTypes.value.filter((item) => item !== value);
+  } else {
+    selectedVodTypes.value = [...selectedVodTypes.value, value];
+  }
+}
+
+function clearVodTypeFilter() {
+  selectedVodTypes.value = [];
+}
+
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
   const vodTypes = effectiveVodType.value ? [effectiveVodType.value] : [];
@@ -149,6 +180,7 @@ function submit() {
     statuses: selectedStatuses.value,
     vodTypes: vodTypes.length ? vodTypes : undefined,
   });
+  vodTypeMenuOpen.value = false;
 }
 
 function reset() {
