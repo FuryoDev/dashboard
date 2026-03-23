@@ -1434,8 +1434,9 @@ table {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.35rem;
+  gap: 0.65rem;
   position: relative;
+  padding-right: 1.8rem;
 }
 
 .sort-button {
@@ -1451,7 +1452,7 @@ table {
   width: 100%;
   gap: 0.35rem;
   text-align: left;
-  padding-right: 0.35rem;
+  padding-right: 0.5rem;
 }
 
 .filter-button {
@@ -1466,64 +1467,7 @@ table {
   justify-content: center;
   flex-shrink: 0;
   padding: 0;
-}
-
-.filter-button svg {
-  width: 0.85rem;
-  height: 0.85rem;
-}
-
-.filter-button.active {
-  color: #2ed0f2;
-}
-
-.header-filter-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  min-width: 190px;
-  max-height: 260px;
-  overflow: auto;
-  padding: 0.5rem;
-  border: 1px solid rgba(143, 215, 236, 0.35);
-  border-radius: 8px;
-  background: #0f2b45;
-  z-index: 8;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-}
-
-.header-filter-option {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-  margin-bottom: 0.3rem;
-  color: #d4edf6;
-}
-
-.header-filter-reset {
-  border: 1px solid rgba(46, 208, 242, 0.35);
-  border-radius: 6px;
-  background: rgba(46, 208, 242, 0.14);
-  color: #8fe6fa;
-  width: 100%;
-  padding: 0.35rem 0.45rem;
-  cursor: pointer;
-  font-size: 0.75rem;
-}
-
-.filter-button {
-  border: 0;
-  background: transparent;
-  color: #68d7f5;
-  cursor: pointer;
-  width: 1rem;
-  height: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 0;
+  margin-right: 0.6rem;
 }
 
 .filter-button svg {
@@ -1605,7 +1549,7 @@ table {
   top: 15%;
   bottom: 15%;
   left: 50%;
-  width: 1px;
+  width: 2px;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.9);
 }

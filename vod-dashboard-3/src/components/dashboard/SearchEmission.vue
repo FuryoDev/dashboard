@@ -99,7 +99,7 @@ function reset() {
 <style scoped lang="scss">
 .search-form {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   flex-wrap: nowrap;
   gap: 0.8rem;
   padding: 0.45rem;
@@ -110,7 +110,7 @@ function reset() {
 
 .search-form__main {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 0.6rem;
   min-width: 340px;
 }
@@ -150,9 +150,10 @@ select[multiple] {
 .search-form__actions {
   display: flex;
   flex-direction: row;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 0.5rem;
   margin-left: auto;
+  padding-top: 1.45rem;
 }
 
 button {
@@ -190,7 +191,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .status-diff-container {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 0.45rem;
   border: 0;
