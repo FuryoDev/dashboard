@@ -1,15 +1,18 @@
 <template>
   <form class="search-form" @submit.prevent="submit">
     <div class="search-form__main">
-      <label class="filter-label">
+      <label v-if="canSelectVodType" class="filter-label">
         <span class="filter-label">Type</span>
-        <select v-if="canSelectVodType" v-model="vodType">
+        <select v-model="selectedVodType">
           <option value="">Tous</option>
           <option v-for="item in vodTypes" :key="item.value" :value="item.value">
-            {{ item.value }}
+            {{ item.text || item.value }}
           </option>
         </select>
-        <span v-else class="readonly-vod-type">{{ effectiveVodType }}</span>
+      </label>
+      <label v-else class="filter-label">
+        <span class="filter-label">Type forcé</span>
+        <span class="readonly-vod-type">{{ effectiveVodType || "—" }}</span>
       </label>
       <label>
         <span class="filter-label">Jour</span>
@@ -49,7 +52,7 @@ const emit = defineEmits<{
     payload: {
       date: Date;
       statuses: string[];
-      vodType?: string;
+      vodTypes?: string[];
     },
   ];
   "bulk-clean": [];
@@ -57,18 +60,49 @@ const emit = defineEmits<{
 }>();
 
 const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
-const vodType = ref("");
+const selectedVodType = ref("");
 const selectedStatuses = ref<string[]>([]);
 const userStore = useUserStore();
 
 const canSelectVodType = computed(() => userStore.canSelectVodType);
+
+function normalizeVodType(value: string): string {
+  return value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[\s_-]/g, "")
+      .toUpperCase();
+}
+
+function resolveForcedVodType(vodTypes: OptionItem[]): string {
+  const values = vodTypes
+      .map((item) => String(item.value ?? "").trim())
+      .filter(Boolean);
+
+  const findByMatchers = (matchers: RegExp[]) =>
+      values.find((value) => {
+        const normalized = normalizeVodType(value);
+        return matchers.some((matcher) => matcher.test(normalized));
+      });
+
+  if (userStore.hasFastTvGroup) {
+    const fastType = findByMatchers([/FAST/]);
+    if (fastType) return fastType;
+  }
+
+  if (userStore.hasVodUsersGroup) {
+    const catchupType = findByMatchers([/CATCH/, /CATCHUP/, /FVOD/]);
+    if (catchupType) return catchupType;
+  }
+
+  return "";
+}
+
 const forcedVodType = computed(() => {
   if (canSelectVodType.value) return "";
-  if (userStore.hasFastTvGroup) return "FastTV";
-  if (userStore.hasVodUsersGroup) return "FVOD_Catchup";
-  return "";
+  return resolveForcedVodType(props.vodTypes);
 });
-const effectiveVodType = computed(() => forcedVodType.value || vodType.value);
+const effectiveVodType = computed(() => forcedVodType.value || selectedVodType.value);
 const statusOptions = [
   {value: "PREVU", label: "PREVU"},
   {value: "attente", label: "EN_ATTENTE"},
@@ -98,23 +132,27 @@ watch(
 watch(
     forcedVodType,
     (value) => {
-      vodType.value = value;
+      if (!canSelectVodType.value) {
+        selectedVodType.value = value;
+      }
     },
     {immediate: true},
 );
 
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
+  const vodTypes = effectiveVodType.value ? [effectiveVodType.value] : [];
+
   emit("date-change", date.value);
   emit("search", {
     date: new Date(year, month - 1, day),
     statuses: selectedStatuses.value,
-    vodType: effectiveVodType.value || undefined,
+    vodTypes: vodTypes.length ? vodTypes : undefined,
   });
 }
 
 function reset() {
-  vodType.value = forcedVodType.value || "";
+  selectedVodType.value = forcedVodType.value || "";
   selectedStatuses.value = [];
   submit();
 }
@@ -221,7 +259,6 @@ button {
   display: inline-flex;
   align-items: center;
 }
-
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: brightness(0) saturate(100%) invert(93%) sepia(20%) saturate(343%) hue-rotate(156deg) brightness(100%) contrast(92%);

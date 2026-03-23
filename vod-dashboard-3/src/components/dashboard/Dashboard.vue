@@ -48,7 +48,7 @@ function toLocalIsoDate(date: Date): string {
 async function onSearch(payload: {
   date: Date;
   statuses: string[];
-  vodType?: string;
+  vodTypes?: string[];
 }) {
   appStore.setSharedDate(toLocalIsoDate(payload.date));
   await emissionsStore.fetchAll(payload);
