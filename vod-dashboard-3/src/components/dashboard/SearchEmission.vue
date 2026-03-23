@@ -3,36 +3,12 @@
     <div class="search-form__main">
       <label v-if="canSelectVodType" class="filter-label">
         <span class="filter-label">Type</span>
-        <div class="vod-type-filter" @click.stop>
-          <button
-              type="button"
-              class="vod-type-filter__trigger"
-              @click="toggleVodTypeMenu"
-          >
-            {{ vodTypeFilterLabel }}
-          </button>
-          <div v-if="vodTypeMenuOpen" class="vod-type-filter__menu">
-            <label
-                v-for="item in vodTypes"
-                :key="`vod-type-${item.value}`"
-                class="vod-type-filter__option"
-            >
-              <input
-                  type="checkbox"
-                  :checked="selectedVodTypes.includes(item.value)"
-                  @change="toggleVodType(item.value)"
-              />
-              {{ item.text || item.value }}
-            </label>
-            <button
-                type="button"
-                class="vod-type-filter__reset"
-                @click="clearVodTypeFilter"
-            >
-              Réinitialiser
-            </button>
-          </div>
-        </div>
+        <select v-model="selectedVodType">
+          <option value="">Tous</option>
+          <option v-for="item in vodTypes" :key="item.value" :value="item.value">
+            {{ item.text || item.value }}
+          </option>
+        </select>
       </label>
       <label v-else class="filter-label">
         <span class="filter-label">Type forcé</span>
@@ -84,7 +60,7 @@ const emit = defineEmits<{
 }>();
 
 const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
-const selectedVodTypes = ref<string[]>([]);
+const selectedVodType = ref("");
 const selectedStatuses = ref<string[]>([]);
 const vodTypeMenuOpen = ref(false);
 const userStore = useUserStore();
@@ -127,13 +103,7 @@ const forcedVodType = computed(() => {
   if (canSelectVodType.value) return "";
   return resolveForcedVodType(props.vodTypes);
 });
-const effectiveVodType = computed(() => forcedVodType.value);
-const vodTypeFilterLabel = computed(() => {
-  const count = selectedVodTypes.value.length;
-  if (count === 0) return "Tous";
-  if (count === 1) return selectedVodTypes.value[0];
-  return `${count} types sélectionnés`;
-});
+const effectiveVodType = computed(() => forcedVodType.value || selectedVodType.value);
 const statusOptions = [
   {value: "PREVU", label: "PREVU"},
   {value: "attente", label: "EN_ATTENTE"},
@@ -164,7 +134,7 @@ watch(
     forcedVodType,
     (value) => {
       if (!canSelectVodType.value) {
-        selectedVodTypes.value = value ? [value] : [];
+        selectedVodType.value = value;
       }
     },
     {immediate: true},
@@ -202,11 +172,7 @@ function clearVodTypeFilter() {
 
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
-  const vodTypes = canSelectVodType.value
-      ? selectedVodTypes.value
-      : effectiveVodType.value
-          ? [effectiveVodType.value]
-          : [];
+  const vodTypes = effectiveVodType.value ? [effectiveVodType.value] : [];
 
   emit("date-change", date.value);
   emit("search", {
@@ -218,11 +184,7 @@ function submit() {
 }
 
 function reset() {
-  selectedVodTypes.value = canSelectVodType.value
-      ? []
-      : forcedVodType.value
-          ? [forcedVodType.value]
-          : [];
+  selectedVodType.value = forcedVodType.value || "";
   selectedStatuses.value = [];
   submit();
 }
@@ -329,45 +291,6 @@ button {
   display: inline-flex;
   align-items: center;
 }
-
-.vod-type-filter {
-  position: relative;
-}
-
-.vod-type-filter__trigger {
-  margin: 0;
-  min-width: 170px;
-  text-align: left;
-  font-weight: 600;
-}
-
-.vod-type-filter__menu {
-  position: absolute;
-  top: calc(100% + 0.25rem);
-  left: 0;
-  z-index: 10;
-  min-width: 220px;
-  max-height: 280px;
-  overflow: auto;
-  border: 1px solid rgba(143, 215, 236, 0.35);
-  border-radius: 8px;
-  background: #0f2b45;
-  padding: 0.55rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.vod-type-filter__option {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.vod-type-filter__reset {
-  margin: 0.25rem 0 0;
-}
-
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: brightness(0) saturate(100%) invert(93%) sepia(20%) saturate(343%) hue-rotate(156deg) brightness(100%) contrast(92%);
