@@ -16,15 +16,18 @@
       </label>
     </div>
     <fieldset class="status-diff-container">
-      <legend class="filter-label">Statut diffusion</legend>
+      <legend class="filter-label-status">Statut diffusion</legend>
       <label v-for="status in statusOptions" :key="status.value" class="checkbox-inline">
         <input v-model="selectedStatuses" type="checkbox" :value="status.value"/> {{ status.label }}
       </label>
     </fieldset>
 
     <div class="search-form__actions search-form__actions--compact">
-      <button type="submit">Rechercher</button>
-      <button type="button" class="secondary" @click="reset">Réinitialiser</button>
+      <div class="search-button-container">
+        <button type="submit">Rechercher</button>
+        <button type="button" class="secondary" @click="reset">Réinitialiser</button>
+      </div>
+
       <!--      <button type="button" class="secondary" @click="$emit('bulk-clean')">Nettoyer statuts sélectionnés</button>-->
     </div>
   </form>
@@ -79,6 +82,7 @@ watch(
       emit("date-change", value);
     },
 );
+
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
   emit("date-change", date.value);
@@ -152,8 +156,8 @@ select[multiple] {
   flex-direction: row;
   align-items: flex-start;
   gap: 0.5rem;
-  margin-left: auto;
-  padding-top: 1.45rem;
+  margin: auto;
+  margin-right: 0.5rem;
 }
 
 button {
@@ -165,6 +169,7 @@ button {
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
+  margin-left: 0.7rem;
 }
 
 .search-form__actions--compact {
@@ -180,6 +185,10 @@ button {
 .filter-label {
   margin-bottom: 0.3rem;
   font-weight: 700;
+}
+
+.filter-label-status {
+  margin-bottom: 0.8rem;
 }
 
 
@@ -201,6 +210,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .status-diff-container .filter-label {
   margin: 0 0.25rem 0 0;
+}
+
+.search-button-container {
+  margin: auto;
 }
 
 </style>

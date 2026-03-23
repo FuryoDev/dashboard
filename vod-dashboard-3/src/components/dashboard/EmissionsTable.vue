@@ -16,25 +16,25 @@
     <div class="table-scroll">
       <table>
         <thead>
-          <tr>
-            <th
+        <tr>
+          <th
               v-for="column in columns"
               :key="column.key"
               :style="{ width: `${columnWidths[column.key]}px` }"
-            >
-              <div class="th-content">
-                <button
+          >
+            <div class="th-content">
+              <button
                   type="button"
                   class="sort-button"
                   @click="toggleSort(column.key)"
-                >
-                  {{ column.label }}
-                  <span
+              >
+                {{ column.label }}
+                <span
                     class="sort-indicator"
                     :class="sortClass(column.key)"
-                  ></span>
-                </button>
-                <button
+                ></span>
+              </button>
+              <button
                   v-if="isFilterableColumn(column.key)"
                   type="button"
                   class="filter-button"
@@ -42,148 +42,156 @@
                   @click.stop="toggleFilterMenu(column.key)"
                   aria-label="Filtrer la colonne"
                   title="Filtrer"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
                       d="M4 5h16l-6.8 8.2V19l-2.4-1.2v-4.6L4 5z"
                       fill="none"
                       stroke="currentColor"
                       stroke-width="2"
                       stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-                <div
+                  />
+                </svg>
+              </button>
+              <div
                   v-if="isFilterableColumn(column.key) && isFilterMenuOpen(column.key)"
                   class="header-filter-menu"
                   @click.stop
-                >
-                  <label
+              >
+                <label
                     v-for="option in filterOptions(column.key)"
                     :key="`${column.key}-${option}`"
                     class="header-filter-option"
-                  >
-                    <input
+                >
+                  <input
                       type="checkbox"
                       :checked="isFilterOptionSelected(column.key, option)"
                       @change="toggleFilterOption(column.key, option)"
-                    />
-                    {{ option }}
-                  </label>
-                  <button
+                  />
+                  {{ option }}
+                </label>
+                <button
                     type="button"
                     class="header-filter-reset"
                     @click="clearFilter(column.key)"
-                  >
-                    Réinitialiser
-                  </button>
-                </div>
-                <span
+                >
+                  Réinitialiser
+                </button>
+              </div>
+              <span
                   class="resize-handle"
                   role="separator"
                   aria-orientation="vertical"
                   @mousedown="startResize(column.key, $event)"
-                ></span>
-              </div>
-            </th>
-          </tr>
+              ></span>
+            </div>
+          </th>
+        </tr>
         </thead>
         <tbody>
-          <tr v-if="props.loading" class="table-loading-row">
-            <td :colspan="columns.length">En chargement...</td>
-          </tr>
-          <tr
+        <tr v-if="props.loading" class="table-loading-row">
+          <td :colspan="columns.length">En chargement...</td>
+        </tr>
+        <tr
             v-else
             v-for="item in paginated"
             :key="String(item.idRecord)"
             :class="{ selected: isSelected(item) }"
             @click="onRowClick(item, $event)"
             @contextmenu.prevent="onRowContextMenu(item, $event)"
-          >
-            <td>
-              <img
+        >
+          <td>
+            <img
                 v-if="channelLogo(item.channel)"
                 :src="channelLogo(item.channel)"
                 :alt="`Logo ${String(item.channel ?? '')}`"
                 class="channel-logo"
-              />
-              <span v-else>{{ String(item.channel ?? "") }}</span>
-            </td>
-            <td>
-              <img
+            />
+            <span v-else>{{ String(item.channel ?? "") }}</span>
+          </td>
+          <td>
+            <img
                 v-if="vodTypeLogo(item.vodType)"
                 :src="vodTypeLogo(item.vodType)"
                 :alt="`Type VOD ${String(item.vodType ?? '')}`"
                 class="vod-type-logo"
-              />
-              <span v-else>{{ String(item.vodType ?? "") }}</span>
-            </td>
-            <td>
-              {{ item.title }}
-            </td>
-            <td>{{ String(item.duree ?? "") }}</td>
-            <td>{{ String(item.idEpisode ?? "") }}</td>
-            <td>
-              {{
-              formatReadableDateWithMs((item.plateformOffers?.[0]?.startDateTime ?? item.dateHeureDebutVisibilite) as string | undefined)
-              }}
-            </td>
-            <td>{{ firstPlatform(item) }}</td>
-            <td>
+            />
+            <span v-else>{{ String(item.vodType ?? "") }}</span>
+          </td>
+          <td>
+            {{ item.title }}
+          </td>
+          <td>{{ String(item.duree ?? "") }}</td>
+          <td>{{ String(item.idEpisode ?? "") }}</td>
+          <td>
+            {{
+              formatReadableDateWithMs(
+                  (item.plateformOffers?.[0]?.startDateTime ??
+                      item.dateHeureDebutVisibilite) as string | undefined
+              )
+            }}
+          </td>
+          <td>{{ firstPlatform(item) }}</td>
+          <td>
               <span
-                :class="
+                  :class="
                   getStatusClass(
                     String(item.recordStatusTraitementItem?.useCase ?? '')
                   )
                 "
-                >{{
+              >{{
                   String(item.recordStatusTraitementItem?.useCase ?? "")
                 }}</span
               >
-            </td>
-            <td>{{ statusComment(item) }}</td>
-            <td>
-              {{ String(item.recordStatusTraitementItem?.scheduleDelay ?? "") }}
-            </td>
-            <td>
-              {{ String(item.recordStatusTraitementItem?.createdBy ?? "") }}
-            </td>
-            <td>
+          </td>
+          <td>{{ statusComment(item) }}</td>
+          <td>
+            {{ String(item.recordStatusTraitementItem?.scheduleDelay ?? "") }}
+          </td>
+          <td>
+            {{ String(item.recordStatusTraitementItem?.createdBy ?? "") }}
+          </td>
+          <td>
               <span
-                :class="
+                  :class="
                   getStatusClass(
                     String(item.recordStatusTranscodageItem?.useCase ?? '')
                   )
                 "
-                >{{
+              >{{
                   String(item.recordStatusTranscodageItem?.useCase ?? "")
                 }}</span
               >
-            </td>
-            <td>
-              {{
-                String(
+          </td>
+          <td>
+            {{
+              String(
                   item.recordStatusTranscodageItem?.transcodeProgress ?? ""
-                )
-              }}
-            </td>
-            <td>
+              )
+            }}
+          </td>
+          <td>
               <span
-                :class="
+                  :class="
                   getStatusClass(
                     String(item.recordStatusPublicationItem?.useCase ?? '')
                   )
                 "
-                >{{
+              >{{
                   String(item.recordStatusPublicationItem?.useCase ?? "")
                 }}</span
               >
-            </td>
-            <td>
-              {{ formatReadableDate(item.recordStatusPublicationItem?.creationTimestamp as string | undefined) }}
-            </td>
-            <td>{{ String(item.idStk ?? "") }}</td>
-          </tr>
+          </td>
+          <td>
+            {{
+              formatReadableDate(
+                  item.recordStatusPublicationItem
+                      ?.creationTimestamp as string | undefined
+              )
+            }}
+          </td>
+          <td>{{ String(item.idStk ?? "") }}</td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -214,157 +222,165 @@
         Copier le n° de stock
       </button>
       <button
-        type="button"
-        @click="openActionModal('Demande d\'export des archives', 'export')"
+          type="button"
+          @click="openActionModal('Demande export des archives', 'export')"
       >
         Demande d'export des archives
       </button>
       <button
-        type="button"
-        @click="openActionModal('Vérification avant traitement', 'check')"
+          type="button"
+          @click="openActionModal('Vérification avant traitement', 'check')"
       >
         Vérification avant traitement
       </button>
       <button
-        type="button"
-        @click="openActionModal('Régénération des sous-titres', 'regenerate')"
+          type="button"
+          @click="openActionModal('Régénération des sous-titres', 'regenerate')"
       >
         Régénération des sous-titres
       </button>
       <button
-        type="button"
-        @click="
+          type="button"
+          @click="
           openActionModal('Changement des statuts du traitement', 'status')
         "
       >
         Changement des statuts du traitement
       </button>
       <button
-        type="button"
-        @click="openActionModal('Changement du délai de traitement', 'delay')"
+          type="button"
+          @click="openActionModal('Changement du délai de traitement', 'delay')"
       >
         Changement du délai de traitement
       </button>
     </div>
 
     <div
-      v-if="actionModal.open"
-      class="action-modal-backdrop"
-      @click.self="closeActionModal"
+        v-if="actionModal.open"
+        class="action-modal-backdrop"
+        @click.self="closeActionModal"
     >
       <div class="action-modal">
         <h3>{{ actionModal.title }}</h3>
         <p>{{ modalDescription }}</p>
 
         <div
-          v-if="actionModalColumns.length"
-          class="action-modal__table-scroll"
+            v-if="actionModalColumns.length"
+            class="action-modal__table-scroll"
         >
           <table class="action-modal__table">
             <thead>
-              <tr>
-                <th
+            <tr>
+              <th
                   v-for="column in actionModalColumns"
                   :key="column.key"
                   :style="{ width: `${actionModalColumnWidths[column.key]}px` }"
-                >
-                  <div class="th-content">
-                    <button
+              >
+                <div class="th-content">
+                  <button
                       type="button"
                       class="sort-button"
                       @click="toggleActionModalSort(column.key)"
-                    >
-                      {{ column.label }}
-                      <span
+                  >
+                    {{ column.label }}
+                    <span
                         class="sort-indicator"
                         :class="actionModalSortClass(column.key)"
-                      ></span>
-                    </button>
-                    <span
+                    ></span>
+                  </button>
+                  <span
                       class="resize-handle"
                       role="separator"
                       aria-orientation="vertical"
                       @mousedown="startActionModalResize(column.key, $event)"
-                    ></span>
-                  </div>
-                </th>
-              </tr>
+                  ></span>
+                </div>
+              </th>
+            </tr>
             </thead>
             <tbody>
-              <tr
+            <tr
                 v-for="(item, index) in sortedActionModalItems"
                 :key="`${String(item.idRecord ?? index)}-${index}`"
-              >
-                <td v-for="column in actionModalColumns" :key="column.key">
-                  <template v-if="column.key === 'resultIcon'">
+            >
+              <td v-for="column in actionModalColumns" :key="column.key">
+                <template v-if="column.key === 'resultIcon'">
                     <span
-                      v-if="modalStatusObject(item)?.ok === true"
-                      class="action-result action-result--success"
-                      title="Succès"
+                        v-if="modalStatusObject(item)?.ok === true"
+                        class="action-result action-result--success"
+                        title="Succès"
                     >
                       <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" />
+                        <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>
                       </svg>
                     </span>
-                    <span
+                  <span
                       v-else-if="modalStatusObject(item)?.ok === false"
                       class="action-result action-result--error"
                       title="Erreur"
-                    >
+                  >
                       <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path
-                          d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"
+                            d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"
                         />
                       </svg>
                     </span>
-                  </template>
-                  <template v-else>
-                    {{ actionModalValue(item, column.key) }}
-                  </template>
-                </td>
-              </tr>
+                </template>
+                <template v-else>
+                  {{ actionModalValue(item, column.key) }}
+                </template>
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
 
         <div
-          v-if="actionModal.actionType === 'check' && focusedOffers.length"
-          class="action-modal__table-scroll action-modal__table-scroll--secondary"
+            v-if="actionModal.actionType === 'check' && focusedOffers.length"
+            class="action-modal__table-scroll action-modal__table-scroll--secondary"
         >
           <table class="action-modal__table">
             <thead>
-              <tr>
-                <th>Plateform</th>
-                <th>Offre</th>
-                <th>Prix</th>
-                <th>Début</th>
-                <th>Fin</th>
-                <th>Territoire</th>
-              </tr>
+            <tr>
+              <th>Plateform</th>
+              <th>Offre</th>
+              <th>Prix</th>
+              <th>Début</th>
+              <th>Fin</th>
+              <th>Territoire</th>
+            </tr>
             </thead>
             <tbody>
-              <tr
+            <tr
                 v-for="(offer, index) in focusedOffers"
                 :key="`${String(offer.recordvodxmlid ?? index)}-${index}`"
-              >
-                <td>{{ String(offer.name ?? "") }}</td>
-                <td>{{ String(offer.offerName ?? "") }}</td>
-                <td>{{ String(offer.priceCode ?? "") }}</td>
-                <td>
-                  {{ formatReadableDate(offer.startDateTime as string | undefined) }}
-                </td>
-                <td>
-                  {{ formatReadableDate(offer.endDateTime as string | undefined) }}
-                </td>
-                <td>{{ String(offer.territoire ?? "") }}</td>
-              </tr>
+            >
+              <td>{{ String(offer.name ?? "") }}</td>
+              <td>{{ String(offer.offerName ?? "") }}</td>
+              <td>{{ String(offer.priceCode ?? "") }}</td>
+              <td>
+                {{
+                  formatReadableDate(
+                      offer.startDateTime as string | undefined
+                  )
+                }}
+              </td>
+              <td>
+                {{
+                  formatReadableDate(
+                      offer.endDateTime as string | undefined
+                  )
+                }}
+              </td>
+              <td>{{ String(offer.territoire ?? "") }}</td>
+            </tr>
             </tbody>
           </table>
         </div>
 
         <div
-          v-if="actionModal.actionType === 'export'"
-          class="action-modal__form-row"
+            v-if="actionModal.actionType === 'export'"
+            class="action-modal__form-row"
         >
           <label for="export-destination">Destination</label>
           <select id="export-destination" v-model="exportDestination">
@@ -372,21 +388,21 @@
             <option value="vodauto">vodauto</option>
           </select>
           <label class="inline-checkbox">
-            <input v-model="forceRetreatment" type="checkbox" /> Forcer le
+            <input v-model="forceRetreatment" type="checkbox"/> Forcer le
             re-traitement
           </label>
         </div>
 
         <div
-          v-if="actionModal.actionType === 'status'"
-          class="action-modal__form-row"
+            v-if="actionModal.actionType === 'status'"
+            class="action-modal__form-row"
         >
           <label for="status-value">Nouveau statut</label>
           <select id="status-value" v-model="statusInput">
             <option
-              v-for="option in statusOptions"
-              :key="option"
-              :value="option"
+                v-for="option in statusOptions"
+                :key="option"
+                :value="option"
             >
               {{ option }}
             </option>
@@ -394,11 +410,11 @@
         </div>
 
         <div
-          v-if="actionModal.actionType === 'delay'"
-          class="action-modal__form-row"
+            v-if="actionModal.actionType === 'delay'"
+            class="action-modal__form-row"
         >
           <label for="delay-value">Nouveau délai</label>
-          <input id="delay-value" v-model="delayInput" type="number" min="0" />
+          <input id="delay-value" v-model="delayInput" type="number" min="0"/>
         </div>
 
         <div class="action-modal__buttons">
@@ -406,9 +422,9 @@
             Annuler
           </button>
           <button
-            type="button"
-            :disabled="props.selected.length === 0"
-            @click="runAction"
+              type="button"
+              :disabled="props.selected.length === 0"
+              @click="runAction"
           >
             Confirmer
           </button>
@@ -427,12 +443,12 @@ import {
   ref,
   watch,
 } from "vue";
-import type { Emission } from "@/types/domain";
-import { useEmissionsStore } from "@/stores/emissions.store";
-import { createEmissionsApi } from "@/services/emissions.api";
-import { useHttp } from "@/composables/useHttp";
-import { formatReadableDate, formatReadableDateWithMs } from "@/utils/date";
-import { getStatusClass } from "@/utils/status";
+import type {Emission} from "@/types/domain";
+import {useEmissionsStore} from "@/stores/emissions.store";
+import {createEmissionsApi} from "@/services/emissions.api";
+import {useHttp} from "@/composables/useHttp";
+import {formatReadableDate, formatReadableDateWithMs} from "@/utils/date";
+import {getStatusClass} from "@/utils/status";
 import logoLaUne from "@/assets/images/logo/LOGO_LAUNE_RVB_26.svg";
 import logoTipik from "@/assets/images/logo/LOGO_TIPIK_26.svg";
 import logoAuvio from "@/assets/images/logo/LOGO_AUVIO_SVG_26.svg";
@@ -457,47 +473,47 @@ const emissionsApi = createEmissionsApi(useHttp("emissions-table.actions"));
 
 type SortDirection = "asc" | "desc";
 type ColumnKey =
-  | "channel"
-  | "vodType"
-  | "title"
-  | "duree"
-  | "idEpisode"
-  | "dateHeureDebutVisibilite"
-  | "plateforme"
-  | "traitement"
-  | "commentaire"
-  | "delai"
-  | "par"
-  | "transcodage"
-  | "progress"
-  | "publication"
-  | "datePublication"
-  | "pad";
+    | "channel"
+    | "vodType"
+    | "title"
+    | "duree"
+    | "idEpisode"
+    | "dateHeureDebutVisibilite"
+    | "plateforme"
+    | "traitement"
+    | "commentaire"
+    | "delai"
+    | "par"
+    | "transcodage"
+    | "progress"
+    | "publication"
+    | "datePublication"
+    | "pad";
 
 type ActionModalColumnKey =
-  | "title"
-  | "idEpisode"
-  | "traitement"
-  | "resultIcon"
-  | "resultMessage";
+    | "title"
+    | "idEpisode"
+    | "traitement"
+    | "resultIcon"
+    | "resultMessage";
 
 const columns: Array<{ key: ColumnKey; label: string }> = [
-  { key: "channel", label: "Chaîne" },
-  { key: "vodType", label: "Type" },
-  { key: "title", label: "Titre" },
-  { key: "duree", label: "Durée" },
-  { key: "idEpisode", label: "Episode" },
-  { key: "dateHeureDebutVisibilite", label: "Début visib." },
-  { key: "plateforme", label: "Plateforme" },
-  { key: "traitement", label: "Traitement" },
-  { key: "commentaire", label: "Commentaire" },
-  { key: "delai", label: "Délai" },
-  { key: "par", label: "Par" },
-  { key: "transcodage", label: "Statut transcodage" },
-  { key: "progress", label: "% transcod." },
-  { key: "publication", label: "Publication" },
-  { key: "datePublication", label: "Date publication" },
-  { key: "pad", label: "PAD" },
+  {key: "channel", label: "Chaîne"},
+  {key: "vodType", label: "Type"},
+  {key: "title", label: "Titre"},
+  {key: "duree", label: "Durée"},
+  {key: "idEpisode", label: "Episode"},
+  {key: "dateHeureDebutVisibilite", label: "Début visib."},
+  {key: "plateforme", label: "Plateforme"},
+  {key: "traitement", label: "Traitement"},
+  {key: "commentaire", label: "Commentaire"},
+  {key: "delai", label: "Délai"},
+  {key: "par", label: "Par"},
+  {key: "transcodage", label: "Statut transcodage"},
+  {key: "progress", label: "% transcod."},
+  {key: "publication", label: "Publication"},
+  {key: "datePublication", label: "Date publication"},
+  {key: "pad", label: "PAD"},
 ];
 
 const columnWidths = reactive<Record<ColumnKey, number>>({
@@ -523,7 +539,7 @@ const page = ref(1);
 const pageSizeChoice = ref(0);
 const selectionAnchor = ref<number | null>(null);
 const contextMenuTarget = ref<Emission | null>(null);
-const contextMenu = reactive({ open: false, x: 0, y: 0 });
+const contextMenu = reactive({open: false, x: 0, y: 0});
 const actionModal = reactive<{
   open: boolean;
   title: string;
@@ -545,41 +561,39 @@ const delayInput = ref("24");
 const exportDestination = ref("vodstock");
 const forceRetreatment = ref(false);
 const actionStatuses = ref<Record<string, { ok: boolean; message?: string }>>(
-  {}
+    {}
 );
 const sortState = ref<{ key: ColumnKey; direction: SortDirection } | null>(
-  null
+    null
 );
 const actionModalSortState = ref<{
   key: ActionModalColumnKey;
   direction: SortDirection;
 } | null>(null);
-const openedFilterMenu = ref<"channel" | "plateforme" | null>(
-  null
-);
+const openedFilterMenu = ref<"channel" | "plateforme" | null>(null);
 const selectedChannelFilters = ref<string[]>([]);
 const selectedPlatformFilters = ref<string[]>([]);
 
 const actionModalColumns = computed<
-  Array<{ key: ActionModalColumnKey; label: string }>
+    Array<{ key: ActionModalColumnKey; label: string }>
 >(() => {
   if (["status", "delay"].includes(actionModal.actionType)) {
     return [
-      { key: "title", label: "Titre" },
-      { key: "idEpisode", label: "Episode" },
-      { key: "traitement", label: "Traitement" },
-      { key: "resultIcon", label: "" },
-      { key: "resultMessage", label: "Résultat" },
+      {key: "title", label: "Titre"},
+      {key: "idEpisode", label: "Episode"},
+      {key: "traitement", label: "Traitement"},
+      {key: "resultIcon", label: ""},
+      {key: "resultMessage", label: "Résultat"},
     ];
   }
 
   if (["export", "check", "regenerate"].includes(actionModal.actionType)) {
     return [
-      { key: "title", label: "Titre" },
-      { key: "idEpisode", label: "Episode" },
-      { key: "traitement", label: "Traitement" },
-      { key: "resultIcon", label: "" },
-      { key: "resultMessage", label: "Résultat" },
+      {key: "title", label: "Titre"},
+      {key: "idEpisode", label: "Episode"},
+      {key: "traitement", label: "Traitement"},
+      {key: "resultIcon", label: ""},
+      {key: "resultMessage", label: "Résultat"},
     ];
   }
 
@@ -612,7 +626,7 @@ const actionModalColumnWidths = reactive<Record<ActionModalColumnKey, number>>({
 
 const sortedActionModalItems = computed(() => {
   if (!actionModalSortState.value) return props.selected;
-  const { key, direction } = actionModalSortState.value;
+  const {key, direction} = actionModalSortState.value;
   const factor = direction === "asc" ? 1 : -1;
 
   return [...props.selected].sort((a, b) => {
@@ -628,15 +642,45 @@ const isPaginationEnabled = computed(() => pageSizeChoice.value > 0);
 const totalPages = computed(() => {
   if (!isPaginationEnabled.value) return 1;
   return Math.max(
-    1,
-    Math.ceil(sortedEmissions.value.length / pageSizeChoice.value)
+      1,
+      Math.ceil(sortedEmissions.value.length / pageSizeChoice.value)
   );
+});
+
+const availableChannels = computed(() =>
+    uniqueValues(
+        props.emissions
+            .map((item) => String(item.channel ?? "").trim())
+            .filter(Boolean)
+    )
+);
+
+const availablePlatforms = computed(() =>
+    uniqueValues(
+        props.emissions.map((item) => firstPlatform(item).trim()).filter(Boolean)
+    )
+);
+
+const filteredEmissions = computed(() => {
+  return props.emissions.filter((item) => {
+    const channel = String(item.channel ?? "").trim();
+    const platform = firstPlatform(item).trim();
+
+    const matchChannel =
+        selectedChannelFilters.value.length === 0 ||
+        selectedChannelFilters.value.includes(channel);
+    const matchPlatform =
+        selectedPlatformFilters.value.length === 0 ||
+        selectedPlatformFilters.value.includes(platform);
+
+    return matchChannel && matchPlatform;
+  });
 });
 
 const sortedEmissions = computed(() => {
   if (!sortState.value) return filteredEmissions.value;
 
-  const { key, direction } = sortState.value;
+  const {key, direction} = sortState.value;
   const factor = direction === "asc" ? 1 : -1;
 
   return [...filteredEmissions.value].sort((a, b) => {
@@ -646,34 +690,6 @@ const sortedEmissions = computed(() => {
     if (aValue < bValue) return -1 * factor;
     if (aValue > bValue) return 1 * factor;
     return 0;
-  });
-});
-
-const availableChannels = computed(() =>
-  uniqueValues(
-    props.emissions.map((item) => String(item.channel ?? "").trim()).filter(Boolean)
-  )
-);
-
-const availablePlatforms = computed(() =>
-  uniqueValues(
-    props.emissions.map((item) => firstPlatform(item).trim()).filter(Boolean)
-  )
-);
-
-const filteredEmissions = computed(() => {
-  return props.emissions.filter((item) => {
-    const channel = String(item.channel ?? "").trim();
-    const platform = firstPlatform(item).trim();
-
-    const matchChannel =
-      selectedChannelFilters.value.length === 0 ||
-      selectedChannelFilters.value.includes(channel);
-    const matchPlatform =
-      selectedPlatformFilters.value.length === 0 ||
-      selectedPlatformFilters.value.includes(platform);
-
-    return matchChannel && matchPlatform;
   });
 });
 
@@ -698,14 +714,14 @@ const modalDescription = computed(() => {
 });
 
 const focusedOffers = computed(
-  () => contextMenuTarget.value?.plateformOffers ?? []
+    () => contextMenuTarget.value?.plateformOffers ?? []
 );
 
 watch(
-  () => props.emissions.length,
-  () => {
-    if (page.value > totalPages.value) page.value = totalPages.value;
-  }
+    () => props.emissions.length,
+    () => {
+      if (page.value > totalPages.value) page.value = totalPages.value;
+    }
 );
 
 watch(pageSizeChoice, () => {
@@ -718,14 +734,14 @@ function idKey(item: Emission) {
 
 function isSelected(item: Emission) {
   return props.selected.some(
-    (selectedItem) => selectedItem.idRecord === item.idRecord
+      (selectedItem) => selectedItem.idRecord === item.idRecord
   );
 }
 
 function replaceSelection(items: Emission[]) {
   const deduped = items.filter(
-    (item, index, list) =>
-      list.findIndex((candidate) => idKey(candidate) === idKey(item)) === index
+      (item, index, list) =>
+          list.findIndex((candidate) => idKey(candidate) === idKey(item)) === index
   );
   emit("update:selected", deduped);
 }
@@ -736,10 +752,10 @@ function toggleSelection(item: Emission, checked: boolean) {
     return;
   }
   emit(
-    "update:selected",
-    props.selected.filter(
-      (selectedItem) => selectedItem.idRecord !== item.idRecord
-    )
+      "update:selected",
+      props.selected.filter(
+          (selectedItem) => selectedItem.idRecord !== item.idRecord
+      )
   );
 }
 
@@ -748,7 +764,7 @@ function onRowClick(item: Emission, event: MouseEvent) {
   emit("focus", item);
 
   const index = sortedEmissions.value.findIndex(
-    (entry) => idKey(entry) === idKey(item)
+      (entry) => idKey(entry) === idKey(item)
   );
   if (index < 0) return;
 
@@ -806,8 +822,8 @@ async function copyText(type: "serie" | "episode" | "idRecord" | "stock") {
 }
 
 function openActionModal(
-  title: string,
-  actionType: "export" | "check" | "regenerate" | "status" | "delay"
+    title: string,
+    actionType: "export" | "check" | "regenerate" | "status" | "delay"
 ) {
   closeContextMenu();
   actionModal.open = true;
@@ -835,7 +851,7 @@ async function runAction() {
   if (!selected.length) return;
 
   const setStatus = (id: string, ok: boolean, message?: string) => {
-    actionStatuses.value[id] = { ok, message };
+    actionStatuses.value[id] = {ok, message};
   };
 
   const setGenericErrorForSelection = (message: string) => {
@@ -847,18 +863,17 @@ async function runAction() {
   if (actionModal.actionType === "export") {
     try {
       const response = await emissionsApi.requestArchiveExport(
-        exportDestination.value,
-        forceRetreatment.value,
-        selected
+          exportDestination.value,
+          forceRetreatment.value,
+          selected
       );
 
-      // Cas 1 : réponse globale booléenne
       if (typeof response === "boolean") {
         selected.forEach((item) => {
           setStatus(
-            String(item.idRecord ?? item.idEpisode ?? ""),
-            response,
-            response ? "Export effectué" : "Export refusé"
+              String(item.idRecord ?? item.idEpisode ?? ""),
+              response,
+              response ? "Export effectué" : "Export refusé"
           );
         });
         return;
@@ -866,18 +881,18 @@ async function runAction() {
 
       const responseEntries = Object.entries(response ?? {});
       const hasOnlyGlobalResponse =
-        responseEntries.length === 1 &&
-        ["statusCode", "message", "success"].includes(responseEntries[0][0]);
+          responseEntries.length === 1 &&
+          ["statusCode", "message", "success"].includes(responseEntries[0][0]);
 
       const globalStatusCode = Number(
-        (response as { statusCode?: number | string })?.statusCode ?? 200
+          (response as { statusCode?: number | string })?.statusCode ?? 200
       );
       const globalSuccess = (response as { success?: boolean })?.success;
       const defaultOk =
-        globalSuccess ??
-        (Number.isNaN(globalStatusCode) ? true : globalStatusCode === 200);
+          globalSuccess ??
+          (Number.isNaN(globalStatusCode) ? true : globalStatusCode === 200);
       const defaultMessage = String(
-        (response as { message?: string })?.message ?? ""
+          (response as { message?: string })?.message ?? ""
       );
 
       selected.forEach((item) => {
@@ -888,39 +903,38 @@ async function runAction() {
         const match = responseEntries.find(([key]) => {
           const normalizedKey = String(key);
           return (
-            normalizedKey === idRecord ||
-            normalizedKey === idEpisode ||
-            (idRecord && normalizedKey.includes(idRecord)) ||
-            (idEpisode && normalizedKey.includes(idEpisode)) ||
-            (title && normalizedKey.includes(title))
+              normalizedKey === idRecord ||
+              normalizedKey === idEpisode ||
+              (idRecord && normalizedKey.includes(idRecord)) ||
+              (idEpisode && normalizedKey.includes(idEpisode)) ||
+              (title && normalizedKey.includes(title))
           );
         });
 
         if (match) {
           const [, result] = match;
 
-          // Cas 2 : réponse par item = booléen
           if (typeof result === "boolean") {
             setStatus(
-              idRecord || idEpisode,
-              result,
-              result ? "Export effectué" : "Export refusé"
+                idRecord || idEpisode,
+                result,
+                result ? "Export effectué" : "Export refusé"
             );
             return;
           }
 
           const rawStatus = Number(
-            (result as { statusCode?: number | string })?.statusCode
+              (result as { statusCode?: number | string })?.statusCode
           );
           const itemSuccess = (result as { success?: boolean })?.success;
           const isOk =
-            itemSuccess ??
-            (Number.isNaN(rawStatus) ? defaultOk : rawStatus === 200);
+              itemSuccess ??
+              (Number.isNaN(rawStatus) ? defaultOk : rawStatus === 200);
 
           setStatus(
-            idRecord || idEpisode,
-            isOk,
-            String((result as { message?: string })?.message ?? defaultMessage)
+              idRecord || idEpisode,
+              isOk,
+              String((result as { message?: string })?.message ?? defaultMessage)
           );
           return;
         }
@@ -945,9 +959,9 @@ async function runAction() {
       offerName: String(item.plateformOffers?.[0]?.offerName ?? ""),
       recordId: item.idRecord,
       vodDay: new Date(
-        String(item.plannedDateTime ?? item.dateHeureDiffusion ?? Date.now())
+          String(item.plannedDateTime ?? item.dateHeureDiffusion ?? Date.now())
       ).getTime(),
-      signaletique: { CSA: "", pp: "" },
+      signaletique: {CSA: "", pp: ""},
       record: {
         mediaId: item.idStk,
         episodeId: item.idEpisode,
@@ -957,11 +971,11 @@ async function runAction() {
     try {
       const response = await emissionsApi.checkPublication(payload);
       Object.entries(response ?? {}).forEach(([id, result]) =>
-        setStatus(
-          String(id),
-          Boolean(result?.success),
-          String(result?.message ?? "")
-        )
+          setStatus(
+              String(id),
+              Boolean(result?.success),
+              String(result?.message ?? "")
+          )
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erreur backend";
@@ -972,16 +986,16 @@ async function runAction() {
 
   if (actionModal.actionType === "regenerate") {
     const ids = selected
-      .map((item) => String(item.idRecord ?? ""))
-      .filter(Boolean);
+        .map((item) => String(item.idRecord ?? ""))
+        .filter(Boolean);
     try {
       const response = await emissionsApi.regenerateSubtitles(ids);
       Object.entries(response ?? {}).forEach(([id, result]) =>
-        setStatus(
-          String(id),
-          Number(result?.statusCode ?? 500) === 200,
-          String(result?.message ?? "")
-        )
+          setStatus(
+              String(id),
+              Number(result?.statusCode ?? 500) === 200,
+              String(result?.message ?? "")
+          )
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erreur backend";
@@ -991,70 +1005,68 @@ async function runAction() {
   }
 
   if (
-    actionModal.actionType === "status" ||
-    actionModal.actionType === "delay"
+      actionModal.actionType === "status" ||
+      actionModal.actionType === "delay"
   ) {
     await Promise.all(
-      selected.map(async (item) => {
-        const idRecord = String(item.idRecord ?? "");
-        const vodType = String(item.vodType ?? "");
-        const recordStatus = {
-          ...(item.recordStatusTraitementItem ?? {}),
-          createdBy:
-            emissionsStore.selected?.[0]?.recordStatusTraitementItem
-              ?.createdBy ?? "dashboard",
-        } as Record<string, unknown>;
+        selected.map(async (item) => {
+          const idRecord = String(item.idRecord ?? "");
+          const vodType = String(item.vodType ?? "");
+          const recordStatus = {
+            ...(item.recordStatusTraitementItem ?? {}),
+            createdBy:
+                emissionsStore.selected?.[0]?.recordStatusTraitementItem
+                    ?.createdBy ?? "dashboard",
+          } as Record<string, unknown>;
 
-        if (actionModal.actionType === "status") {
-          recordStatus.useCase =
-            statusInput.value === "ETAT_INITIAL" ? null : statusInput.value;
-        } else {
-          recordStatus.scheduleDelay = Number(delayInput.value || "0");
-        }
+          if (actionModal.actionType === "status") {
+            recordStatus.useCase =
+                statusInput.value === "ETAT_INITIAL" ? null : statusInput.value;
+          } else {
+            recordStatus.scheduleDelay = Number(delayInput.value || "0");
+          }
 
-        try {
-          console.log("[EmissionsTable] updateRecordStatus:request", {
-            idRecord,
-            vodType,
-            actionType: actionModal.actionType,
-            payload: recordStatus,
-          });
-          const response = await emissionsApi.updateRecordStatus(
-            vodType,
-            idRecord,
-            recordStatus,
-            actionModal.actionType === "status"
-          );
-          const httpStatus = Number(
-            (response as { status?: number | string })?.status
-          );
-          const isSuccess = httpStatus === 200;
-          console.log("[EmissionsTable] updateRecordStatus:response", {
-            idRecord,
-            vodType,
-            httpStatus,
-            rawResponse: response,
-            responseData: response?.data,
-            isSuccess,
-          });
-          pushRecordStatusResponseToEmission(item, response.data);
-          setStatus(
-            idRecord,
-            isSuccess,
-            isSuccess
-              ? "Mise à jour effectuée"
-              : "Erreur backend"
-          );
-        } catch (error) {
-          console.log("[EmissionsTable] updateRecordStatus:error", {
-            idRecord,
-            vodType,
-            actionType: actionModal.actionType,
-            error,
-          });
-          setStatus(idRecord, false, "Erreur backend");
-        }
-      })
+          try {
+            console.log("[EmissionsTable] updateRecordStatus:request", {
+              idRecord,
+              vodType,
+              actionType: actionModal.actionType,
+              payload: recordStatus,
+            });
+            const response = await emissionsApi.updateRecordStatus(
+                vodType,
+                idRecord,
+                recordStatus,
+                actionModal.actionType === "status"
+            );
+            const httpStatus = Number(
+                (response as { status?: number | string })?.status
+            );
+            const isSuccess = httpStatus === 200;
+            console.log("[EmissionsTable] updateRecordStatus:response", {
+              idRecord,
+              vodType,
+              httpStatus,
+              rawResponse: response,
+              responseData: response?.data,
+              isSuccess,
+            });
+            pushRecordStatusResponseToEmission(item, response.data);
+            setStatus(
+                idRecord,
+                isSuccess,
+                isSuccess ? "Mise à jour effectuée" : "Erreur backend"
+            );
+          } catch (error) {
+            console.log("[EmissionsTable] updateRecordStatus:error", {
+              idRecord,
+              vodType,
+              actionType: actionModal.actionType,
+              error,
+            });
+            setStatus(idRecord, false, "Erreur backend");
+          }
+        })
     );
   }
 }
@@ -1072,8 +1084,8 @@ function extractRecordStatusResponse(rawResponse: unknown) {
 }
 
 function pushRecordStatusResponseToEmission(
-  sourceEmission: Emission,
-  rawResponse: unknown
+    sourceEmission: Emission,
+    rawResponse: unknown
 ) {
   const responseRecordStatus = extractRecordStatusResponse(rawResponse);
   if (!responseRecordStatus) return;
@@ -1083,12 +1095,12 @@ function pushRecordStatusResponseToEmission(
 
   if (sourceId) {
     candidateItems.push(
-      ...emissionsStore.items.filter(
-        (storeItem) => String(storeItem.idRecord ?? "") === sourceId
-      ),
-      ...emissionsStore.selected.filter(
-        (selectedItem) => String(selectedItem.idRecord ?? "") === sourceId
-      )
+        ...emissionsStore.items.filter(
+            (storeItem) => String(storeItem.idRecord ?? "") === sourceId
+        ),
+        ...emissionsStore.selected.filter(
+            (selectedItem) => String(selectedItem.idRecord ?? "") === sourceId
+        )
     );
   }
 
@@ -1166,12 +1178,12 @@ function hasActiveFilter(key: ColumnKey) {
 
 function toggleSort(key: ColumnKey) {
   if (!sortState.value || sortState.value.key !== key) {
-    sortState.value = { key, direction: "asc" };
+    sortState.value = {key, direction: "asc"};
     return;
   }
 
   if (sortState.value.direction === "asc") {
-    sortState.value = { key, direction: "desc" };
+    sortState.value = {key, direction: "desc"};
     return;
   }
 
@@ -1197,7 +1209,7 @@ function sortValue(item: Emission, key: ColumnKey): string | number {
       return String(item.idEpisode ?? "");
     case "dateHeureDebutVisibilite":
       return String(
-        item.plateformOffers?.[0]?.startDateTime ??
+          item.plateformOffers?.[0]?.startDateTime ??
           item.dateHeureDebutVisibilite ??
           ""
       );
@@ -1245,8 +1257,8 @@ function modalStatusObject(item: Emission) {
 }
 
 function actionModalSortValue(
-  item: Emission,
-  key: ActionModalColumnKey
+    item: Emission,
+    key: ActionModalColumnKey
 ): string {
   switch (key) {
     case "title":
@@ -1273,12 +1285,12 @@ function actionModalSortValue(
 
 function toggleActionModalSort(key: ActionModalColumnKey) {
   if (!actionModalSortState.value || actionModalSortState.value.key !== key) {
-    actionModalSortState.value = { key, direction: "asc" };
+    actionModalSortState.value = {key, direction: "asc"};
     return;
   }
 
   if (actionModalSortState.value.direction === "asc") {
-    actionModalSortState.value = { key, direction: "desc" };
+    actionModalSortState.value = {key, direction: "desc"};
     return;
   }
 
@@ -1291,40 +1303,80 @@ function actionModalSortClass(key: ActionModalColumnKey) {
   return actionModalSortState.value.direction;
 }
 
-function startActionModalResize(key: ActionModalColumnKey, event: MouseEvent) {
+/* =========================
+   Resize logic améliorée
+   ========================= */
+
+let activeResizeCleanup: (() => void) | null = null;
+let activeResizeFrame: number | null = null;
+
+function cancelActiveResizeFrame() {
+  if (activeResizeFrame !== null) {
+    cancelAnimationFrame(activeResizeFrame);
+    activeResizeFrame = null;
+  }
+}
+
+function stopActiveResizeListeners() {
+  if (activeResizeCleanup) {
+    activeResizeCleanup();
+    activeResizeCleanup = null;
+  }
+  cancelActiveResizeFrame();
+}
+
+function setupResizeDrag<T extends string>(
+    key: T,
+    event: MouseEvent,
+    widths: Record<T, number>,
+    minWidth: number
+) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  stopActiveResizeListeners();
+
   const startX = event.clientX;
-  const startWidth = actionModalColumnWidths[key];
+  const startWidth = widths[key];
+
+  let latestClientX = startX;
+  let ticking = false;
+
+  const applyWidth = () => {
+    const delta = latestClientX - startX;
+    widths[key] = Math.max(minWidth, startWidth + delta);
+    ticking = false;
+    activeResizeFrame = null;
+  };
 
   const onMouseMove = (moveEvent: MouseEvent) => {
-    const delta = moveEvent.clientX - startX;
-    actionModalColumnWidths[key] = Math.max(70, startWidth + delta);
+    latestClientX = moveEvent.clientX;
+
+    if (!ticking) {
+      ticking = true;
+      activeResizeFrame = requestAnimationFrame(applyWidth);
+    }
   };
 
   const onMouseUp = () => {
+    stopActiveResizeListeners();
+  };
+
+  window.addEventListener("mousemove", onMouseMove, {passive: true});
+  window.addEventListener("mouseup", onMouseUp);
+
+  activeResizeCleanup = () => {
     window.removeEventListener("mousemove", onMouseMove);
     window.removeEventListener("mouseup", onMouseUp);
   };
+}
 
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
+function startActionModalResize(key: ActionModalColumnKey, event: MouseEvent) {
+  setupResizeDrag(key, event, actionModalColumnWidths, 70);
 }
 
 function startResize(key: ColumnKey, event: MouseEvent) {
-  const startX = event.clientX;
-  const startWidth = columnWidths[key];
-
-  const onMouseMove = (moveEvent: MouseEvent) => {
-    const delta = moveEvent.clientX - startX;
-    columnWidths[key] = Math.max(50, startWidth + delta);
-  };
-
-  const onMouseUp = () => {
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
-  };
-
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
+  setupResizeDrag(key, event, columnWidths, 50);
 }
 
 onMounted(() => {
@@ -1333,6 +1385,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  stopActiveResizeListeners();
   window.removeEventListener("click", handleGlobalPointer);
   window.removeEventListener("scroll", handleGlobalPointer);
 });
@@ -1341,9 +1394,9 @@ function channelLogo(channel: unknown): string {
   const raw = String(channel ?? "").trim();
   if (!raw) return "";
   const normalized = raw
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase();
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase();
   return channelLogos[normalized] ?? "";
 }
 
@@ -1366,8 +1419,8 @@ function statusComment(item: Emission) {
     item.recordStatusTranscodageItem?.caseComment,
     item.recordStatusPublicationItem?.caseComment,
   ]
-    .filter(Boolean)
-    .join(" | ");
+      .filter(Boolean)
+      .join(" | ");
 }
 </script>
 
@@ -1436,7 +1489,7 @@ table {
   justify-content: space-between;
   gap: 0.65rem;
   position: relative;
-  padding-right: 1.8rem;
+  padding-right: 0.7rem;
 }
 
 .sort-button {
@@ -1595,12 +1648,15 @@ tbody tr.selected {
 :deep(.status-pill--success) {
   background: #1c8f5a;
 }
+
 :deep(.status-pill--warning) {
   background: #d08a22;
 }
+
 :deep(.status-pill--in-progress) {
   background: #e0b420;
 }
+
 :deep(.status-pill--danger) {
   background: #c24242;
 }
@@ -1773,6 +1829,7 @@ tbody tr.selected {
 .action-modal__table-scroll--secondary {
   margin-top: 0.8rem;
 }
+
 .action-modal__form-row input,
 .action-modal__form-row select {
   border: 1px solid rgba(143, 215, 236, 0.4);
