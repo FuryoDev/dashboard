@@ -570,10 +570,21 @@ const actionModalSortState = ref<{
   key: ActionModalColumnKey;
   direction: SortDirection;
 } | null>(null);
-const openedFilterMenu = ref<"channel" | "vodType" | "plateforme" | null>(null);
+type FilterableColumnKey =
+    | "channel"
+    | "vodType"
+    | "plateforme"
+    | "traitement"
+    | "transcodage"
+    | "publication";
+
+const openedFilterMenu = ref<FilterableColumnKey | null>(null);
 const selectedChannelFilters = ref<string[]>([]);
 const selectedVodTypeFilters = ref<string[]>([]);
 const selectedPlatformFilters = ref<string[]>([]);
+const selectedTraitementFilters = ref<string[]>([]);
+const selectedTranscodageFilters = ref<string[]>([]);
+const selectedPublicationFilters = ref<string[]>([]);
 
 const actionModalColumns = computed<
     Array<{ key: ActionModalColumnKey; label: string }>
@@ -668,12 +679,36 @@ const availableVodTypes = computed(() =>
             .filter(Boolean)
     )
 );
+const availableTraitements = computed(() =>
+    uniqueValues(
+        props.emissions
+            .map((item) => String(item.recordStatusTraitementItem?.useCase ?? "").trim())
+            .filter(Boolean)
+    )
+);
+const availableTranscodages = computed(() =>
+    uniqueValues(
+        props.emissions
+            .map((item) => String(item.recordStatusTranscodageItem?.useCase ?? "").trim())
+            .filter(Boolean)
+    )
+);
+const availablePublications = computed(() =>
+    uniqueValues(
+        props.emissions
+            .map((item) => String(item.recordStatusPublicationItem?.useCase ?? "").trim())
+            .filter(Boolean)
+    )
+);
 
 const filteredEmissions = computed(() => {
   return props.emissions.filter((item) => {
     const channel = String(item.channel ?? "").trim();
     const vodType = String(item.vodType ?? "").trim();
     const platform = firstPlatform(item).trim();
+    const traitement = String(item.recordStatusTraitementItem?.useCase ?? "").trim();
+    const transcodage = String(item.recordStatusTranscodageItem?.useCase ?? "").trim();
+    const publication = String(item.recordStatusPublicationItem?.useCase ?? "").trim();
 
     const matchChannel =
         selectedChannelFilters.value.length === 0 ||
@@ -684,8 +719,24 @@ const filteredEmissions = computed(() => {
     const matchPlatform =
         selectedPlatformFilters.value.length === 0 ||
         selectedPlatformFilters.value.includes(platform);
+    const matchTraitement =
+        selectedTraitementFilters.value.length === 0 ||
+        selectedTraitementFilters.value.includes(traitement);
+    const matchTranscodage =
+        selectedTranscodageFilters.value.length === 0 ||
+        selectedTranscodageFilters.value.includes(transcodage);
+    const matchPublication =
+        selectedPublicationFilters.value.length === 0 ||
+        selectedPublicationFilters.value.includes(publication);
 
-    return matchChannel && matchVodType && matchPlatform;
+    return (
+        matchChannel &&
+        matchVodType &&
+        matchPlatform &&
+        matchTraitement &&
+        matchTranscodage &&
+        matchPublication
+    );
   });
 });
 
@@ -1144,7 +1195,14 @@ function uniqueValues(values: string[]) {
 }
 
 function isFilterableColumn(key: ColumnKey) {
-  return key === "channel" || key === "vodType" || key === "plateforme";
+  return (
+      key === "channel" ||
+      key === "vodType" ||
+      key === "plateforme" ||
+      key === "traitement" ||
+      key === "transcodage" ||
+      key === "publication"
+  );
 }
 
 function isFilterMenuOpen(key: ColumnKey) {
@@ -1160,12 +1218,18 @@ function filterOptions(key: ColumnKey) {
   if (key === "channel") return availableChannels.value;
   if (key === "vodType") return availableVodTypes.value;
   if (key === "plateforme") return availablePlatforms.value;
+  if (key === "traitement") return availableTraitements.value;
+  if (key === "transcodage") return availableTranscodages.value;
+  if (key === "publication") return availablePublications.value;
   return [];
 }
 
 function filterSelectionRef(key: ColumnKey) {
   if (key === "channel") return selectedChannelFilters;
   if (key === "vodType") return selectedVodTypeFilters;
+  if (key === "traitement") return selectedTraitementFilters;
+  if (key === "transcodage") return selectedTranscodageFilters;
+  if (key === "publication") return selectedPublicationFilters;
   return selectedPlatformFilters;
 }
 
