@@ -83,8 +83,10 @@ hr {
 }
 
 .manual-page__filters {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: nowrap;
   gap: 0.75rem;
   padding: 0.85rem;
   border-radius: 10px;
@@ -98,11 +100,12 @@ label {
   gap: 0.45rem;
   font-size: 0.875rem;
   color: #d4edf6;
+  flex: 0 0 auto;
 }
 
 input,
 select {
-  flex: 1;
+  width: 220px;
   border: 1px solid rgba(143, 215, 236, 0.4);
   border-radius: 8px;
   background: #0f2b45;
@@ -118,6 +121,8 @@ button {
   font-weight: 700;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
+  margin-left: auto;
+  width: auto;
 }
 
 .page-header {

@@ -868,8 +868,12 @@ select {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-top: 0.8rem;
+  align-self: start;
+  position: sticky;
+  top: 50vh;
+  transform: translateY(-50%);
   gap: 0.5rem;
+  z-index: 5;
 }
 
 button {
