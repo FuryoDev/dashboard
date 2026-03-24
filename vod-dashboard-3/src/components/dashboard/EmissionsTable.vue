@@ -159,16 +159,9 @@
                   )
                 "
               >{{
-                  String(item.recordStatusTranscodageItem?.useCase ?? "")
+                  getTranscodeProgressLabel(item)
                 }}</span
               >
-          </td>
-          <td>
-            {{
-              String(
-                  item.recordStatusTranscodageItem?.transcodeProgress ?? ""
-              )
-            }}
           </td>
           <td>
               <span
@@ -449,6 +442,7 @@ import {createEmissionsApi} from "@/services/emissions.api";
 import {useHttp} from "@/composables/useHttp";
 import {formatReadableDate, formatReadableDateWithMs} from "@/utils/date";
 import {getStatusClass} from "@/utils/status";
+import {useUserStore} from "@/stores/user.store";
 import logoLaUne from "@/assets/images/logo/LOGO_LAUNE_RVB_26.svg";
 import logoTipik from "@/assets/images/logo/LOGO_TIPIK_26.svg";
 import logoAuvio from "@/assets/images/logo/LOGO_AUVIO_SVG_26.svg";
@@ -469,6 +463,7 @@ const emit = defineEmits<{
 }>();
 
 const emissionsStore = useEmissionsStore();
+const userStore = useUserStore();
 const emissionsApi = createEmissionsApi(useHttp("emissions-table.actions"));
 
 type SortDirection = "asc" | "desc";
@@ -485,7 +480,6 @@ type ColumnKey =
     | "delai"
     | "par"
     | "transcodage"
-    | "progress"
     | "publication"
     | "datePublication"
     | "pad";
@@ -510,7 +504,6 @@ const columns: Array<{ key: ColumnKey; label: string }> = [
   {key: "delai", label: "Délai"},
   {key: "par", label: "Par"},
   {key: "transcodage", label: "Statut transcodage"},
-  {key: "progress", label: "% transcod."},
   {key: "publication", label: "Publication"},
   {key: "datePublication", label: "Date publication"},
   {key: "pad", label: "PAD"},
@@ -529,7 +522,6 @@ const columnWidths = reactive<Record<ColumnKey, number>>({
   delai: 70,
   par: 70,
   transcodage: 170,
-  progress: 95,
   publication: 130,
   datePublication: 170,
   pad: 90,
@@ -1236,12 +1228,20 @@ function filterOptionLabel(option: string) {
 function isFilterableColumn(key: ColumnKey) {
   return (
       key === "channel" ||
-      key === "vodType" ||
+      (key === "vodType" && userStore.isAdmin) ||
       key === "plateforme" ||
       key === "traitement" ||
       key === "transcodage" ||
       key === "publication"
   );
+}
+
+function getTranscodeProgressLabel(item: Emission): string {
+  const progress = item.recordStatusTranscodageItem?.transcodeProgress;
+  if (progress === null || progress === undefined || progress === "") {
+    return String(item.recordStatusTranscodageItem?.useCase ?? "");
+  }
+  return `${String(progress)}%`;
 }
 
 function isFilterMenuOpen(key: ColumnKey) {
@@ -1341,8 +1341,6 @@ function sortValue(item: Emission, key: ColumnKey): string | number {
     case "par":
       return String(item.recordStatusTraitementItem?.createdBy ?? "");
     case "transcodage":
-      return String(item.recordStatusTranscodageItem?.useCase ?? "");
-    case "progress":
       return Number(item.recordStatusTranscodageItem?.transcodeProgress ?? -1);
     case "publication":
       return String(item.recordStatusPublicationItem?.useCase ?? "");
