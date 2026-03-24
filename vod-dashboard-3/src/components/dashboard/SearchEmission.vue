@@ -19,13 +19,6 @@
         <input v-model="date" type="date"/>
       </label>
     </div>
-    <fieldset class="status-diff-container">
-      <legend class="filter-label-status">Statut diffusion</legend>
-      <label v-for="status in statusOptions" :key="status.value" class="checkbox-inline">
-        <input v-model="selectedStatuses" type="checkbox" :value="status.value"/> {{ status.label }}
-      </label>
-    </fieldset>
-
     <div class="search-form__actions search-form__actions--compact">
       <div class="search-button-container">
         <button type="submit">Rechercher</button>
@@ -38,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
+import {computed, ref, watch} from "vue";
 import type {OptionItem} from "@/services/notification.api";
 import {useUserStore} from "@/stores/user.store";
 
@@ -51,7 +44,6 @@ const emit = defineEmits<{
   search: [
     payload: {
       date: Date;
-      statuses: string[];
       vodTypes?: string[];
     },
   ];
@@ -61,8 +53,6 @@ const emit = defineEmits<{
 
 const date = ref(props.initialDate ?? new Date().toISOString().slice(0, 10));
 const selectedVodType = ref("");
-const selectedStatuses = ref<string[]>([]);
-const vodTypeMenuOpen = ref(false);
 const userStore = useUserStore();
 
 const canSelectVodType = computed(() => userStore.canSelectVodType);
@@ -104,15 +94,6 @@ const forcedVodType = computed(() => {
   return resolveForcedVodType(props.vodTypes);
 });
 const effectiveVodType = computed(() => forcedVodType.value || selectedVodType.value);
-const statusOptions = [
-  {value: "PREVU", label: "PREVU"},
-  {value: "attente", label: "EN_ATTENTE"},
-  {value: "EN_COURS", label: "EN_COURS"},
-  {value: "TERMINE", label: "TERMINE"},
-  {value: "Publié", label: "PUBLIE"},
-  {value: "ECHEC", label: "ECHEC"},
-];
-
 
 watch(
     () => props.initialDate,
@@ -140,36 +121,6 @@ watch(
     {immediate: true},
 );
 
-function handleGlobalPointer() {
-  vodTypeMenuOpen.value = false;
-}
-
-onMounted(() => {
-  window.addEventListener("click", handleGlobalPointer);
-  window.addEventListener("scroll", handleGlobalPointer);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("click", handleGlobalPointer);
-  window.removeEventListener("scroll", handleGlobalPointer);
-});
-
-function toggleVodTypeMenu() {
-  vodTypeMenuOpen.value = !vodTypeMenuOpen.value;
-}
-
-function toggleVodType(value: string) {
-  if (selectedVodTypes.value.includes(value)) {
-    selectedVodTypes.value = selectedVodTypes.value.filter((item) => item !== value);
-  } else {
-    selectedVodTypes.value = [...selectedVodTypes.value, value];
-  }
-}
-
-function clearVodTypeFilter() {
-  selectedVodTypes.value = [];
-}
-
 function submit() {
   const [year, month, day] = date.value.split("-").map(Number);
   const vodTypes = effectiveVodType.value ? [effectiveVodType.value] : [];
@@ -177,15 +128,12 @@ function submit() {
   emit("date-change", date.value);
   emit("search", {
     date: new Date(year, month - 1, day),
-    statuses: selectedStatuses.value,
     vodTypes: vodTypes.length ? vodTypes : undefined,
   });
-  vodTypeMenuOpen.value = false;
 }
 
 function reset() {
   selectedVodType.value = forcedVodType.value || "";
-  selectedStatuses.value = [];
   submit();
 }
 </script>
