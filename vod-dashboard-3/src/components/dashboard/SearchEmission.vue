@@ -77,13 +77,13 @@ function resolveForcedVodType(vodTypes: OptionItem[]): string {
       });
 
   if (userStore.hasFastTvGroup) {
-    const fastType = findByMatchers([/FAST/]);
-    if (fastType) return fastType;
+    const catchupType = findByMatchers([/CATCH/, /CATCHUP/, /FVOD/]);
+    if (catchupType) return catchupType;
   }
 
   if (userStore.hasVodUsersGroup) {
-    const catchupType = findByMatchers([/CATCH/, /CATCHUP/, /FVOD/]);
-    if (catchupType) return catchupType;
+    const fastType = findByMatchers([/FAST/]);
+    if (fastType) return fastType;
   }
 
   return "";
