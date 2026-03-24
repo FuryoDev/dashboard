@@ -166,7 +166,12 @@
                   <input v-model="(item as Record<string, unknown>).orderseg" class="order-input" type="number"/>
                 </template>
                 <template v-else-if="column.key === 'status'">
-                  <span :class="getStatusClass(String(item.status ?? ''))">{{ String(item.status ?? "") }}</span>
+                  <span
+                      v-if="String(item.status ?? '').trim().length > 0"
+                      :class="getStatusClass(String(item.status ?? ''))"
+                  >
+                    {{ String(item.status ?? "") }}
+                  </span>
                 </template>
                 <template v-else>
                   {{ String(item[column.key] ?? "") }}

@@ -4,6 +4,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const SUCCESS_KEYWORDS = [
+    "SUCCESS",
     "ACCOMPLI",
     "TERMINE",
     "TERMINÉ",
@@ -20,6 +21,7 @@ const SUCCESS_KEYWORDS = [
 const IN_PROGRESS_KEYWORDS = ["EN_COURS", "EN COURS"];
 
 const WARNING_KEYWORDS = [
+    "WARNING",
     "ATTENTE",
     "PREVU",
     "PRÉVU",
@@ -36,7 +38,7 @@ const WARNING_KEYWORDS = [
     "XML INVALIDE",
 ];
 
-const ERROR_KEYWORDS = ["ECHEC", "ÉCHEC", "ERREUR", "FAIL", "BLOQUE", "BLOQUÉ", "KO"];
+const ERROR_KEYWORDS = ["ERROR", "ECHEC", "ÉCHEC", "ERREUR", "FAIL", "BLOQUE", "BLOQUÉ", "KO"];
 
 export function getStatusLabel(status?: string): string {
     if (!status) return "";
