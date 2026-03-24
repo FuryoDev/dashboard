@@ -172,6 +172,7 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .diva-monitoring {
   color: #d4edf6;
+  padding: 0.5rem;
 }
 
 .diva-monitoring__header {
