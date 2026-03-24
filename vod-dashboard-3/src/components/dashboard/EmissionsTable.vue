@@ -570,10 +570,49 @@ const actionModalSortState = ref<{
   key: ActionModalColumnKey;
   direction: SortDirection;
 } | null>(null);
-const openedFilterMenu = ref<"channel" | "vodType" | "plateforme" | null>(null);
+type FilterableColumnKey =
+    | "channel"
+    | "vodType"
+    | "plateforme"
+    | "traitement"
+    | "transcodage"
+    | "publication";
+
+const openedFilterMenu = ref<FilterableColumnKey | null>(null);
 const selectedChannelFilters = ref<string[]>([]);
 const selectedVodTypeFilters = ref<string[]>([]);
 const selectedPlatformFilters = ref<string[]>([]);
+const selectedTraitementFilters = ref<string[]>([]);
+const selectedTranscodageFilters = ref<string[]>([]);
+const selectedPublicationFilters = ref<string[]>([]);
+
+const diffusionStatusFilterOptions = [
+  "PREVU",
+  "EN_ATTENTE",
+  "EN_COURS",
+  "TERMINE",
+  "PUBLIE",
+  "ECHEC",
+] as const;
+type DiffusionStatusFilterOption = (typeof diffusionStatusFilterOptions)[number];
+
+const diffusionStatusFilterByColumn: Record<
+    "traitement" | "transcodage" | "publication",
+    DiffusionStatusFilterOption[]
+> = {
+  traitement: ["PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "ECHEC"],
+  transcodage: ["PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "ECHEC"],
+  publication: ["EN_ATTENTE", "EN_COURS", "PUBLIE", "ECHEC"],
+};
+
+const diffusionStatusNeedles: Record<DiffusionStatusFilterOption, string> = {
+  PREVU: "PREVU",
+  EN_ATTENTE: "ATTENTE",
+  EN_COURS: "EN_COURS",
+  TERMINE: "TERMINE",
+  PUBLIE: "PUBLIE",
+  ECHEC: "ECHEC",
+};
 
 const actionModalColumns = computed<
     Array<{ key: ActionModalColumnKey; label: string }>
@@ -668,12 +707,14 @@ const availableVodTypes = computed(() =>
             .filter(Boolean)
     )
 );
-
 const filteredEmissions = computed(() => {
   return props.emissions.filter((item) => {
     const channel = String(item.channel ?? "").trim();
     const vodType = String(item.vodType ?? "").trim();
     const platform = firstPlatform(item).trim();
+    const traitement = String(item.recordStatusTraitementItem?.useCase ?? "").trim();
+    const transcodage = String(item.recordStatusTranscodageItem?.useCase ?? "").trim();
+    const publication = String(item.recordStatusPublicationItem?.useCase ?? "").trim();
 
     const matchChannel =
         selectedChannelFilters.value.length === 0 ||
@@ -684,8 +725,27 @@ const filteredEmissions = computed(() => {
     const matchPlatform =
         selectedPlatformFilters.value.length === 0 ||
         selectedPlatformFilters.value.includes(platform);
+    const matchTraitement = matchesDiffusionStatuses(
+        traitement,
+        selectedTraitementFilters.value
+    );
+    const matchTranscodage = matchesDiffusionStatuses(
+        transcodage,
+        selectedTranscodageFilters.value
+    );
+    const matchPublication = matchesDiffusionStatuses(
+        publication,
+        selectedPublicationFilters.value
+    );
 
-    return matchChannel && matchVodType && matchPlatform;
+    return (
+        matchChannel &&
+        matchVodType &&
+        matchPlatform &&
+        matchTraitement &&
+        matchTranscodage &&
+        matchPublication
+    );
   });
 });
 
@@ -1143,8 +1203,34 @@ function uniqueValues(values: string[]) {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b, "fr"));
 }
 
+function normalizeStatus(status: string) {
+  return status
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase();
+}
+
+function matchesDiffusionStatuses(statusValue: string, selectedFilters: string[]) {
+  if (selectedFilters.length === 0) return true;
+
+  const normalizedStatus = normalizeStatus(statusValue);
+  return selectedFilters.some((filterLabel) => {
+    const expectedNeedle =
+        diffusionStatusNeedles[filterLabel as DiffusionStatusFilterOption];
+    if (!expectedNeedle) return false;
+    return normalizedStatus.includes(expectedNeedle);
+  });
+}
+
 function isFilterableColumn(key: ColumnKey) {
-  return key === "channel" || key === "vodType" || key === "plateforme";
+  return (
+      key === "channel" ||
+      key === "vodType" ||
+      key === "plateforme" ||
+      key === "traitement" ||
+      key === "transcodage" ||
+      key === "publication"
+  );
 }
 
 function isFilterMenuOpen(key: ColumnKey) {
@@ -1160,12 +1246,18 @@ function filterOptions(key: ColumnKey) {
   if (key === "channel") return availableChannels.value;
   if (key === "vodType") return availableVodTypes.value;
   if (key === "plateforme") return availablePlatforms.value;
+  if (key === "traitement") return [...diffusionStatusFilterByColumn.traitement];
+  if (key === "transcodage") return [...diffusionStatusFilterByColumn.transcodage];
+  if (key === "publication") return [...diffusionStatusFilterByColumn.publication];
   return [];
 }
 
 function filterSelectionRef(key: ColumnKey) {
   if (key === "channel") return selectedChannelFilters;
   if (key === "vodType") return selectedVodTypeFilters;
+  if (key === "traitement") return selectedTraitementFilters;
+  if (key === "transcodage") return selectedTranscodageFilters;
+  if (key === "publication") return selectedPublicationFilters;
   return selectedPlatformFilters;
 }
 
