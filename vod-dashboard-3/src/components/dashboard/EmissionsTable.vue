@@ -68,7 +68,7 @@
                       :checked="isFilterOptionSelected(column.key, option)"
                       @change="toggleFilterOption(column.key, option)"
                   />
-                  {{ option }}
+                  {{ filterOptionLabel(option) }}
                 </label>
                 <button
                     type="button"
@@ -587,6 +587,7 @@ const selectedTranscodageFilters = ref<string[]>([]);
 const selectedPublicationFilters = ref<string[]>([]);
 
 const diffusionStatusFilterOptions = [
+  "PAS_DE_STATUT",
   "PREVU",
   "EN_ATTENTE",
   "EN_COURS",
@@ -600,12 +601,13 @@ const diffusionStatusFilterByColumn: Record<
     "traitement" | "transcodage" | "publication",
     DiffusionStatusFilterOption[]
 > = {
-  traitement: ["PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "ECHEC"],
-  transcodage: ["PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "ECHEC"],
-  publication: ["EN_ATTENTE", "EN_COURS", "PUBLIE", "ECHEC"],
+  traitement: ["PAS_DE_STATUT", "PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "ECHEC"],
+  transcodage: ["PAS_DE_STATUT", "PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "ECHEC"],
+  publication: ["PAS_DE_STATUT", "EN_ATTENTE", "EN_COURS", "PUBLIE", "ECHEC"],
 };
 
 const diffusionStatusNeedles: Record<DiffusionStatusFilterOption, string> = {
+  PAS_DE_STATUT: "",
   PREVU: "PREVU",
   EN_ATTENTE: "ATTENTE",
   EN_COURS: "EN_COURS",
@@ -1213,13 +1215,22 @@ function normalizeStatus(status: string) {
 function matchesDiffusionStatuses(statusValue: string, selectedFilters: string[]) {
   if (selectedFilters.length === 0) return true;
 
-  const normalizedStatus = normalizeStatus(statusValue);
+  const normalizedStatus = normalizeStatus(statusValue).trim();
+  const wantsEmptyStatus = selectedFilters.includes("PAS_DE_STATUT");
+  if (wantsEmptyStatus && !normalizedStatus) return true;
+
   return selectedFilters.some((filterLabel) => {
+    if (filterLabel === "PAS_DE_STATUT") return false;
     const expectedNeedle =
         diffusionStatusNeedles[filterLabel as DiffusionStatusFilterOption];
     if (!expectedNeedle) return false;
     return normalizedStatus.includes(expectedNeedle);
   });
+}
+
+function filterOptionLabel(option: string) {
+  if (option === "PAS_DE_STATUT") return "Pas de statut";
+  return option;
 }
 
 function isFilterableColumn(key: ColumnKey) {
