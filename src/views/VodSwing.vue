@@ -87,12 +87,16 @@ export default {
         .then(
           (result) => {
             result.data.forEach((elt) => {
+              if (Object.keys(elt)[0] === "NONLINEAIRE") return;
               let newelt = {
                 value: Object.keys(elt)[0],
                 text: Object.values(elt)[0],
               };
               this.optionchaineList.push(newelt);
             });
+            if (!this.choosedchainedif || this.choosedchainedif === "NONLINEAIRE") {
+              this.choosedchainedif = "LAUNE";
+            }
           },
           (error) => {
             console.error(error);

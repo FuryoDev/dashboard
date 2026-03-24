@@ -76,12 +76,15 @@ function resolveForcedVodType(vodTypes: OptionItem[]): string {
         return matchers.some((matcher) => matcher.test(normalized));
       });
 
-  if (userStore.hasFastTvGroup) {
+  // Règles métier:
+  // - GR_vodoo_users => CATCH
+  // - GR_vodoo_fasttv => FAST
+  if (userStore.hasVodUsersGroup) {
     const catchupType = findByMatchers([/CATCH/, /CATCHUP/, /FVOD/]);
     if (catchupType) return catchupType;
   }
 
-  if (userStore.hasVodUsersGroup) {
+  if (userStore.hasFastTvGroup) {
     const fastType = findByMatchers([/FAST/]);
     if (fastType) return fastType;
   }

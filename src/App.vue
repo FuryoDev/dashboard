@@ -4,7 +4,11 @@
       <b-icon icon="person-fill"></b-icon> {{ name }}
     </div>
 
-    <router-view></router-view>
+    <router-view v-slot="{ Component }">
+      <keep-alive include="dashboard,Vodswing">
+        <component :is="Component" />
+      </keep-alive>
+    </router-view>
   </div>
 </template>
 

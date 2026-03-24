@@ -44,7 +44,8 @@ export const usePlaylistOffersStore = defineStore("playlistOffers", {
             this.loading = true;
             this.error = null;
             try {
-                this.channels = await createNotificationApi(useHttp("playlist.fetchChannels")).listChannels();
+                const channels = await createNotificationApi(useHttp("playlist.fetchChannels")).listChannels();
+                this.channels = channels.filter((channel) => String(channel.value ?? "") !== "NONLINEAIRE");
             } catch (e: unknown) {
                 this.error = toDetailedError(e, "Vod Manuel > Chargement chaines (notification/service/chaines)");
             } finally {
