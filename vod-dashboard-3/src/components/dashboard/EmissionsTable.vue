@@ -586,6 +586,24 @@ const selectedTraitementFilters = ref<string[]>([]);
 const selectedTranscodageFilters = ref<string[]>([]);
 const selectedPublicationFilters = ref<string[]>([]);
 
+const diffusionStatusFilterOptions = [
+  "PREVU",
+  "EN_ATTENTE",
+  "EN_COURS",
+  "TERMINE",
+  "PUBLIE",
+  "ECHEC",
+] as const;
+
+const diffusionStatusNeedles: Record<(typeof diffusionStatusFilterOptions)[number], string> = {
+  PREVU: "PREVU",
+  EN_ATTENTE: "ATTENTE",
+  EN_COURS: "EN_COURS",
+  TERMINE: "TERMINE",
+  PUBLIE: "PUBLIE",
+  ECHEC: "ECHEC",
+};
+
 const actionModalColumns = computed<
     Array<{ key: ActionModalColumnKey; label: string }>
 >(() => {
@@ -679,28 +697,6 @@ const availableVodTypes = computed(() =>
             .filter(Boolean)
     )
 );
-const availableTraitements = computed(() =>
-    uniqueValues(
-        props.emissions
-            .map((item) => String(item.recordStatusTraitementItem?.useCase ?? "").trim())
-            .filter(Boolean)
-    )
-);
-const availableTranscodages = computed(() =>
-    uniqueValues(
-        props.emissions
-            .map((item) => String(item.recordStatusTranscodageItem?.useCase ?? "").trim())
-            .filter(Boolean)
-    )
-);
-const availablePublications = computed(() =>
-    uniqueValues(
-        props.emissions
-            .map((item) => String(item.recordStatusPublicationItem?.useCase ?? "").trim())
-            .filter(Boolean)
-    )
-);
-
 const filteredEmissions = computed(() => {
   return props.emissions.filter((item) => {
     const channel = String(item.channel ?? "").trim();
@@ -719,15 +715,18 @@ const filteredEmissions = computed(() => {
     const matchPlatform =
         selectedPlatformFilters.value.length === 0 ||
         selectedPlatformFilters.value.includes(platform);
-    const matchTraitement =
-        selectedTraitementFilters.value.length === 0 ||
-        selectedTraitementFilters.value.includes(traitement);
-    const matchTranscodage =
-        selectedTranscodageFilters.value.length === 0 ||
-        selectedTranscodageFilters.value.includes(transcodage);
-    const matchPublication =
-        selectedPublicationFilters.value.length === 0 ||
-        selectedPublicationFilters.value.includes(publication);
+    const matchTraitement = matchesDiffusionStatuses(
+        traitement,
+        selectedTraitementFilters.value
+    );
+    const matchTranscodage = matchesDiffusionStatuses(
+        transcodage,
+        selectedTranscodageFilters.value
+    );
+    const matchPublication = matchesDiffusionStatuses(
+        publication,
+        selectedPublicationFilters.value
+    );
 
     return (
         matchChannel &&
@@ -1194,6 +1193,27 @@ function uniqueValues(values: string[]) {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b, "fr"));
 }
 
+function normalizeStatus(status: string) {
+  return status
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase();
+}
+
+function matchesDiffusionStatuses(statusValue: string, selectedFilters: string[]) {
+  if (selectedFilters.length === 0) return true;
+
+  const normalizedStatus = normalizeStatus(statusValue);
+  return selectedFilters.some((filterLabel) => {
+    const expectedNeedle =
+        diffusionStatusNeedles[
+            filterLabel as (typeof diffusionStatusFilterOptions)[number]
+        ];
+    if (!expectedNeedle) return false;
+    return normalizedStatus.includes(expectedNeedle);
+  });
+}
+
 function isFilterableColumn(key: ColumnKey) {
   return (
       key === "channel" ||
@@ -1218,9 +1238,9 @@ function filterOptions(key: ColumnKey) {
   if (key === "channel") return availableChannels.value;
   if (key === "vodType") return availableVodTypes.value;
   if (key === "plateforme") return availablePlatforms.value;
-  if (key === "traitement") return availableTraitements.value;
-  if (key === "transcodage") return availableTranscodages.value;
-  if (key === "publication") return availablePublications.value;
+  if (key === "traitement") return [...diffusionStatusFilterOptions];
+  if (key === "transcodage") return [...diffusionStatusFilterOptions];
+  if (key === "publication") return [...diffusionStatusFilterOptions];
   return [];
 }
 
