@@ -8,17 +8,17 @@
 
     <form class="manual-page__filters" @submit.prevent="search">
       <label>
-        Date
-        <input v-model="selectedDate" type="date"/>
-      </label>
-
-      <label>
         Chaine de diffusion
         <select v-model="selectedChannel">
           <option v-for="channel in channels" :key="channel.value" :value="channel.value">
             {{ channel.text }}
           </option>
         </select>
+      </label>
+
+      <label>
+        Date
+        <input v-model="selectedDate" type="date"/>
       </label>
 
       <button type="submit">Rechercher</button>
@@ -42,7 +42,7 @@ const appStore = useAppStore();
 const {channels} = storeToRefs(playlistStore);
 
 const selectedDate = ref(appStore.sharedDate || new Date().toISOString().slice(0, 10));
-const selectedChannel = ref("LAUNE");
+const selectedChannel = ref(playlistStore.searchCriteria.chaine || "LAUNE");
 
 watch(selectedDate, (value) => {
   appStore.setSharedDate(value);
@@ -61,7 +61,8 @@ async function search() {
 onMounted(async () => {
   await playlistStore.fetchChannels();
   if (channels.value.length > 0) {
-    selectedChannel.value = channels.value[0].value;
+    const laUne = channels.value.find((channel) => channel.value === "LAUNE");
+    selectedChannel.value = laUne?.value ?? channels.value[0].value;
   }
   await search();
 });
@@ -82,8 +83,10 @@ hr {
 }
 
 .manual-page__filters {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: nowrap;
   gap: 0.75rem;
   padding: 0.85rem;
   border-radius: 10px;
@@ -97,11 +100,12 @@ label {
   gap: 0.45rem;
   font-size: 0.875rem;
   color: #d4edf6;
+  flex: 0 0 auto;
 }
 
 input,
 select {
-  flex: 1;
+  width: 88px;
   border: 1px solid rgba(143, 215, 236, 0.4);
   border-radius: 8px;
   background: #0f2b45;
@@ -117,6 +121,8 @@ button {
   font-weight: 700;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
+  margin-left: auto;
+  width: auto;
 }
 
 .page-header {

@@ -48,7 +48,7 @@
     <div class="right-column">
       <div class="panel">
         <header class="panel__header">Séquences sélectionnées</header>
-        <div class="panel__body table-wrap">
+        <div class="panel__body table-wrap table-wrap--no-limit">
           <table>
             <thead>
             <tr>
@@ -129,7 +129,7 @@
           <button type="button" @click="loadMediaList">Actualiser</button>
         </div>
 
-        <div class="panel__body table-wrap">
+        <div class="panel__body table-wrap table-wrap--no-limit">
           <table>
             <thead>
             <tr>
@@ -360,7 +360,11 @@ const plannedProducts = ref<Array<Record<string, any>>>([]);
 const selectedPlannedProductIndexes = ref(new Set<number>());
 const selectedPlannedProductAnchor = ref<number | null>(null);
 const reconciliationDate = ref(appStore.sharedDate);
-const reconciliationChannel = ref(playlistStore.searchCriteria.chaine || "LAUNE");
+const reconciliationChannel = ref(
+    playlistStore.searchCriteria.chaine && playlistStore.searchCriteria.chaine !== "NONLINEAIRE"
+        ? playlistStore.searchCriteria.chaine
+        : "LAUNE",
+);
 const selectedReconciliationItem = computed<Record<string, any> | null>(() => {
   if (openFromRepertory.value) return selectedRepertoryRows()[0] ?? null;
   return selectedAssignedItem.value;
@@ -395,7 +399,10 @@ function openReconciliationModal() {
   if (!canReconcile.value) return;
   openFromRepertory.value = false;
   reconciliationDate.value = appStore.sharedDate;
-  reconciliationChannel.value = playlistStore.searchCriteria.chaine || "LAUNE";
+  reconciliationChannel.value =
+      playlistStore.searchCriteria.chaine && playlistStore.searchCriteria.chaine !== "NONLINEAIRE"
+          ? playlistStore.searchCriteria.chaine
+          : "LAUNE";
   plannedProducts.value = [];
   selectedPlannedProductIndexes.value.clear();
   selectedPlannedProductAnchor.value = null;
@@ -561,7 +568,10 @@ function showReconciliationScreen() {
   closeMediaContextMenu();
   openFromRepertory.value = true;
   reconciliationDate.value = appStore.sharedDate;
-  reconciliationChannel.value = playlistStore.searchCriteria.chaine || "LAUNE";
+  reconciliationChannel.value =
+      playlistStore.searchCriteria.chaine && playlistStore.searchCriteria.chaine !== "NONLINEAIRE"
+          ? playlistStore.searchCriteria.chaine
+          : "LAUNE";
   plannedProducts.value = [];
   selectedPlannedProductIndexes.value.clear();
   selectedPlannedProductAnchor.value = null;
@@ -756,6 +766,9 @@ async function decoupeTranscodeFromRepertory() {
 
 onMounted(async () => {
   document.addEventListener("click", closeMediaContextMenu);
+  if (reconciliationChannel.value === "NONLINEAIRE") {
+    reconciliationChannel.value = "LAUNE";
+  }
   await loadMediaList();
 });
 
@@ -799,6 +812,11 @@ onBeforeUnmount(() => {
 .table-wrap {
   max-height: 42vh;
   overflow: auto;
+}
+
+.table-wrap--no-limit {
+  max-height: none;
+  overflow: visible;
 }
 
 table {
@@ -850,8 +868,12 @@ select {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-top: 0.8rem;
+  align-self: start;
+  position: sticky;
+  top: 50vh;
+  transform: translateY(-50%);
   gap: 0.5rem;
+  z-index: 5;
 }
 
 button {
@@ -948,16 +970,24 @@ button:disabled {
 }
 
 .selected-element__filters {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto auto;
-  align-items: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 0.65rem;
 }
 
 .selected-element__filters label {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   color: #ffffff;
+}
+
+.selected-element__filters label select,
+.selected-element__filters label input[type="date"] {
+  min-width: 170px;
+  width: auto;
 }
 
 
