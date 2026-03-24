@@ -126,7 +126,7 @@
               </option>
             </select>
           </label>
-          <button type="button" @click="loadMediaList">⟳</button>
+          <button type="button" @click="loadMediaList">Actualiser</button>
         </div>
 
         <div class="panel__body table-wrap">
@@ -825,11 +825,11 @@ table {
 }
 
 .order-column {
-  min-width: 7.5rem;
+  min-width: 3.2m;
 }
 
 .order-input {
-  min-width: 6.2rem;
+  min-width: 3.2rem;
 }
 
 .selected {
