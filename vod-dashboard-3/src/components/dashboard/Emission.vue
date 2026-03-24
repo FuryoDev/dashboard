@@ -42,7 +42,7 @@ const appStore = useAppStore();
 const {channels} = storeToRefs(playlistStore);
 
 const selectedDate = ref(appStore.sharedDate || new Date().toISOString().slice(0, 10));
-const selectedChannel = ref("LAUNE");
+const selectedChannel = ref(playlistStore.searchCriteria.chaine || "LAUNE");
 
 watch(selectedDate, (value) => {
   appStore.setSharedDate(value);
@@ -61,7 +61,8 @@ async function search() {
 onMounted(async () => {
   await playlistStore.fetchChannels();
   if (channels.value.length > 0) {
-    selectedChannel.value = channels.value[0].value;
+    const laUne = channels.value.find((channel) => channel.value === "LAUNE");
+    selectedChannel.value = laUne?.value ?? channels.value[0].value;
   }
   await search();
 });

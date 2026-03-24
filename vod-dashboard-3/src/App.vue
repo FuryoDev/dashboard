@@ -9,13 +9,26 @@
     </header>
 
     <main class="app-shell__content">
-      <RouterView/>
+      <RouterView v-slot="{ Component, route }">
+        <KeepAlive>
+          <component
+              :is="Component"
+              v-if="route.path === '/' || route.path === '/vodmanuel'"
+              :key="route.path"
+          />
+        </KeepAlive>
+        <component
+            :is="Component"
+            v-if="route.path !== '/' && route.path !== '/vodmanuel'"
+            :key="route.path"
+        />
+      </RouterView>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, inject, onMounted, onUnmounted, watch} from "vue";
+import {computed, inject, KeepAlive, onMounted, onUnmounted, watch} from "vue";
 import {RouterView} from "vue-router";
 import HeaderMenu from "@/components/common/HeaderMenu.vue";
 import {useUserStore} from "@/stores/user.store";
