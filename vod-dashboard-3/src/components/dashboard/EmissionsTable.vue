@@ -594,8 +594,18 @@ const diffusionStatusFilterOptions = [
   "PUBLIE",
   "ECHEC",
 ] as const;
+type DiffusionStatusFilterOption = (typeof diffusionStatusFilterOptions)[number];
 
-const diffusionStatusNeedles: Record<(typeof diffusionStatusFilterOptions)[number], string> = {
+const diffusionStatusFilterByColumn: Record<
+    "traitement" | "transcodage" | "publication",
+    DiffusionStatusFilterOption[]
+> = {
+  traitement: ["PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "ECHEC"],
+  transcodage: ["PREVU", "EN_ATTENTE", "EN_COURS", "TERMINE", "ECHEC"],
+  publication: ["EN_ATTENTE", "EN_COURS", "PUBLIE", "ECHEC"],
+};
+
+const diffusionStatusNeedles: Record<DiffusionStatusFilterOption, string> = {
   PREVU: "PREVU",
   EN_ATTENTE: "ATTENTE",
   EN_COURS: "EN_COURS",
@@ -1206,9 +1216,7 @@ function matchesDiffusionStatuses(statusValue: string, selectedFilters: string[]
   const normalizedStatus = normalizeStatus(statusValue);
   return selectedFilters.some((filterLabel) => {
     const expectedNeedle =
-        diffusionStatusNeedles[
-            filterLabel as (typeof diffusionStatusFilterOptions)[number]
-        ];
+        diffusionStatusNeedles[filterLabel as DiffusionStatusFilterOption];
     if (!expectedNeedle) return false;
     return normalizedStatus.includes(expectedNeedle);
   });
@@ -1238,9 +1246,9 @@ function filterOptions(key: ColumnKey) {
   if (key === "channel") return availableChannels.value;
   if (key === "vodType") return availableVodTypes.value;
   if (key === "plateforme") return availablePlatforms.value;
-  if (key === "traitement") return [...diffusionStatusFilterOptions];
-  if (key === "transcodage") return [...diffusionStatusFilterOptions];
-  if (key === "publication") return [...diffusionStatusFilterOptions];
+  if (key === "traitement") return [...diffusionStatusFilterByColumn.traitement];
+  if (key === "transcodage") return [...diffusionStatusFilterByColumn.transcodage];
+  if (key === "publication") return [...diffusionStatusFilterByColumn.publication];
   return [];
 }
 
