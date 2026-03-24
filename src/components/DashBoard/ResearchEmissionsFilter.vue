@@ -72,7 +72,7 @@
         </b-button>
         <br />
 
-        <router-link target="_blank" to="/vodmanuel">
+        <router-link to="/vodmanuel">
           <b-button
               variant="secondary"
               size="sm"
@@ -256,34 +256,44 @@ export default {
       const groups = this.normalizeGroups(user && user.groups);
 
       // Version PROD:
-      //return groups;
-
-      // Version LOCAL (décommenter pour tester en local):
-      return groups.includes("vodoo_api")
-        ? ["GR_vodoo_fasttv", "GR_vodoo_users", "GR_vodoo_admin"]
-         : groups;
+      return groups;
     },
 
     syncVodTypeFilter() {
       const userGroups = this.getCurrentUserGroups();
       const allVodTypes = Object.keys(this.vodTypeGroups);
 
+      // Priorité à la règle métier explicite (évite inversions backend)
+      const forcedVodTypesByGroup = {
+        GR_vodoo_fasttv: "FAST_TV",
+        GR_vodoo_users: "FVOD_CATCHUP",
+      };
+
       const availableVodTypes = this.isAdmin
           ? allVodTypes
           : allVodTypes.filter((vodType) => userGroups.includes(this.vodTypeGroups[vodType]));
 
-      this.optionVodTypeList = availableVodTypes.map((vodType) => ({
+      const forcedVodTypes = Object.entries(forcedVodTypesByGroup)
+          .filter(([groupName]) => userGroups.includes(groupName))
+          .map(([, vodType]) => vodType)
+          .filter((vodType) => allVodTypes.includes(vodType));
+
+      const effectiveVodTypes = this.isAdmin
+          ? availableVodTypes
+          : (forcedVodTypes.length > 0 ? forcedVodTypes : availableVodTypes);
+
+      this.optionVodTypeList = effectiveVodTypes.map((vodType) => ({
         value: vodType,
         text: this.getVodTypeText(vodType),
       }));
 
       // Règle: si un seul groupe => filtre invisible + vodType forcé
-      if (availableVodTypes.length === 1) {
-        this.searchemission.vodType = availableVodTypes[0];
+      if (effectiveVodTypes.length === 1) {
+        this.searchemission.vodType = effectiveVodTypes[0];
       } else {
         // admin ou multi-group : on laisse choisir.
         // si la valeur actuelle n'est pas permise, reset.
-        if (this.searchemission.vodType && !availableVodTypes.includes(this.searchemission.vodType)) {
+        if (this.searchemission.vodType && !effectiveVodTypes.includes(this.searchemission.vodType)) {
           this.searchemission.vodType = "";
         }
       }

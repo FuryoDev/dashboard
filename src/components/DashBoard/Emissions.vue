@@ -84,7 +84,7 @@
         </template>
         <template #cell(recordStatusTranscodageItem.useCase)="data">
           <div :class="getColorBgStatutTranscodage(data.value)">
-            <p>{{ data.value }}</p>
+            <p>{{ getTranscodeProgressLabel(data.item.recordStatusTranscodageItem) }}</p>
           </div>
         </template>
 
@@ -594,11 +594,6 @@ export default {
           sortable: true,
         },
         {
-          key: "recordStatusTranscodageItem.transcodeProgress",
-          label: "% transcod.",
-          sortable: true,
-        },
-        {
           key: "recordStatusPublicationItem.useCase",
           label: "Publication",
         },
@@ -925,6 +920,14 @@ export default {
           return "couleur-7";
       }
       return "couleur-4";
+    },
+    getTranscodeProgressLabel(recordStatusTranscodageItem) {
+      if (!recordStatusTranscodageItem) return "";
+      const progress = recordStatusTranscodageItem.transcodeProgress;
+      if (progress === null || progress === undefined || progress === "") {
+        return recordStatusTranscodageItem.useCase || "";
+      }
+      return `${progress}%`;
     },
 
     getStatutDecoupeTextFr(data) {
