@@ -133,12 +133,45 @@
           <table>
             <thead>
             <tr>
-              <th v-for="column in mediaColumns" :key="column.key">{{ column.label }}</th>
+              <th
+                  v-for="column in mediaColumns"
+                  :key="column.key"
+                  :class="{ 'order-column': column.key === 'orderseg' }"
+              >
+                {{ column.label }}
+              </th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, idx) in mediaList" :key="`${String(item.path ?? idx)}-${idx}`">
-              <td v-for="column in mediaColumns" :key="`${column.key}-${idx}`">{{ String(item[column.key] ?? "") }}</td>
+            <tr
+                v-for="(item, idx) in mediaList"
+                :key="`${String(item.path ?? idx)}-${idx}`"
+                :class="{ selected: selectedMediaIndexes.has(idx) }"
+                @click="onMediaRowClick(idx, $event)"
+                @contextmenu.prevent="onMediaRowContextMenu(idx, $event)"
+            >
+              <td
+                  v-for="column in mediaColumns"
+                  :key="`${column.key}-${idx}`"
+                  :class="{ 'order-column': column.key === 'orderseg' }"
+              >
+                <template v-if="column.key === 'reconcile' || column.key === 'transcod'">
+                  <span :class="['manual-status', `manual-status--${mediaIconState(item[column.key])}`]">
+                    <template v-if="mediaIconState(item[column.key]) === 'success'">✓</template>
+                    <template v-else-if="mediaIconState(item[column.key]) === 'error'">✕</template>
+                    <template v-else>•</template>
+                  </span>
+                </template>
+                <template v-else-if="column.key === 'orderseg'">
+                  <input v-model="(item as Record<string, unknown>).orderseg" class="order-input" type="number"/>
+                </template>
+                <template v-else-if="column.key === 'status'">
+                  <span :class="getStatusClass(String(item.status ?? ''))">{{ String(item.status ?? "") }}</span>
+                </template>
+                <template v-else>
+                  {{ String(item[column.key] ?? "") }}
+                </template>
+              </td>
             </tr>
             </tbody>
           </table>
@@ -157,7 +190,7 @@
           <div class="panel selected-element">
             <header class="panel__header">Element sélectionné</header>
             <div class="selected-element__content">
-              <p><strong>Titre :</strong> {{ selectedAssignedItem?.title ?? "" }}</p>
+              <p><strong>Titre :</strong> {{ selectedReconciliationItem?.title ?? "" }}</p>
               <div class="selected-element__filters">
                 <label>
                   Chaine:
@@ -171,7 +204,7 @@
                   Date:
                   <input v-model="reconciliationDate" type="date"/>
                 </label>
-                <p><strong>Duration :</strong> {{ selectedAssignedItem?.durationLabel ?? "" }}</p>
+                <p><strong>Duration :</strong> {{ selectedReconciliationItem?.durationLabel ?? "" }}</p>
                 <button type="button" @click="searchPlannedProducts">Rechercher</button>
               </div>
             </div>
@@ -220,16 +253,44 @@
         </footer>
       </section>
     </div>
+
+    <ul
+        v-if="isMediaContextMenuOpen"
+        class="context-menu"
+        :style="{ top: `${mediaContextMenuPosition.y}px`, left: `${mediaContextMenuPosition.x}px` }"
+    >
+      <li @click="showReconciliationScreen">Réconciliation des données</li>
+      <li @click="askToConfirmChoice">Demande de transcodage</li>
+      <li @click="copyPath">Copier le path du fichier</li>
+    </ul>
+
+    <div v-if="confirmPublication" class="modal-overlay" @click.self="confirmPublication = false">
+      <section class="publish-modal">
+        <h3>Transcodage avec/sans publication</h3>
+        <p>Vous voulez les publier ?</p>
+        <div class="publish-modal__content">
+          <div class="publish-modal__radios">
+            <label><input v-model="choicepubli" type="radio" value="oui"/> <span>Oui</span></label>
+            <label><input v-model="choicepubli" type="radio" value="non"/> <span>Non</span></label>
+          </div>
+          <div class="publish-modal__actions">
+            <button type="button" @click="decoupeTranscodeFromRepertory">Confirmer</button>
+            <button type="button" @click="confirmPublication = false">Annuler</button>
+          </div>
+        </div>
+      </section>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref} from "vue";
 import {storeToRefs} from "pinia";
 import {usePlaylistOffersStore} from "@/stores/playlist.offer";
 import {useHttp} from "@/composables/useHttp";
 import {useAppStore} from "@/stores/app.store";
 import type {PlaylistItem} from "@/types/domain";
+import {getStatusClass} from "@/utils/status";
 
 type AssignedItem = PlaylistItem & {
   reconcile?: string;
@@ -254,34 +315,29 @@ const repertoryOptions: RepertoryOption[] = [
 ];
 const selectedRepertory = ref<string>(repertoryOptions[0].value);
 const mediaList = ref<Array<Record<string, unknown>>>([]);
-
-const snipRecColumns: MediaColumn[] = [
-  {key: "mediaId", label: "MediaID"},
-  {key: "episodeId", label: "Episode"},
-  {key: "start", label: "Date de début"},
-  {key: "destination", label: "Path"},
+const mediaColumns: MediaColumn[] = [
+  {key: "reconcile", label: "Réconcilier"},
+  {key: "transcod", label: "Transcod"},
+  {key: "orderseg", label: "Ordre"},
   {key: "status", label: "Statut"},
-  {key: "progress", label: "Progression"},
-  {key: "title", label: "Titre"},
   {key: "filiere", label: "Filière"},
-  {key: "segment", label: "Seg"},
-  {key: "creation", label: "Création date"},
-  {key: "finishedDate", label: "Date de fin"},
-  {key: "chaine", label: "Chaîne"},
-];
-
-const stockColumns: MediaColumn[] = [
-  {key: "destination", label: "Path"},
+  {key: "chaine", label: "Chaine"},
   {key: "title", label: "Titre"},
+  {key: "episodeId", label: "Episode"},
+  {key: "mediaId", label: "MediaID"},
+  {key: "segment", label: "Seg"},
+  {key: "start", label: "Date de début"},
+  {key: "finishedDate", label: "Date de fin"},
   {key: "creation", label: "Création date"},
+  {key: "destination", label: "Path"},
 ];
-
-const mediaColumns = computed<MediaColumn[]>(() => {
-  if (selectedRepertory.value === "SnipRecLo" || selectedRepertory.value === "SnipRecHi") {
-    return snipRecColumns;
-  }
-  return stockColumns;
-});
+const selectedMediaIndexes = ref(new Set<number>());
+const selectedMediaAnchor = ref<number | null>(null);
+const isMediaContextMenuOpen = ref(false);
+const mediaContextMenuPosition = ref({x: 0, y: 0});
+const confirmPublication = ref(false);
+const choicepubli = ref<"oui" | "non">("oui");
+const openFromRepertory = ref(false);
 
 const assigned = computed(() => playlistStore.elementsToAssign as PlaylistItem[]);
 const assignedEnhanced = computed(() => assigned.value as AssignedItem[]);
@@ -300,6 +356,10 @@ const selectedPlannedProductIndexes = ref(new Set<number>());
 const selectedPlannedProductAnchor = ref<number | null>(null);
 const reconciliationDate = ref(appStore.sharedDate);
 const reconciliationChannel = ref(playlistStore.searchCriteria.chaine || "LAUNE");
+const selectedReconciliationItem = computed<Record<string, any> | null>(() => {
+  if (openFromRepertory.value) return selectedRepertoryRows()[0] ?? null;
+  return selectedAssignedItem.value;
+});
 
 function toggle(item: { traficId: string }) {
   if (selectedIds.value.has(item.traficId)) selectedIds.value.delete(item.traficId);
@@ -328,6 +388,7 @@ function removeSelected() {
 
 function openReconciliationModal() {
   if (!canReconcile.value) return;
+  openFromRepertory.value = false;
   reconciliationDate.value = appStore.sharedDate;
   reconciliationChannel.value = playlistStore.searchCriteria.chaine || "LAUNE";
   plannedProducts.value = [];
@@ -403,11 +464,22 @@ function onPlannedProductRowClick(index: number, event: MouseEvent) {
 }
 
 function confirmReconciliation() {
-  if (selectedPlannedProductIndexes.value.size === 0 || !selectedAssignedItem.value) return;
+  if (selectedPlannedProductIndexes.value.size === 0) return;
   const chosen = Array.from(selectedPlannedProductIndexes.value)
       .sort((left, right) => left - right)
       .map((index) => plannedProducts.value[index])
       .filter((entry): entry is Record<string, any> => Boolean(entry));
+  if (openFromRepertory.value) {
+    for (const index of selectedMediaIndexes.value) {
+      const row = mediaList.value[index];
+      if (!row) continue;
+      (row as Record<string, unknown>).lavadata = chosen;
+      (row as Record<string, unknown>).reconcile = "success";
+    }
+    isReconciliationModalOpen.value = false;
+    return;
+  }
+  if (!selectedAssignedItem.value) return;
   const current = [...assignedEnhanced.value];
 
   for (const item of current) {
@@ -426,6 +498,78 @@ function confirmReconciliation() {
 
   playlistStore.setElementsToAssign(current);
   isReconciliationModalOpen.value = false;
+}
+
+function onMediaRowClick(index: number, event: MouseEvent) {
+  if (event.shiftKey && selectedMediaAnchor.value !== null) {
+    const start = Math.min(selectedMediaAnchor.value, index);
+    const end = Math.max(selectedMediaAnchor.value, index);
+    const range = new Set<number>();
+    for (let i = start; i <= end; i += 1) range.add(i);
+    selectedMediaIndexes.value = range;
+    return;
+  }
+  if (event.ctrlKey || event.metaKey) {
+    const next = new Set(selectedMediaIndexes.value);
+    if (next.has(index)) next.delete(index);
+    else next.add(index);
+    selectedMediaIndexes.value = next;
+    selectedMediaAnchor.value = index;
+    return;
+  }
+  selectedMediaIndexes.value = new Set([index]);
+  selectedMediaAnchor.value = index;
+}
+
+function onMediaRowContextMenu(index: number, event: MouseEvent) {
+  if (!selectedMediaIndexes.value.has(index)) {
+    selectedMediaIndexes.value = new Set([index]);
+    selectedMediaAnchor.value = index;
+  }
+  mediaContextMenuPosition.value = {x: event.clientX, y: event.clientY};
+  isMediaContextMenuOpen.value = true;
+}
+
+function closeMediaContextMenu() {
+  isMediaContextMenuOpen.value = false;
+}
+
+function mediaIconState(value: unknown): "success" | "error" | "idle" {
+  if (value === "success" || value === false) return "success";
+  if (value === "error" || value === true) return "error";
+  return "idle";
+}
+
+function askToConfirmChoice() {
+  closeMediaContextMenu();
+  confirmPublication.value = true;
+}
+
+function selectedRepertoryRows() {
+  return Array.from(selectedMediaIndexes.value)
+      .sort((a, b) => a - b)
+      .map((index) => mediaList.value[index])
+      .filter((row): row is Record<string, any> => Boolean(row));
+}
+
+function showReconciliationScreen() {
+  closeMediaContextMenu();
+  openFromRepertory.value = true;
+  reconciliationDate.value = appStore.sharedDate;
+  reconciliationChannel.value = playlistStore.searchCriteria.chaine || "LAUNE";
+  plannedProducts.value = [];
+  selectedPlannedProductIndexes.value.clear();
+  selectedPlannedProductAnchor.value = null;
+  isReconciliationModalOpen.value = true;
+  void searchPlannedProducts();
+}
+
+async function copyPath() {
+  closeMediaContextMenu();
+  const row = selectedRepertoryRows()[0];
+  const path = String(row?.destination ?? "");
+  if (!path) return;
+  await navigator.clipboard.writeText(path);
 }
 
 function toIsoLocalDate(value: string) {
@@ -521,14 +665,97 @@ async function loadMediaList() {
   try {
     const http = useHttp("vod-manual.loadMediaList");
     const {data} = await http.get(`restore/service/mediarestore/${selectedRepertory.value}`);
-    mediaList.value = Array.isArray(data) ? data : [];
+    mediaList.value = Array.isArray(data)
+        ? data.map((item) => ({
+          ...item,
+          orderseg: item.segment ?? "",
+          reconcile: "",
+          transcod: "",
+          lavadata: [],
+          finishedDate: typeof item.finishedDate === "string" ? item.finishedDate.replace("T", "  ") : "",
+          creation: typeof item.creation === "string" ? item.creation.replace("T", "  ") : "",
+        }))
+        : [];
   } catch {
     mediaList.value = [];
   }
 }
 
+function toSlashDate(value: string) {
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function getPlatformsFromLavadata(row: Record<string, any>) {
+  const lava = Array.isArray(row.lavadata) ? row.lavadata : [];
+  return lava.map((entry: Record<string, any>) => ({
+    name: entry?.plateformOffers?.[0]?.name ?? "",
+    mediaId: row.fileName ?? "",
+    offerName: entry?.plateformOffers?.[0]?.offerName ?? "",
+    recordId: entry?.idRecord,
+    reference: entry?.plateformOffers?.[0]?.caseReferenceExterne ?? "",
+    recordVodXmlId: entry?.plateformOffers?.[0]?.recordvodxmlid ?? "",
+    signaletique: {},
+  }));
+}
+
+function buildRestoreFromRepertory(row: Record<string, any>, publish: boolean) {
+  const channel = playlistStore.searchCriteria.chaine || "";
+  const firstLava = Array.isArray(row.lavadata) ? row.lavadata[0] : null;
+  return {
+    chaine: channel === "NONLINEAIRE" ? "" : channel,
+    vodDay: toSlashDate(appStore.sharedDate),
+    mediaId: firstLava?.idStk ?? "",
+    episodeId: firstLava?.idEpisode ?? "",
+    titre: row.title ?? "",
+    filiere: selectedRepertory.value,
+    segments: [{number: row.orderseg, name: row.destination}],
+    publish,
+    transcode: true,
+    byAutomation: channel !== "NONLINEAIRE",
+    manual: true,
+    platforms: getPlatformsFromLavadata(row),
+  };
+}
+
+async function decoupeTranscodeFromRepertory() {
+  const rows = selectedRepertoryRows();
+  if (!rows.length) {
+    confirmPublication.value = false;
+    return;
+  }
+  const payload = rows
+      .filter((row) => Array.isArray(row.lavadata) && row.lavadata.length > 0)
+      .map((row) => buildRestoreFromRepertory(row, choicepubli.value === "oui"));
+  if (!payload.length) {
+    rows.forEach((row) => {
+      row.transcod = "error";
+    });
+    confirmPublication.value = false;
+    return;
+  }
+  try {
+    const http = useHttp("vod-manual.restore.repertory");
+    await http.post("restore/service/record/save", payload);
+    rows.forEach((row) => {
+      row.transcod = "success";
+    });
+  } catch {
+    rows.forEach((row) => {
+      row.transcod = "error";
+    });
+  } finally {
+    confirmPublication.value = false;
+  }
+}
+
 onMounted(async () => {
+  document.addEventListener("click", closeMediaContextMenu);
   await loadMediaList();
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closeMediaContextMenu);
 });
 </script>
 
@@ -590,6 +817,14 @@ table {
     color: #ffffff;
     z-index: 1;
   }
+}
+
+.order-column {
+  min-width: 7.5rem;
+}
+
+.order-input {
+  min-width: 6.2rem;
 }
 
 .selected {
@@ -757,6 +992,87 @@ button:disabled {
 
 .manual-status--idle {
   color: #9fb9c8;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 30;
+  min-width: 260px;
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem 0;
+  border: 1px solid rgba(143, 215, 236, 0.28);
+  border-radius: 10px;
+  background: #07233b;
+}
+
+.context-menu li {
+  padding: 0.55rem 0.8rem;
+  color: #d4edf6;
+  cursor: pointer;
+}
+
+.context-menu li:hover {
+  background: rgba(46, 208, 242, 0.2);
+}
+
+.publish-modal {
+  width: min(420px, 90vw);
+  border-radius: 12px;
+  border: 1px solid rgba(143, 215, 236, 0.22);
+  background: #07233b;
+  color: #fff;
+  padding: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.publish-modal__content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.8rem;
+}
+
+.publish-modal__radios {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.publish-modal__radios label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.publish-modal__actions {
+  display: grid;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+:deep(.status-pill) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 1.35rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+:deep(.status-pill--success) { background: #1c8f5a; }
+:deep(.status-pill--warning) { background: #d08a22; }
+:deep(.status-pill--in-progress) { background: #e0b420; }
+:deep(.status-pill--danger) { background: #c24242; }
+:deep(.status-pill--neutral) { background: #6b7280; }
+
+.publish-modal__radios input[type="radio"] {
+  margin: 0;
 }
 
 
