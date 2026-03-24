@@ -252,13 +252,12 @@
                                     
                      <b-table  
                                @row-contextmenu="openMenu"
-                                class="ongletassignation"
+                                class="media-list-table"
                                 bordered
                                 hover
                                 responsives
                                 small
                                 position="top-right"
-                                sticky-header="75vh"
                                 head-variant="light"
                                 :items="this.repertoryValue"
                                 :fields="elemenrepertoryfields"
@@ -324,12 +323,12 @@
                      </header>
                   <div class="bg-light text-left mb-2" >
                     <div class="  text-left ml-2 mb-2"><strong>Titre :</strong> {{ this.titleselectedelement}}  </div>
-                    <b-row>
-                    <b-col class="col-3">
+                    <b-row class="compact-search-controls">
+                    <b-col class="col-3 compact-control-col">
                       <strong>Chaine:</strong>
                       <b-form-select  v-model="chaine" :options="optionchaineList" size="sm"   class=" btn-icon"  ></b-form-select>
                     </b-col>
-                    <b-col class="col-4">
+                    <b-col class="col-3 compact-control-col">
                      
                     <div class=" text-left ml-2 mb-2"> 
                       <strong>Date:</strong>
@@ -586,7 +585,6 @@ export default {
       repertoryValue:[],
       optionchaineList:[],
        optionchainedif: [
-          { value: "NONLINEAIRE", text: "Non linéaire" },
           { value: "LAUNE", text: "La Une" },
           { value: "TIPIKTV", text: "Tipik" },
           { value: "LATROIS", text: "La Trois" },
@@ -594,7 +592,6 @@ export default {
           { value: "70ANS", text: "70 ans" },
         ],
         tableconversionchainedif: [
-          { key: "NONLINEAIRE", text: "Non linéaire" },
           { key: "LAUNE", text: "La Une" },
           { key: "TIPIKTV", text: "Tipik" },
           { key: "LATROIS", text: "La Trois" },
@@ -637,9 +634,13 @@ export default {
           (result) => {
             
             result.data.forEach(elt => {
+              if (Object.keys(elt)[0] === "NONLINEAIRE") return;
               let newelt= {value: Object.keys(elt)[0], text: Object.values(elt)[0]}
               this.optionchaineList.push(newelt)     
                   });
+            if (!this.chaine || this.chaine === "NONLINEAIRE") {
+              this.chaine = "LAUNE";
+            }
              
                   
           },
@@ -1554,6 +1555,17 @@ export default {
 .ongletassignation {
   min-height: 38vh !important;
   max-height: 38vh !important;
+}
+.media-list-table {
+  min-height: auto !important;
+  max-height: none !important;
+}
+.compact-control-col {
+  max-width: 220px;
+  flex: 0 0 220px;
+}
+.compact-search-controls {
+  justify-content: flex-start;
 }
 @import "../assets/css/_variables.scss";
 .playlistpige {
