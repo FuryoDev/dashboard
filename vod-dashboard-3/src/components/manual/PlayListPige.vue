@@ -133,7 +133,13 @@
           <table>
             <thead>
             <tr>
-              <th v-for="column in mediaColumns" :key="column.key">{{ column.label }}</th>
+              <th
+                  v-for="column in mediaColumns"
+                  :key="column.key"
+                  :class="{ 'order-column': column.key === 'orderseg' }"
+              >
+                {{ column.label }}
+              </th>
             </tr>
             </thead>
             <tbody>
@@ -144,7 +150,11 @@
                 @click="onMediaRowClick(idx, $event)"
                 @contextmenu.prevent="onMediaRowContextMenu(idx, $event)"
             >
-              <td v-for="column in mediaColumns" :key="`${column.key}-${idx}`">
+              <td
+                  v-for="column in mediaColumns"
+                  :key="`${column.key}-${idx}`"
+                  :class="{ 'order-column': column.key === 'orderseg' }"
+              >
                 <template v-if="column.key === 'reconcile' || column.key === 'transcod'">
                   <span :class="['manual-status', `manual-status--${mediaIconState(item[column.key])}`]">
                     <template v-if="mediaIconState(item[column.key]) === 'success'">✓</template>
@@ -153,7 +163,10 @@
                   </span>
                 </template>
                 <template v-else-if="column.key === 'orderseg'">
-                  <input v-model="(item as Record<string, unknown>).orderseg" type="number"/>
+                  <input v-model="(item as Record<string, unknown>).orderseg" class="order-input" type="number"/>
+                </template>
+                <template v-else-if="column.key === 'status'">
+                  <span :class="getStatusClass(String(item.status ?? ''))">{{ String(item.status ?? "") }}</span>
                 </template>
                 <template v-else>
                   {{ String(item[column.key] ?? "") }}
@@ -177,7 +190,7 @@
           <div class="panel selected-element">
             <header class="panel__header">Element sélectionné</header>
             <div class="selected-element__content">
-              <p><strong>Titre :</strong> {{ selectedAssignedItem?.title ?? "" }}</p>
+              <p><strong>Titre :</strong> {{ selectedReconciliationItem?.title ?? "" }}</p>
               <div class="selected-element__filters">
                 <label>
                   Chaine:
@@ -191,7 +204,7 @@
                   Date:
                   <input v-model="reconciliationDate" type="date"/>
                 </label>
-                <p><strong>Duration :</strong> {{ selectedAssignedItem?.durationLabel ?? "" }}</p>
+                <p><strong>Duration :</strong> {{ selectedReconciliationItem?.durationLabel ?? "" }}</p>
                 <button type="button" @click="searchPlannedProducts">Rechercher</button>
               </div>
             </div>
@@ -255,11 +268,15 @@
       <section class="publish-modal">
         <h3>Transcodage avec/sans publication</h3>
         <p>Vous voulez les publier ?</p>
-        <label><input v-model="choicepubli" type="radio" value="oui"/> Oui</label>
-        <label><input v-model="choicepubli" type="radio" value="non"/> Non</label>
-        <div class="publish-modal__actions">
-          <button type="button" @click="decoupeTranscodeFromRepertory">Confirmer</button>
-          <button type="button" @click="confirmPublication = false">Annuler</button>
+        <div class="publish-modal__content">
+          <div class="publish-modal__radios">
+            <label><input v-model="choicepubli" type="radio" value="oui"/> <span>Oui</span></label>
+            <label><input v-model="choicepubli" type="radio" value="non"/> <span>Non</span></label>
+          </div>
+          <div class="publish-modal__actions">
+            <button type="button" @click="decoupeTranscodeFromRepertory">Confirmer</button>
+            <button type="button" @click="confirmPublication = false">Annuler</button>
+          </div>
         </div>
       </section>
     </div>
@@ -273,6 +290,7 @@ import {usePlaylistOffersStore} from "@/stores/playlist.offer";
 import {useHttp} from "@/composables/useHttp";
 import {useAppStore} from "@/stores/app.store";
 import type {PlaylistItem} from "@/types/domain";
+import {getStatusClass} from "@/utils/status";
 
 type AssignedItem = PlaylistItem & {
   reconcile?: string;
@@ -338,6 +356,10 @@ const selectedPlannedProductIndexes = ref(new Set<number>());
 const selectedPlannedProductAnchor = ref<number | null>(null);
 const reconciliationDate = ref(appStore.sharedDate);
 const reconciliationChannel = ref(playlistStore.searchCriteria.chaine || "LAUNE");
+const selectedReconciliationItem = computed<Record<string, any> | null>(() => {
+  if (openFromRepertory.value) return selectedRepertoryRows()[0] ?? null;
+  return selectedAssignedItem.value;
+});
 
 function toggle(item: { traficId: string }) {
   if (selectedIds.value.has(item.traficId)) selectedIds.value.delete(item.traficId);
@@ -366,6 +388,7 @@ function removeSelected() {
 
 function openReconciliationModal() {
   if (!canReconcile.value) return;
+  openFromRepertory.value = false;
   reconciliationDate.value = appStore.sharedDate;
   reconciliationChannel.value = playlistStore.searchCriteria.chaine || "LAUNE";
   plannedProducts.value = [];
@@ -701,7 +724,16 @@ async function decoupeTranscodeFromRepertory() {
     confirmPublication.value = false;
     return;
   }
-  const payload = rows.map((row) => buildRestoreFromRepertory(row, choicepubli.value === "oui"));
+  const payload = rows
+      .filter((row) => Array.isArray(row.lavadata) && row.lavadata.length > 0)
+      .map((row) => buildRestoreFromRepertory(row, choicepubli.value === "oui"));
+  if (!payload.length) {
+    rows.forEach((row) => {
+      row.transcod = "error";
+    });
+    confirmPublication.value = false;
+    return;
+  }
   try {
     const http = useHttp("vod-manual.restore.repertory");
     await http.post("restore/service/record/save", payload);
@@ -785,6 +817,14 @@ table {
     color: #ffffff;
     z-index: 1;
   }
+}
+
+.order-column {
+  min-width: 7.5rem;
+}
+
+.order-input {
+  min-width: 6.2rem;
 }
 
 .selected {
@@ -987,9 +1027,52 @@ button:disabled {
   gap: 0.6rem;
 }
 
+.publish-modal__content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.8rem;
+}
+
+.publish-modal__radios {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.publish-modal__radios label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .publish-modal__actions {
-  display: flex;
-  gap: 0.5rem;
+  display: grid;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+:deep(.status-pill) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 1.35rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+:deep(.status-pill--success) { background: #1c8f5a; }
+:deep(.status-pill--warning) { background: #d08a22; }
+:deep(.status-pill--in-progress) { background: #e0b420; }
+:deep(.status-pill--danger) { background: #c24242; }
+:deep(.status-pill--neutral) { background: #6b7280; }
+
+.publish-modal__radios input[type="radio"] {
+  margin: 0;
 }
 
 
