@@ -652,7 +652,7 @@ const availableChannels = computed(() =>
     uniqueValues(
         props.emissions
             .map((item) => String(item.channel ?? "").trim())
-            .filter(Boolean)
+            //.filter(Boolean)
     )
 );
 

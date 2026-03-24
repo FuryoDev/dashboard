@@ -6,12 +6,12 @@
         <select v-model="selectedVodType">
           <option value="">Tous</option>
           <option v-for="item in vodTypes" :key="item.value" :value="item.value">
-            {{ item.text || item.value }}
+            {{ item.value }}
           </option>
         </select>
       </label>
       <label v-else class="filter-label">
-        <span class="filter-label">Type forcé</span>
+        <span class="filter-label">Type</span>
         <span class="readonly-vod-type">{{ effectiveVodType || "—" }}</span>
       </label>
       <label>
