@@ -34,6 +34,7 @@
 import {computed, ref, watch} from "vue";
 import type {OptionItem} from "@/services/notification.api";
 import {useUserStore} from "@/stores/user.store";
+import {isCatchVodType, isFastVodType} from "@/utils/vodType";
 
 const props = defineProps<{
   vodTypes: OptionItem[];
@@ -57,35 +58,21 @@ const userStore = useUserStore();
 
 const canSelectVodType = computed(() => userStore.canSelectVodType);
 
-function normalizeVodType(value: string): string {
-  return value
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[\s_-]/g, "")
-      .toUpperCase();
-}
-
 function resolveForcedVodType(vodTypes: OptionItem[]): string {
   const values = vodTypes
       .map((item) => String(item.value ?? "").trim())
       .filter(Boolean);
 
-  const findByMatchers = (matchers: RegExp[]) =>
-      values.find((value) => {
-        const normalized = normalizeVodType(value);
-        return matchers.some((matcher) => matcher.test(normalized));
-      });
-
   // Règles métier:
   // - GR_vodoo_users => CATCH
   // - GR_vodoo_fasttv => FAST
   if (userStore.hasVodUsersGroup) {
-    const catchupType = findByMatchers([/CATCH/, /CATCHUP/, /FVOD/]);
+    const catchupType = values.find((value) => isCatchVodType(value));
     if (catchupType) return catchupType;
   }
 
   if (userStore.hasFastTvGroup) {
-    const fastType = findByMatchers([/FAST/]);
+    const fastType = values.find((value) => isFastVodType(value));
     if (fastType) return fastType;
   }
 
