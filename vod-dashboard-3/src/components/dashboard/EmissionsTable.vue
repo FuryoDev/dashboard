@@ -450,6 +450,7 @@ import logoAuvioKids from "@/assets/images/logo/LOGO_AUVIOKIDS_SVG_26.svg";
 import logoLaTrois from "@/assets/images/logo/LOGO_LATROIS_RVB_26.svg";
 import vodTypeFast from "@/assets/images/vodtype/FAST.png";
 import vodTypeCatch from "@/assets/images/vodtype/CATCH.png";
+import {isCatchVodType, isFastVodType} from "@/utils/vodType";
 
 const props = defineProps<{
   emissions: Emission[];
@@ -701,6 +702,16 @@ const availableVodTypes = computed(() =>
             .filter(Boolean)
     )
 );
+const forcedVodTypeFilters = computed(() => {
+  if (userStore.canSelectVodType) return [] as string[];
+  if (userStore.hasVodUsersGroup) {
+    return availableVodTypes.value.filter((vodType) => isCatchVodType(vodType));
+  }
+  if (userStore.hasFastTvGroup) {
+    return availableVodTypes.value.filter((vodType) => isFastVodType(vodType));
+  }
+  return [] as string[];
+});
 const filteredEmissions = computed(() => {
   return props.emissions.filter((item) => {
     const channel = String(item.channel ?? "").trim();
@@ -713,9 +724,13 @@ const filteredEmissions = computed(() => {
     const matchChannel =
         selectedChannelFilters.value.length === 0 ||
         selectedChannelFilters.value.includes(channel);
+    const activeVodTypeFilters =
+        selectedVodTypeFilters.value.length > 0
+            ? selectedVodTypeFilters.value
+            : forcedVodTypeFilters.value;
     const matchVodType =
-        selectedVodTypeFilters.value.length === 0 ||
-        selectedVodTypeFilters.value.includes(vodType);
+        activeVodTypeFilters.length === 0 ||
+        activeVodTypeFilters.includes(vodType);
     const matchPlatform =
         selectedPlatformFilters.value.length === 0 ||
         selectedPlatformFilters.value.includes(platform);
