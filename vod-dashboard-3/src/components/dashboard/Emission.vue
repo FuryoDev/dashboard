@@ -8,17 +8,17 @@
 
     <form class="manual-page__filters" @submit.prevent="search">
       <label>
-        Date
-        <input v-model="selectedDate" type="date"/>
-      </label>
-
-      <label>
         Chaine de diffusion
         <select v-model="selectedChannel">
           <option v-for="channel in channels" :key="channel.value" :value="channel.value">
             {{ channel.text }}
           </option>
         </select>
+      </label>
+
+      <label>
+        Date
+        <input v-model="selectedDate" type="date"/>
       </label>
 
       <button type="submit">Rechercher</button>
@@ -105,7 +105,7 @@ label {
 
 input,
 select {
-  width: 220px;
+  width: 88px;
   border: 1px solid rgba(143, 215, 236, 0.4);
   border-radius: 8px;
   background: #0f2b45;
