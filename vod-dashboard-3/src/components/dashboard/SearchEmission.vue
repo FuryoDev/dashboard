@@ -24,8 +24,6 @@
         <button type="submit">Rechercher</button>
         <button type="button" class="secondary" @click="reset">Réinitialiser</button>
       </div>
-
-      <!--      <button type="button" class="secondary" @click="$emit('bulk-clean')">Nettoyer statuts sélectionnés</button>-->
     </div>
   </form>
 </template>

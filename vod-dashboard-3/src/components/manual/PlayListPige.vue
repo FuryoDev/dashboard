@@ -1,6 +1,5 @@
 <template>
   <section class="playlist-layout">
-    <!-- LEFT: playlist pige -->
     <div class="panel panel--left">
       <header class="panel__header">PlayList De La pige</header>
       <div class="panel__body table-wrap">
@@ -38,13 +37,11 @@
       </div>
     </div>
 
-    <!-- MIDDLE: actions -->
     <div class="actions">
       <button type="button" :disabled="selectedIds.size === 0" @click="addSelected">≫ Ajouter</button>
       <button type="button" :disabled="selectedAssignedId === null" @click="removeSelected">≪ Retirer</button>
     </div>
 
-    <!-- RIGHT: selected + media list -->
     <div class="right-column">
       <div class="panel">
         <header class="panel__header">Séquences sélectionnées</header>
