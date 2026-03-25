@@ -125,7 +125,7 @@
           <td>{{ String(item.idEpisode ?? "") }}</td>
           <td>
             {{
-              formatReadableDateWithMs(
+              formatReadableDate(
                   (item.plateformOffers?.[0]?.startDateTime ??
                       item.dateHeureDebutVisibilite) as string | undefined
               )
@@ -511,14 +511,14 @@ const columns: Array<{ key: ColumnKey; label: string }> = [
 
 const columnWidths = reactive<Record<ColumnKey, number>>({
   channel: 110,
-  vodType: 50,
-  title: 260,
+  vodType: 30,
+  title: 240,
   duree: 90,
-  idEpisode: 170,
-  dateHeureDebutVisibilite: 170,
-  plateforme: 110,
+  idEpisode: 150,
+  dateHeureDebutVisibilite: 120,
+  plateforme: 70,
   traitement: 170,
-  commentaire: 300,
+  commentaire: 250,
   delai: 70,
   par: 70,
   transcodage: 170,
@@ -1491,7 +1491,7 @@ function startActionModalResize(key: ActionModalColumnKey, event: MouseEvent) {
 }
 
 function startResize(key: ColumnKey, event: MouseEvent) {
-  setupResizeDrag(key, event, columnWidths, 50);
+  setupResizeDrag(key, event, columnWidths, 30);
 }
 
 onMounted(() => {
@@ -1537,6 +1537,7 @@ function statusComment(item: Emission) {
       .filter(Boolean)
       .join(" | ");
 }
+
 </script>
 
 <style scoped lang="scss">
