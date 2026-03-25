@@ -1,8 +1,8 @@
 <template>
   <form class="search-form" @submit.prevent="submit">
     <div class="search-form__main">
-      <label v-if="canSelectVodType" class="filter-label">
-        <span class="filter-label">Type</span>
+      <label v-if="canSelectVodType" class="search-form__field">
+        <span class="search-form__field-label">Type</span>
         <select v-model="selectedVodType">
           <option value="">Tous</option>
           <option v-for="item in vodTypes" :key="item.value" :value="item.value">
@@ -10,12 +10,12 @@
           </option>
         </select>
       </label>
-      <label v-else class="filter-label">
-        <span class="filter-label">Type</span>
+      <label v-else class="search-form__field">
+        <span class="search-form__field-label">Type</span>
         <span class="readonly-vod-type">{{ effectiveVodType || "—" }}</span>
       </label>
-      <label>
-        <span class="filter-label">Jour</span>
+      <label class="search-form__field">
+        <span class="search-form__field-label">Jour</span>
         <input v-model="date" type="date"/>
       </label>
     </div>
@@ -150,13 +150,23 @@ function reset() {
 label,
 fieldset {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   gap: 0.35rem;
   font-size: 0.88rem;
   border: 0;
   margin: 0;
   padding: 0;
   color: #d4edf6;
+}
+
+.search-form__field {
+  display: inline-flex;
+  align-items: center;
+}
+
+.search-form__field-label {
+  white-space: nowrap;
 }
 
 .checkbox-inline {
