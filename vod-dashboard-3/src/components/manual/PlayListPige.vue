@@ -2,7 +2,7 @@
   <section class="playlist-layout">
     <div class="panel panel--left">
       <header class="panel__header">PlayList De La pige</header>
-      <div class="panel__body table-wrap table-wrap--no-limit">
+      <div class="panel__body table-wrap">
         <table>
           <thead>
           <tr>
