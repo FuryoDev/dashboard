@@ -4,6 +4,8 @@ import {createEmissionsApi} from "@/services/emissions.api";
 import {createNotificationApi, type OptionItem} from "@/services/notification.api";
 import {toLavaDate} from "@/utils/date";
 import type {Emission} from "@/types/domain";
+import {useUserStore} from "@/stores/user.store";
+import {isCatchVodType, isFastVodType} from "@/utils/vodType";
 
 
 
@@ -97,6 +99,7 @@ export const useEmissionsStore = defineStore("emissions", {
             this.loading = true;
             this.error = null;
             try {
+                const userStore = useUserStore();
                 const api = createEmissionsApi(useHttp("emissions.fetchAll"));
                 const selectedDate = params?.date ?? new Date();
                 const channels = params?.channels?.join(",") ?? "";
@@ -108,6 +111,12 @@ export const useEmissionsStore = defineStore("emissions", {
                     data = data.filter((item) => selectedVodTypes.includes(String(item.vodType ?? "")));
                 } else if (params?.vodType) {
                     data = data.filter((item) => String(item.vodType ?? "") === params.vodType);
+                } else if (!userStore.canSelectVodType) {
+                    if (userStore.hasVodUsersGroup) {
+                        data = data.filter((item) => isCatchVodType(String(item.vodType ?? "")));
+                    } else if (userStore.hasFastTvGroup) {
+                        data = data.filter((item) => isFastVodType(String(item.vodType ?? "")));
+                    }
                 }
 
                 if (params?.platforms?.length) {
