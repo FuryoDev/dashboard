@@ -1,8 +1,9 @@
 <template>
   <section class="playlist-layout">
+    <!-- LEFT: playlist pige -->
     <div class="panel panel--left">
       <header class="panel__header">PlayList De La pige</header>
-      <div class="panel__body table-wrap">
+      <div class="panel__body table-wrap  table-wrap--no-limit">
         <table>
           <thead>
           <tr>
@@ -37,11 +38,13 @@
       </div>
     </div>
 
+    <!-- MIDDLE: actions -->
     <div class="actions">
       <button type="button" :disabled="selectedIds.size === 0" @click="addSelected">≫ Ajouter</button>
       <button type="button" :disabled="selectedAssignedId === null" @click="removeSelected">≪ Retirer</button>
     </div>
 
+    <!-- RIGHT: selected + media list -->
     <div class="right-column">
       <div class="panel">
         <header class="panel__header">Séquences sélectionnées</header>
@@ -59,6 +62,7 @@
               <th>Heure</th>
               <th>Durée</th>
               <th>Clé SGT</th>
+              <th>Segment</th>
             </tr>
             </thead>
             <tbody>
@@ -98,6 +102,7 @@
               <td>{{ item.heure }}</td>
               <td>{{ item.durationLabel }}</td>
               <td>{{ item.traficId }}</td>
+              <td>{{ item.segment }}</td>
             </tr>
             </tbody>
           </table>
@@ -126,7 +131,7 @@
           <button type="button" @click="loadMediaList">Actualiser</button>
         </div>
 
-        <div class="panel__body table-wrap table-wrap--no-limit">
+        <div class="panel__body table-wrapp table-wrap--no-limit">
           <table>
             <thead>
             <tr>
