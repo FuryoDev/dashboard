@@ -3,7 +3,7 @@
     <!-- LEFT: playlist pige -->
     <div class="panel panel--left">
       <header class="panel__header">PlayList De La pige</header>
-      <div class="panel__body table-wrap  table-wrap--no-limit">
+      <div class="panel__body table-wrap--no-limit">
         <table>
           <thead>
           <tr>
@@ -131,7 +131,7 @@
           <button type="button" @click="loadMediaList">Actualiser</button>
         </div>
 
-        <div class="panel__body table-wrapp table-wrap--no-limit">
+        <div class="panel__body table-wrap--no-limit">
           <table>
             <thead>
             <tr>
@@ -818,7 +818,8 @@ onBeforeUnmount(() => {
 
 .table-wrap--no-limit {
   max-height: none;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 table {
