@@ -105,7 +105,7 @@ label {
 
 input,
 select {
-  width: 220px;
+  width: 130px;
   border: 1px solid rgba(143, 215, 236, 0.4);
   border-radius: 8px;
   background: #0f2b45;
